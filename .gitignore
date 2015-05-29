@@ -3,6 +3,8 @@
 *.lo
 *.o
 *.obj
+*.ko
+*.elf
 
 # Precompiled Headers
 *.gch
@@ -12,6 +14,7 @@
 *.so
 *.dylib
 *.dll
+*.so.*
 
 # Fortran module files
 *.mod
@@ -21,8 +24,28 @@
 *.la
 *.a
 *.lib
+*.lo
 
 # Executables
 *.exe
 *.out
 *.app
+*.i*86
+*.x_86_64
+*.hex
+
+# Debug files
+*.dSYM/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# Generic files to ignore
+*~
+*.DS_Store
+*.swp
+*.out
