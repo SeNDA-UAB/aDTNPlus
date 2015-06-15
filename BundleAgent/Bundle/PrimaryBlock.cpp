@@ -22,54 +22,107 @@
  * This file contains the implementation of the PrimaryBlock class.
  */
 
-#include <string>
 #include "PrimaryBlock.h"
+#include <string>
 
 PrimaryBlock::PrimaryBlock()
-    : m_lifetime(0),
-      m_creationTimestamp(0),
-      m_procFlags(0),
-      m_creationTimestampSeqNumber(0),
-      m_source(),
+    : m_procFlags(),
       m_destination(),
+      m_source(),
       m_reportTo(),
-      m_custodian() {
+      m_custodian(),
+      m_creationTimestamp(0),
+      m_creationTimestampSeqNumber(0),
+      m_lifetime(0) {
 }
 
 PrimaryBlock::PrimaryBlock(uint8_t *rawData)
-    : m_lifetime(0),
-      m_creationTimestamp(0),
-      m_procFlags(0),
-      m_creationTimestampSeqNumber(0),
-      m_source(),
+    : m_procFlags(),
       m_destination(),
+      m_source(),
       m_reportTo(),
-      m_custodian() {
+      m_custodian(),
+      m_creationTimestamp(0),
+      m_creationTimestampSeqNumber(0),
+      m_lifetime(0) {
 }
 
 PrimaryBlock::PrimaryBlock(const std::string &source,
                            const std::string &destination,
                            const uint64_t &timestamp, const uint64_t &seqNumber)
-    : m_lifetime(0),
-      m_creationTimestamp(timestamp),
-      m_procFlags(0),
-      m_creationTimestampSeqNumber(seqNumber),
-      m_source(source),
+    : m_procFlags(),
       m_destination(destination),
+      m_source(source),
       m_reportTo(),
-      m_custodian() {
+      m_custodian(),
+      m_creationTimestamp(timestamp),
+      m_creationTimestampSeqNumber(seqNumber),
+      m_lifetime(0) {
 }
 
 PrimaryBlock::~PrimaryBlock() {
 }
 
-void PrimaryBlock::setProcFlag() {
+void PrimaryBlock::setProcFlag(PrimaryBlockControlFlags procFlag) {
+  if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
+    m_procFlags.set(static_cast<ulong>(procFlag));
+  } else {
+    // Priority is represented with values into bytes 7 and 8,
+    // BULK = 00, NORMAL = 01, EXPEDITED = 10
+    switch (procFlag) {
+      case PrimaryBlockControlFlags::PRIORITY_BULK:
+        m_procFlags.reset(7);
+        m_procFlags.reset(8);
+        break;
+      case PrimaryBlockControlFlags::PRIORITY_NORMAL:
+        m_procFlags.set(7);
+        m_procFlags.reset(8);
+        break;
+      case PrimaryBlockControlFlags::PRIORITY_EXPEDITED:
+        m_procFlags.reset(7);
+        m_procFlags.set(8);
+        break;
+    }
+  }
 }
 
-void PrimaryBlock::clearProcFlag() {
+void PrimaryBlock::clearProcFlag(PrimaryBlockControlFlags procFlag) {
+  if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
+    m_procFlags.reset(static_cast<ulong>(procFlag));
+  } else {
+    // Priority is represented with values into bytes 7 and 8,
+    // BULK = 00, NORMAL = 01, EXPEDITED = 10
+    m_procFlags.reset(7);
+    m_procFlags.reset(8);
+  }
 }
 
-const bool PrimaryBlock::testFlag() {
+bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
+  bool flagActive = false;
+  if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
+      && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
+    flagActive = m_procFlags.test(static_cast<ulong>(procFlag));
+  } else {
+    // Priority is represented with values into bytes 7 and 8,
+    // BULK = 00, NORMAL = 01, EXPEDITED = 10
+    switch (procFlag) {
+      case PrimaryBlockControlFlags::PRIORITY_BULK:
+        flagActive = !m_procFlags.test(7) && !m_procFlags.test(8);
+        break;
+      case PrimaryBlockControlFlags::PRIORITY_NORMAL:
+        flagActive = m_procFlags.test(7) && !m_procFlags.test(8);
+        break;
+      case PrimaryBlockControlFlags::PRIORITY_EXPEDITED:
+        flagActive = !m_procFlags.test(7) && m_procFlags.test(8);
+        break;
+    }
+  }
+  return flagActive;
 }
 
 uint8_t* PrimaryBlock::getRaw() {

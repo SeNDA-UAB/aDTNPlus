@@ -26,6 +26,8 @@
 
 #include <cstdio>
 #include <string>
+#include <bitset>
+#include "BundleTypes.h"
 
 /**
  * CLASS PrimaryBlock
@@ -64,25 +66,108 @@ class PrimaryBlock {
    * Destructor of the class
    */
   virtual ~PrimaryBlock();
-  void setProcFlag();
-  void clearProcFlag();
-  const bool testFlag();
+  /**
+   * @brief Sets the given flag
+   *
+   * This function sets the given flag to value 1.
+   *
+   * @param procFlag the flag to set.
+   *
+   * @sa PrimaryBlockControlFlags
+   */
+  void setProcFlag(PrimaryBlockControlFlags procFlag);
+  /**
+   * @brief Clears the given flag
+   *
+   * This function sets the given flag to value 0.
+   *
+   * @param procFlag the flag to clear.
+   *
+   * @sa PrimaryBlockControlFlags
+   */
+  void clearProcFlag(PrimaryBlockControlFlags procFlag);
+  /**
+   * @brief Test if a flag is active or not
+   *
+   * This function tests if the given flag is active or not.
+   *
+   * @param procFlag the flag to test.
+   * @return True if the flag is active, false otherwise.
+   *
+   * @sa PrimaryBlockControlFlags
+   */
+  bool testFlag(PrimaryBlockControlFlags procFlag);
+  /**
+   * @brief Function to get the primary block in raw format.
+   *
+   * This function converts the primary block into raw format.
+   *
+   * @return This primary block as raw.
+   */
   uint8_t* getRaw();
+  /**
+   * Function to get the Destination set in the primary block.
+   * @return the destination field.
+   */
   const std::string getDestination();
+  /**
+   * Function to get the Source set in the primary block.
+   * @return the source field.
+   */
   const std::string getSource();
+  /**
+   * Function to get the ReportTo set in the primary block.
+   * @return the reportTo field.
+   */
   const std::string getReportTo();
+  /**
+   * Function to get the Custodian set in the primary block.
+   * @return the custodian field.
+   */
   const std::string getCustodian();
+  /**
+   * Function to get the creation timestamp set in the primary block.
+   * @return the timestamp field.
+   */
   const uint64_t getCreationTimestamp();
+  /**
+   * Function to get the lifetime set in the primary block.
+   * @return the lifetime field.
+   */
   const uint64_t getLifetime();
+  /**
+   * Function to get the creation timestamp sequence number.
+   * @return the timestamp sequence number field.
+   */
   const uint64_t getCreationTimestampSeqNumber();
+  /**
+   * Function to set a new destination into the primary block.
+   * @param destination new destination to set.
+   */
   void setDestination(const std::string &destination);
+  /**
+   * Function to set a new source into the primary block.
+   * @param source new source to set.
+   */
   void setSource(const std::string &source);
+  /**
+   * Function to set a new reportTo into the primary block.
+   * @param reportTo new reportTo to set.
+   */
   void setReportTo(const std::string &reportTo);
+  /**
+   * Function to set a new custodian into the primary block.
+   * @param custodian new custodian to set.
+   */
   void setCustodian(const std::string &custodian);
+  /**
+   * Function to set a new lifetime into the primary block.
+   * @param lifetime new lifetime to set.
+   */
   void setLifetime(const uint64_t &lifetime);
 
  private:
-  uint32_t m_procFlags;
+  std::bitset<20> m_procFlags;
   std::string m_destination;
   std::string m_source;
   std::string m_reportTo;

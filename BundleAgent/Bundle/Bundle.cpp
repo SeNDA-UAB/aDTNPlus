@@ -21,9 +21,10 @@
  * VERSION 1
  * This file contains the Bundle class implementation.
  */
+
+#include "Bundle.h"
 #include <string>
 #include <vector>
-#include "Bundle.h"
 
 Bundle::Bundle()
     : m_raw(nullptr),

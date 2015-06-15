@@ -91,6 +91,10 @@ class Bundle {
 
  private:
   /**
+   * Pointer with the raw bundle.
+   */
+  uint8_t* m_raw;
+  /**
    * Pointer to the primary block of the bundle.
    */
   PrimaryBlock* m_primaryBlock;
@@ -98,10 +102,6 @@ class Bundle {
    * Vector containing the pointers to all the blocks that the bundle holds.
    */
   std::vector<Block *> m_blocks;
-  /**
-   * Pointer with the raw bundle.
-   */
-  uint8_t* m_raw;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLE_H_
