@@ -61,7 +61,7 @@ class Bundle {
    */
   Bundle(std::string origin, std::string destination, std::string payload);
   /**
-   * Destructor of the class
+   * Destructor of the class.
    */
   virtual ~Bundle();
   /**

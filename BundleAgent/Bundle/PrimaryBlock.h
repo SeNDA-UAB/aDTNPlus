@@ -63,11 +63,11 @@ class PrimaryBlock {
   PrimaryBlock(const std::string &source, const std::string &destination,
                const uint64_t &timestamp, const uint64_t &seqNumber);
   /**
-   * Destructor of the class
+   * Destructor of the class.
    */
   virtual ~PrimaryBlock();
   /**
-   * @brief Sets the given flag
+   * @brief Sets the given flag.
    *
    * This function sets the given flag to value 1.
    *
@@ -77,7 +77,7 @@ class PrimaryBlock {
    */
   void setProcFlag(PrimaryBlockControlFlags procFlag);
   /**
-   * @brief Clears the given flag
+   * @brief Clears the given flag.
    *
    * This function sets the given flag to value 0.
    *
@@ -87,7 +87,7 @@ class PrimaryBlock {
    */
   void clearProcFlag(PrimaryBlockControlFlags procFlag);
   /**
-   * @brief Test if a flag is active or not
+   * @brief Test if a flag is active or not.
    *
    * This function tests if the given flag is active or not.
    *
@@ -167,13 +167,37 @@ class PrimaryBlock {
   void setLifetime(const uint64_t &lifetime);
 
  private:
-  std::bitset<20> m_procFlags;
+  /**
+   * Bundle Processing control flags.
+   */
+  std::bitset<21> m_procFlags;
+  /**
+   * Destination of the bundle.
+   */
   std::string m_destination;
+  /**
+   * Source of the bundle.
+   */
   std::string m_source;
+  /**
+   * Report To field of the bundle.
+   */
   std::string m_reportTo;
+  /**
+   * Custodian field of the bundle.
+   */
   std::string m_custodian;
+  /**
+   * Creation timestamp.
+   */
   uint64_t m_creationTimestamp;
+  /**
+   * Creation timestamp sequence number.
+   */
   uint64_t m_creationTimestampSeqNumber;
+  /**
+   * Bundle lifetime.
+   */
   uint64_t m_lifetime;
 };
 
