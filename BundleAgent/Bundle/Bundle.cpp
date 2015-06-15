@@ -16,10 +16,10 @@
  */
 /**
  * FILE Bundle.cpp
- * AUTHOR BLackcatn13
+ * AUTHOR Blackcatn13
  * DATE Jun 15, 2015
  * VERSION 1
- *
+ * This file contains the Bundle class implementation.
  */
 #include <string>
 #include <vector>
