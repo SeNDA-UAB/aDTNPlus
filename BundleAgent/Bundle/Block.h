@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 15, 2015
  * VERSION 1
- *
+ * This file contains the Block class.
  */
 #ifndef BUNDLEAGENT_BUNDLE_BLOCK_H_
 #define BUNDLEAGENT_BUNDLE_BLOCK_H_

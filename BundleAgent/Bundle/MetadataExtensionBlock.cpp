@@ -15,40 +15,23 @@
  *
  */
 /**
- * FILE Block.cpp
+ * FILE MetadataExtensionBlock.cpp
  * AUTHOR Blackcatn13
  * DATE Jun 15, 2015
  * VERSION 1
- * This file contains the implementation of the Block class.
+ * This file contains the implementation of the metadata extension block
  */
 
-#include "Block.h"
+#include "MetadataExtensionBlock.h"
 
-Block::Block()
-    : m_blockType(0),
-      m_procFlags() {
+MetadataExtensionBlock::MetadataExtensionBlock()
+    : m_metadataType(0),
+      m_metadata(nullptr) {
 }
 
-Block::Block(uint8_t* rawData)
-    : m_blockType(0),
-      m_procFlags() {
+MetadataExtensionBlock::~MetadataExtensionBlock() {
 }
 
-Block::~Block() {
-}
-
-void Block::setProcFlag(BlockControlFlags procFlag) {
-  m_procFlags.set(static_cast<ulong>(procFlag));
-}
-
-void Block::clearProcFlag(BlockControlFlags procFlag) {
-  m_procFlags.reset(static_cast<ulong>(procFlag));
-}
-
-bool Block::testProcFlag(BlockControlFlags procFlag) {
-  return m_procFlags.test(static_cast<ulong>(procFlag));
-}
-
-uint8_t Block::getBlockType() {
-  return m_blockType;
+uint8_t MetadataExtensionBlock::getMetadataType() {
+  return m_metadataType;
 }
