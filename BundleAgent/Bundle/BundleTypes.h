@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 15, 2015
  * VERSION 1
- * This file contains the different types used into the bundle
+ * This file contains the different types used into the bundle.
  */
 #ifndef BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
 #define BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

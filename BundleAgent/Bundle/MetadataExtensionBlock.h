@@ -25,7 +25,7 @@
 #define BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_
 
 #include "Block.h"
-#include <cstdio>
+#include <cstdint>
 
 /**
  * CLASS MetadataExtensionBlock
@@ -37,9 +37,17 @@ class MetadataExtensionBlock : public Block {
   /**
    * @brief Empty constructor.
    *
-   * This will generate and empty Metadata extension block.
+   * This will generate an empty Metadata extension block.
    */
   MetadataExtensionBlock();
+  /**
+   * @brief Raw constructor.
+   *
+   * This will generate Metadata extension block from raw data.
+   *
+   * @param rawData the raw data that contains the metadata block.
+   */
+  explicit MetadataExtensionBlock(uint8_t rawData);
   /**
    * Destructor of the class.
    */

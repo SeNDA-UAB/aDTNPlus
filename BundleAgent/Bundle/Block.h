@@ -24,7 +24,7 @@
 #ifndef BUNDLEAGENT_BUNDLE_BLOCK_H_
 #define BUNDLEAGENT_BUNDLE_BLOCK_H_
 
-#include <cstdio>
+#include <cstdint>
 #include <bitset>
 
 /**

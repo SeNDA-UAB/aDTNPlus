@@ -15,27 +15,35 @@
  *
  */
 /**
- * FILE MetadataExtensionBlock.cpp
+ * FILE PayloadBlock.cpp
  * AUTHOR Blackcatn13
- * DATE Jun 15, 2015
+ * DATE Jun 16, 2015
  * VERSION 1
- * This file contains the implementation of the metadata extension block
+ *
  */
 
-#include "MetadataExtensionBlock.h"
+#include "PayloadBlock.h"
+#include <string>
 
-MetadataExtensionBlock::MetadataExtensionBlock()
-    : m_metadataType(0),
-      m_metadata(nullptr) {
+PayloadBlock::PayloadBlock()
+    : m_payload(nullptr) {
 }
 
-MetadataExtensionBlock::MetadataExtensionBlock(uint8_t rawData)
-    : m_metadata(nullptr) {
+PayloadBlock::PayloadBlock(uint8_t* rawData) {
 }
 
-MetadataExtensionBlock::~MetadataExtensionBlock() {
+PayloadBlock::PayloadBlock(const std::string &payload)
+    : m_payload(payload.c_str()) {
 }
 
-uint8_t MetadataExtensionBlock::getMetadataType() {
-  return m_metadataType;
+PayloadBlock::~PayloadBlock() {
 }
+
+uint8_t PayloadBlock::getRaw() {
+  return 0;
+}
+
+uint8_t* PayloadBlock::getPayload() {
+  return m_payload;
+}
+
