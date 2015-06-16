@@ -63,7 +63,7 @@ class PayloadBlock : public Block {
    *
    * @return The block in raw format.
    */
-  uint8_t getRaw();
+  uint8_t* getRaw();
   /**
    * Function to get the payload value.
    *

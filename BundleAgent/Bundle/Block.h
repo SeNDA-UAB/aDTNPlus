@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <bitset>
+#include "BundleTypes.h"
 
 /**
  * CLASS Block

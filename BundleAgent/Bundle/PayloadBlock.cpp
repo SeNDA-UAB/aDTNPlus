@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 16, 2015
  * VERSION 1
- *
+ * This file contains the implementation of the PayloadBlock class.
  */
 
 #include "PayloadBlock.h"
@@ -32,14 +32,15 @@ PayloadBlock::PayloadBlock()
 PayloadBlock::PayloadBlock(uint8_t* rawData) {
 }
 
-PayloadBlock::PayloadBlock(const std::string &payload)
-    : m_payload(payload.c_str()) {
+PayloadBlock::PayloadBlock(const std::string &payload) {
+  char* payloadCharArray = const_cast<char*>(payload.c_str());
+  m_payload = reinterpret_cast<uint8_t*>(payloadCharArray);
 }
 
 PayloadBlock::~PayloadBlock() {
 }
 
-uint8_t PayloadBlock::getRaw() {
+uint8_t* PayloadBlock::getRaw() {
   return 0;
 }
 
