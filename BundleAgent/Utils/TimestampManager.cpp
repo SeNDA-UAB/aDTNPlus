@@ -24,9 +24,11 @@
 
 #include "Utils/TimestampManager.h"
 #include <utility>
+#include <ctime>
 
 TimestampManager *TimestampManager::m_instance = 0;
 
+const uint64_t g_timeFrom2000 = 946684800;
 
 TimestampManager::TimestampManager()
     : m_lastTimestamp(0),
@@ -45,5 +47,13 @@ TimestampManager* TimestampManager::getInstance() {
 }
 
 std::pair<uint64_t, uint64_t> TimestampManager::getTimestamp() {
+  uint64_t timestamp = time(NULL) - g_timeFrom2000;
+  if (timestamp != m_lastTimestamp) {
+    m_lastSeqNum = 0;
+    m_lastTimestamp = timestamp;
+  } else {
+    m_lastSeqNum++;
+  }
+  return std::pair<uint64_t, uint64_t>(m_lastTimestamp, m_lastSeqNum);
 }
 
