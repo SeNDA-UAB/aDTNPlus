@@ -88,6 +88,15 @@ class Bundle {
    * @return a vector with all the blocks.
    */
   std::vector<Block *> getBlocks();
+  /**
+   * @brief Function to add a block to the bundle.
+   *
+   * This functions takes the block passed by parameter, and adds it to the
+   * blocks list.
+   *
+   * @param A pointer to the block.
+   */
+  void addBlock(Block *newBlock);
 
  private:
   /**

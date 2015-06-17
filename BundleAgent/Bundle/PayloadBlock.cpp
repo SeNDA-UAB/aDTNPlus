@@ -24,9 +24,11 @@
 
 #include "Bundle/PayloadBlock.h"
 #include <string>
+#include "Bundle/BundleTypes.h"
 
 PayloadBlock::PayloadBlock()
     : m_payload(nullptr) {
+  m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
 }
 
 PayloadBlock::PayloadBlock(uint8_t* rawData) {
@@ -35,6 +37,7 @@ PayloadBlock::PayloadBlock(uint8_t* rawData) {
 PayloadBlock::PayloadBlock(const std::string &payload) {
   char* payloadCharArray = const_cast<char*>(payload.c_str());
   m_payload = reinterpret_cast<uint8_t*>(payloadCharArray);
+  m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
 }
 
 PayloadBlock::~PayloadBlock() {

@@ -100,7 +100,7 @@ class Block {
    */
   uint8_t getBlockType();
 
- private:
+ protected:
   /**
    * Variable that holds the Block Type value.
    */

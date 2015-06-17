@@ -28,6 +28,7 @@
 #include <utility>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/Block.h"
+#include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 
 Bundle::Bundle()
@@ -46,6 +47,8 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
                                     timestampValue.second);
+  Block* pb = new PayloadBlock(payload);
+  m_blocks.push_back(pb);
 }
 
 Bundle::~Bundle() {
@@ -61,5 +64,14 @@ PrimaryBlock* Bundle::getPrimaryBlock() {
 
 std::vector<Block *> Bundle::getBlocks() {
   return m_blocks;
+}
+
+void Bundle::addBlock(Block *newBlock) {
+  // Check if the block type is a PayloadBlock
+  // only one can be pressent into a bundle.
+  if (newBlock->getBlockType()
+      != static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
+    m_blocks.push_back(newBlock);
+  }
 }
 

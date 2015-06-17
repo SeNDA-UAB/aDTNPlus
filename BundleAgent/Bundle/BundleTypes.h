@@ -53,4 +53,9 @@ enum class BlockControlFlags
   EID_FIELD = 6
 };
 
+enum class BlockTypes
+  : uint8_t {PAYLOAD_BLOCK = 1,
+  METADATA_EXTENSION_BLOCK = 8
+};
+
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
