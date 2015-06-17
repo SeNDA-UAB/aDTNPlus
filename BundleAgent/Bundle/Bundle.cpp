@@ -25,8 +25,10 @@
 #include "Bundle/Bundle.h"
 #include <string>
 #include <vector>
+#include <utility>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/Block.h"
+#include "Utils/TimestampManager.h"
 
 Bundle::Bundle()
     : m_raw(nullptr),
@@ -40,7 +42,10 @@ Bundle::Bundle(uint8_t *rawData)
 
 Bundle::Bundle(std::string origin, std::string destination, std::string payload)
     : m_raw(nullptr) {
-  m_primaryBlock = new PrimaryBlock();
+  TimestampManager *tm = TimestampManager::getInstance();
+  std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
+  m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
+                                    timestampValue.second);
 }
 
 Bundle::~Bundle() {

@@ -23,7 +23,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 #Get the test files
 set(TEST_EXEC "${LIB_NAME}_test")
-set(TEST_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Test/BundleAgentTest")
+set(TEST_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Test/BundleAgent")
 file(GLOB_RECURSE TEST_SRC_FILES "${TEST_SRC_DIR}/*.cpp")
 
 #Create an executable with the tests
