@@ -27,7 +27,7 @@
 #include <cstdio>
 #include <string>
 #include <bitset>
-#include "BundleTypes.h"
+#include "Bundle/BundleTypes.h"
 
 /**
  * CLASS PrimaryBlock

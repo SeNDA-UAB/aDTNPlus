@@ -22,9 +22,11 @@
  * This file contains the Bundle class implementation.
  */
 
-#include "Bundle.h"
+#include "Bundle/Bundle.h"
 #include <string>
 #include <vector>
+#include "Bundle/PrimaryBlock.h"
+#include "Bundle/Block.h"
 
 Bundle::Bundle()
     : m_raw(nullptr),
@@ -36,7 +38,7 @@ Bundle::Bundle(uint8_t *rawData)
       m_primaryBlock(nullptr) {
 }
 
-Bundle::Bundle(std::string origin, std::string destiantion, std::string payload)
+Bundle::Bundle(std::string origin, std::string destination, std::string payload)
     : m_raw(nullptr) {
   m_primaryBlock = new PrimaryBlock();
 }

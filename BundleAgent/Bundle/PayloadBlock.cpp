@@ -22,7 +22,7 @@
  * This file contains the implementation of the PayloadBlock class.
  */
 
-#include "PayloadBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include <string>
 
 PayloadBlock::PayloadBlock()

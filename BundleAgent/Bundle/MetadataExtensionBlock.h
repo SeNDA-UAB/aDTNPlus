@@ -24,8 +24,8 @@
 #ifndef BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_
 #define BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_
 
-#include "Block.h"
 #include <cstdint>
+#include "Bundle/Block.h"
 
 /**
  * CLASS MetadataExtensionBlock

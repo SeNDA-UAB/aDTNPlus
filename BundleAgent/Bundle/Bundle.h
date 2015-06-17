@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include "PrimaryBlock.h"
-#include "Block.h"
+class PrimaryBlock;
+class Block;
 /**
  * CLASS Bundle
  * This class represents a Bundle as defined into the RFC 5050.

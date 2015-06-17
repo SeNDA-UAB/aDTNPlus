@@ -24,10 +24,14 @@
 #ifndef BUNDLEAGENT_BUNDLE_PAYLOADBLOCK_H_
 #define BUNDLEAGENT_BUNDLE_PAYLOADBLOCK_H_
 
-#include "Block.h"
 #include <string>
 #include <cstdint>
+#include "Bundle/Block.h"
 
+/**
+ * CLASS PayloadBlock
+ * This class represents a payload block from a bundle as described into the RFC 5050.
+ */
 class PayloadBlock : public Block {
  public:
   /**
@@ -49,7 +53,7 @@ class PayloadBlock : public Block {
    *
    * This function generates a payload block from a string.
    *
-   * @param payload string that contains the paylaod information.
+   * @param payload string that contains the payload information.
    */
   explicit PayloadBlock(const std::string &payload);
   /**

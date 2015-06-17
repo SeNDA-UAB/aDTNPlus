@@ -22,7 +22,7 @@
  * This file contains the implementation of the Block class.
  */
 
-#include "Block.h"
+#include "Bundle/Block.h"
 
 Block::Block()
     : m_blockType(0),

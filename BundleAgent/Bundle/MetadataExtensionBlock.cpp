@@ -22,7 +22,7 @@
  * This file contains the implementation of the metadata extension block
  */
 
-#include "MetadataExtensionBlock.h"
+#include "Bundle/MetadataExtensionBlock.h"
 
 MetadataExtensionBlock::MetadataExtensionBlock()
     : m_metadataType(0),

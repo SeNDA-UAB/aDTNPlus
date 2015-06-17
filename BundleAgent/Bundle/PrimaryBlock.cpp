@@ -22,7 +22,7 @@
  * This file contains the implementation of the PrimaryBlock class.
  */
 
-#include "PrimaryBlock.h"
+#include "Bundle/PrimaryBlock.h"
 #include <string>
 
 PrimaryBlock::PrimaryBlock()
