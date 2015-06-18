@@ -27,12 +27,27 @@
 #include "Utils/TimestampManager.h"
 #include "gtest/gtest.h"
 
+/**
+ * Check the singleton pattern.
+ * Getting the instance of the singleton must return the same pointer
+ * every time.
+ */
 TEST(TimestampManager, Singleton) {
   TimestampManager* tm1 = TimestampManager::getInstance();
   TimestampManager* tm2 = TimestampManager::getInstance();
   ASSERT_EQ(tm1, tm2);
 }
 
+/**
+ * Check the timestamp sequence number calculus.
+ * Ask for three timestamps in the same second.
+ * They must have the same timestamp value, and consecutive
+ * sequenceNumbers, starting with 0.
+ *
+ * Ask two timestamps after 1 second.
+ * The timestamps must be greater than the previous timestamp,
+ * and between them one must have a greater sequence number.
+ */
 TEST(TimestampManager, TimestampSequece) {
   sleep(1);
   TimestampManager* tm1 = TimestampManager::getInstance();
