@@ -36,7 +36,7 @@ PrimaryBlock::PrimaryBlock()
       m_lifetime(0) {
 }
 
-PrimaryBlock::PrimaryBlock(uint8_t *rawData)
+PrimaryBlock::PrimaryBlock(const std::string &rawData)
     : m_procFlags(),
       m_destination(),
       m_source(),
@@ -125,9 +125,8 @@ bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
   return flagActive;
 }
 
-uint8_t* PrimaryBlock::getRaw() {
-  uint8_t* raw = new uint8_t;
-  return raw;
+std::string PrimaryBlock::getRaw() {
+  return "";
 }
 
 const std::string PrimaryBlock::getDestination() {

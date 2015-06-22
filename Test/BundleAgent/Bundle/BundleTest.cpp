@@ -34,7 +34,7 @@
  */
 TEST(BundleTest, DefaultConstructor) {
   Bundle b;
-  ASSERT_EQ(nullptr, b.getRaw());
+  ASSERT_EQ("", b.getRaw());
   ASSERT_EQ(nullptr, b.getPrimaryBlock());
   ASSERT_EQ(0, b.getBlocks().size());
 }

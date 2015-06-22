@@ -23,14 +23,16 @@
  */
 
 #include "Bundle/MetadataExtensionBlock.h"
+#include <string>
 
 MetadataExtensionBlock::MetadataExtensionBlock()
     : m_metadataType(0),
       m_metadata(nullptr) {
 }
 
-MetadataExtensionBlock::MetadataExtensionBlock(uint8_t rawData)
-    : m_metadata(nullptr) {
+MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
+    : m_metadataType(0),
+      m_metadata() {
 }
 
 MetadataExtensionBlock::~MetadataExtensionBlock() {

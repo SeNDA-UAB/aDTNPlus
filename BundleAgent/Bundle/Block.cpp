@@ -23,13 +23,14 @@
  */
 
 #include "Bundle/Block.h"
+#include <string>
 
 Block::Block()
     : m_blockType(0),
       m_procFlags() {
 }
 
-Block::Block(uint8_t* rawData)
+Block::Block(const std::string &rawData)
     : m_blockType(0),
       m_procFlags() {
 }

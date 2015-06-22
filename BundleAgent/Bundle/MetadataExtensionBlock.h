@@ -25,6 +25,7 @@
 #define BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_
 
 #include <cstdint>
+#include <string>
 #include "Bundle/Block.h"
 
 /**
@@ -47,7 +48,7 @@ class MetadataExtensionBlock : public Block {
    *
    * @param rawData the raw data that contains the metadata block.
    */
-  explicit MetadataExtensionBlock(uint8_t rawData);
+  explicit MetadataExtensionBlock(const std::string &rawData);
   /**
    * Destructor of the class.
    */
@@ -60,7 +61,7 @@ class MetadataExtensionBlock : public Block {
    *
    * @return This block in raw format.
    */
-  virtual uint8_t* getRaw() = 0;
+  virtual std::string getRaw() = 0;
   /**
    * Function to get the type of the metadata extension block.
    *
@@ -75,7 +76,7 @@ class MetadataExtensionBlock : public Block {
    *
    * @return The content of the block.
    */
-  virtual uint8_t* getMetadataContent() = 0;
+  virtual std::string getMetadataContent() = 0;
 
  private:
   /**
@@ -85,7 +86,7 @@ class MetadataExtensionBlock : public Block {
   /**
    * Metadata contained in the block.
    */
-  uint8_t*  m_metadata;
+  std::string  m_metadata;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_

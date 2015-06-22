@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <bitset>
+#include <string>
 #include "Bundle/BundleTypes.h"
 
 /**
@@ -48,7 +49,7 @@ class Block {
    *
    * @param rawData the raw containing the block information.
    */
-  explicit Block(uint8_t* rawData);
+  explicit Block(const std::string &rawData);
   /**
    * Destructor of the class.
    */
@@ -61,7 +62,7 @@ class Block {
    *
    * @return The block in raw format.
    */
-  virtual uint8_t* getRaw() = 0;
+  virtual std::string getRaw() = 0;
   /**
    * @brief Sets the given flag.
    *

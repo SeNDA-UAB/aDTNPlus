@@ -27,27 +27,25 @@
 #include "Bundle/BundleTypes.h"
 
 PayloadBlock::PayloadBlock()
-    : m_payload(nullptr) {
+    : m_payload() {
   m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
 }
 
-PayloadBlock::PayloadBlock(uint8_t* rawData) {
-}
-
-PayloadBlock::PayloadBlock(const std::string &payload) {
-  char* payloadCharArray = const_cast<char*>(payload.c_str());
-  m_payload = reinterpret_cast<uint8_t*>(payloadCharArray);
-  m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
+PayloadBlock::PayloadBlock(const std::string &rawData) {
 }
 
 PayloadBlock::~PayloadBlock() {
 }
 
-uint8_t* PayloadBlock::getRaw() {
-  return 0;
+std::string PayloadBlock::getRaw() {
+  return "";
 }
 
-uint8_t* PayloadBlock::getPayload() {
+std::string PayloadBlock::getPayload() {
   return m_payload;
+}
+
+void PayloadBlock::setPayload(const std::string &payload) {
+  m_payload = payload;
 }
 

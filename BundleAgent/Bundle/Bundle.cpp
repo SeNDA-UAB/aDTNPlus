@@ -32,29 +32,30 @@
 #include "Utils/TimestampManager.h"
 
 Bundle::Bundle()
-    : m_raw(nullptr),
+    : m_raw(),
       m_primaryBlock(nullptr) {
 }
 
-Bundle::Bundle(uint8_t *rawData)
+Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
       m_primaryBlock(nullptr) {
 }
 
 Bundle::Bundle(std::string origin, std::string destination, std::string payload)
-    : m_raw(nullptr) {
+    : m_raw() {
   TimestampManager *tm = TimestampManager::getInstance();
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
                                     timestampValue.second);
-  Block* pb = new PayloadBlock(payload);
+  Block* pb = new PayloadBlock();
+  (static_cast<PayloadBlock*>(pb))->setPayload(payload);
   m_blocks.push_back(pb);
 }
 
 Bundle::~Bundle() {
 }
 
-uint8_t* Bundle::getRaw() {
+std::string Bundle::getRaw() {
   return m_raw;
 }
 

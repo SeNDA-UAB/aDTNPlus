@@ -47,15 +47,7 @@ class PayloadBlock : public Block {
    *
    * @param rawData that contains the payload block.
    */
-  explicit PayloadBlock(uint8_t* rawData);
-  /**
-   * @brief String constructor.
-   *
-   * This function generates a payload block from a string.
-   *
-   * @param payload string that contains the payload information.
-   */
-  explicit PayloadBlock(const std::string &payload);
+  explicit PayloadBlock(const std::string &rawData);
   /**
    * Destructor of the class
    */
@@ -67,19 +59,25 @@ class PayloadBlock : public Block {
    *
    * @return The block in raw format.
    */
-  uint8_t* getRaw();
+  std::string getRaw();
   /**
    * Function to get the payload value.
    *
    * @return The payload value.
    */
-  uint8_t* getPayload();
+  std::string getPayload();
+  /**
+   * Function to set the payload value.
+   *
+   * @param payload to save into the block.
+   */
+  void setPayload(const std::string &payload);
 
  private:
   /**
    * Payload of the block.
    */
-  uint8_t* m_payload;
+  std::string m_payload;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_PAYLOADBLOCK_H_

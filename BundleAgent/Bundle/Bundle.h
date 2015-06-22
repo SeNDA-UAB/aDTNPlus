@@ -44,12 +44,12 @@ class Bundle {
   Bundle();
   /**
    * @brief Raw constructor.
-   *
+   **
    * This constructor will take a raw bundle and reconstruct the bundle from it.
    *
-   * @param rawData the bundle in raw to covnert to a Bundle class.
+   * @param rawData the bundle in raw to convert to a Bundle class.
    */
-  explicit Bundle(uint8_t* rawData);
+  explicit Bundle(const std::string &rawData);
   /**
    * @brief Constructs a bundle with the provided information.
    *
@@ -71,7 +71,7 @@ class Bundle {
    *
    * @return the bundle in raw format.
    */
-  uint8_t* getRaw();
+  std::string getRaw();
   /**
    * @brief Function to get the PrimaryBlock.
    *
@@ -100,9 +100,9 @@ class Bundle {
 
  private:
   /**
-   * Pointer with the raw bundle.
+   * Byte array containing the raw bundle.
    */
-  uint8_t* m_raw;
+  std::string m_raw;
   /**
    * Pointer to the primary block of the bundle.
    */

@@ -48,7 +48,7 @@ class PrimaryBlock {
    *
    * @param rawData of the primary block.
    */
-  explicit PrimaryBlock(uint8_t *rawData);
+  explicit PrimaryBlock(const std::string &rawData);
   /**
    * @brief Constructs a primary block with the provided information.
    *
@@ -104,7 +104,7 @@ class PrimaryBlock {
    *
    * @return This primary block as raw.
    */
-  uint8_t* getRaw();
+  std::string getRaw();
   /**
    * Function to get the Destination set in the primary block.
    * @return the destination field.
