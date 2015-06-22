@@ -49,15 +49,15 @@ PayloadBlock::PayloadBlock(const std::string &rawData) {
     // Set the block type to payload
     m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
     std::string data = rawData;
-    data.substr(1);
+    data = data.substr(1);
     // Get the proc flags.
     size_t procFlagsSize = getLength(data);
     uint64_t procFlags = decode(data);
-    m_procFlags(procFlags);
-    data.substr(procFlagsSize);
+    m_procFlags = std::bitset<7>(procFlags);
+    data = data.substr(procFlagsSize);
     // Jump the payload length, the rawData only contains this block
     size_t payloadSizeSize = getLength(data);
-    data.substr(procFlagsSize);
+    data = data.substr(procFlagsSize);
     m_payload = data;
   }
 }

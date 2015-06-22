@@ -22,6 +22,7 @@
  * This file contains the test of the PayloadBlock class.
  */
 
+#include <string>
 #include "Bundle/PayloadBlock.h"
 #include "gtest/gtest.h"
 
@@ -30,7 +31,7 @@
  * The payload must be empty, and the block type must be
  * a PAYLOAD_BLOCK type.
  */
-TEST(PayloadTest, DefaultConstructor) {
+TEST(PayloadBlockTest, DefaultConstructor) {
   PayloadBlock pb = PayloadBlock();
   ASSERT_EQ("", pb.getPayload());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
@@ -42,11 +43,21 @@ TEST(PayloadTest, DefaultConstructor) {
  * After setting a payload and then retrieving it, they must have
  * the same value.
  */
-TEST(PayloadTest, SetGetPayload) {
+TEST(PayloadBlockTest, SetGetPayload) {
   PayloadBlock pb = PayloadBlock();
   ASSERT_EQ("", pb.getPayload());
   pb.setPayload("This is a test payload");
   ASSERT_EQ("This is a test payload", pb.getPayload());
   pb.setPayload("This is a new test payload");
   ASSERT_EQ("This is a new test payload", pb.getPayload());
+}
+
+TEST(PayloadBlockTest, RawFunctions) {
+  PayloadBlock pb = PayloadBlock();
+  pb.setPayload("This is a test payload");
+  std::string rawBlock = pb.getRaw();
+  PayloadBlock pb1 = PayloadBlock(rawBlock);
+  ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
+                pb1.getBlockType());
+  ASSERT_EQ("This is a test payload", pb1.getPayload());
 }
