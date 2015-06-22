@@ -56,8 +56,8 @@ PayloadBlock::PayloadBlock(const std::string &rawData) {
     m_procFlags = std::bitset<7>(procFlags);
     data = data.substr(procFlagsSize);
     // Jump the payload length, the rawData only contains this block
-    size_t payloadSizeSize = getLength(data);
-    data = data.substr(procFlagsSize);
+    size_t payloadSize = getLength(data);
+    data = data.substr(payloadSize);
     m_payload = data;
   }
 }
