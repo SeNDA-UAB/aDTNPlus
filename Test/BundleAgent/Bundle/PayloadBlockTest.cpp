@@ -24,3 +24,29 @@
 
 #include "Bundle/PayloadBlock.h"
 #include "gtest/gtest.h"
+
+/**
+ * Check the default constructor.
+ * The payload must be empty, and the block type must be
+ * a PAYLOAD_BLOCK type.
+ */
+TEST(PayloadTest, DefaultConstructor) {
+  PayloadBlock pb = PayloadBlock();
+  ASSERT_EQ("", pb.getPayload());
+  ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
+              pb.getBlockType());
+}
+
+/**
+ * Check the payload set.
+ * After setting a payload and then retrieving it, they must have
+ * the same value.
+ */
+TEST(PayloadTest, SetGetPayload) {
+  PayloadBlock pb = PayloadBlock();
+  ASSERT_EQ("", pb.getPayload());
+  pb.setPayload("This is a test payload");
+  ASSERT_EQ("This is a test payload", pb.getPayload());
+  pb.setPayload("This is a new test payload");
+  ASSERT_EQ("This is a new test payload", pb.getPayload());
+}

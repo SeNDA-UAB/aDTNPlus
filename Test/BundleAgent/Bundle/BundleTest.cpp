@@ -29,7 +29,7 @@
 #include "Bundle/BundleTypes.h"
 
 /**
- * Check the default constructor
+ * Check the default constructor.
  * The raw value, the primary block and the blocks must be all 0.
  */
 TEST(BundleTest, DefaultConstructor) {
