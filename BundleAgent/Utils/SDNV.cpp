@@ -40,9 +40,8 @@ std::string encode(uint64_t value) {
     high_bit = (1 << 7);  // for all but the last byte
     auxValue = auxValue >> 7;
   } while (auxValue != 0);
-  std::stringstream ss;
-  ss << buffer;
-  return (ss.str());
+  std::string ret = std::string((const char*)&buffer[0], length_value);
+  return ret;
 }
 
 uint64_t decode(std::string encodedValue) {
