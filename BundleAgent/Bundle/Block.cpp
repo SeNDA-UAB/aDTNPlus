@@ -38,6 +38,10 @@ Block::Block(const std::string &rawData)
 Block::~Block() {
 }
 
+size_t Block::getFirstBlockLength(const std::string &rawData) {
+  return 0;
+}
+
 void Block::setProcFlag(BlockControlFlags procFlag) {
   m_procFlags.set(static_cast<ulong>(procFlag));
 }

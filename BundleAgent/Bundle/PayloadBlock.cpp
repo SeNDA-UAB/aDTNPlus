@@ -24,7 +24,9 @@
 
 #include "Bundle/PayloadBlock.h"
 #include <string>
+#include <sstream>
 #include "Bundle/BundleTypes.h"
+#include "Utils/SDNV.h"
 
 PayloadBlock::PayloadBlock()
     : m_payload() {
@@ -32,13 +34,52 @@ PayloadBlock::PayloadBlock()
 }
 
 PayloadBlock::PayloadBlock(const std::string &rawData) {
+  /**
+   * The payload block contains
+   *
+   * Block Type 1 byte
+   * Proc. Flags as SDNV
+   * Block Length as SDNV
+   * Payload variable length
+   */
+  // Get the Block Type
+  uint8_t blockType = static_cast<uint8_t>(rawData[0]);
+  // If the block type is a paylod block
+  if (blockType == static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
+    // Set the block type to payload
+    m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
+    std::string data = rawData;
+    data.substr(1);
+    // Get the proc flags.
+    size_t procFlagsSize = getLength(data);
+    uint64_t procFlags = decode(data);
+    m_procFlags(procFlags);
+    data.substr(procFlagsSize);
+    // Jump the payload length, the rawData only contains this block
+    size_t payloadSizeSize = getLength(data);
+    data.substr(procFlagsSize);
+    m_payload = data;
+  }
 }
 
 PayloadBlock::~PayloadBlock() {
 }
 
 std::string PayloadBlock::getRaw() {
-  return "";
+  /**
+   * The payload block contains
+   *
+   * Block Type 1 byte
+   * Proc. Flags as SDNV
+   * Block Length as SDNV
+   * Payload variable length
+   */
+  std::stringstream ss;
+  ss << m_blockType;
+  ss << encode(m_procFlags.to_ulong());
+  ss << encode(m_payload.size());
+  ss << m_payload;
+  return ss.str();
 }
 
 std::string PayloadBlock::getPayload() {

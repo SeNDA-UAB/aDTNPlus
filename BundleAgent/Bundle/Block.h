@@ -55,6 +55,15 @@ class Block {
    */
   virtual ~Block();
   /**
+   * @brief Function to get he block length.
+   *
+   * This function returns the length of the first found block.
+   * This function is used to jump between blocks.
+   *
+   * @return The size of the next found block.
+   */
+  static size_t getFirstBlockLength(const std::string &rawData);
+  /**
    * @brief Function to transform this block to raw format.
    *
    * Virtual function, all the blocks that derives from this class must implement it.
