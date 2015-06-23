@@ -4,7 +4,7 @@ set(PROJECT_NAME BundleAgent)
 project(${PROJECT_NAME})
 
 # Set CMake flags
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11")
+set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 --coverage")
 
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")

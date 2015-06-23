@@ -24,6 +24,10 @@
 
 #include "Bundle/PrimaryBlock.h"
 #include <string>
+#include <sstream>
+#include <cstring>
+#include <iostream>
+#include "Utils/SDNV.h"
 
 PrimaryBlock::PrimaryBlock()
     : m_procFlags(),
@@ -45,6 +49,108 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
       m_creationTimestamp(0),
       m_creationTimestampSeqNumber(0),
       m_lifetime(0) {
+  /**
+   * Primary Block format
+   *
+   * Version - 1 byte
+   * Proc. Flags - SDNV
+   * Block Length (Length of the remaining fields) - SDNV
+   * Destination Scheme offset - SDNV
+   * Destination SSP offset - SDNV
+   * Source Scheme offset - SDNV
+   * Source SSP offset - SDNV
+   * ReportTo Scheme offset - SDNV
+   * ReportTo SSP offset - SDNV
+   * Custodian Scheme offset - SDNV
+   * Custodian SSP offset - SDNV
+   * Creation timestamp - SDNV
+   * Creation timestamp seq. number - SDNV
+   * Lifetime - SDNV
+   * Dictionary length - SDNV
+   * Dictionary data - variable
+   * Fragment offset (if IS_FRAGMENT flag is active) - SDNV
+   * Fragment Application Data length (if IS_FRAGMENT flag is active) - SDNV
+   */
+  std::string data = rawData;
+  // Jump the version.
+  data = data.substr(1);
+  // Proc. flags
+  m_procFlags = std::bitset<21>(decode(data));
+  size_t offset = getLength(data);
+  data = data.substr(offset);
+  // Block Length
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Destination scheme offset
+  uint64_t destOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Destination SSP offset
+  uint64_t destSSPOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Source scheme offset
+  uint64_t srcOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Source SSP offset
+  uint64_t srcSSPOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // ReportTo scheme offset
+  uint64_t reportOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // ReportTo SSP offset
+  uint64_t reportSSPOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Custodian scheme offset
+  uint64_t custOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Custodian SSP offset
+  uint64_t custSSPOff = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Creation timestamp
+  m_creationTimestamp = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Timestamp sequence number
+  m_creationTimestampSeqNumber = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Lifetime
+  m_lifetime = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Dictionary length
+  uint64_t dictionaryLength = decode(data);
+  offset = getLength(data);
+  data = data.substr(offset);
+  // Dictionary
+  std::string dictionary = data.substr(0, dictionaryLength);
+  const char* dataChar = data.c_str();
+  char buffScheme[1024];  // max size of scheme as in RFC 5050
+  char buffSSP[1024];  // max size of SSP as in RFC 5050
+  // For the moment we ignore the scheme value.
+  // Destination
+  strcpy(&buffScheme[0], dataChar + destOff * sizeof(char));
+  strcpy(&buffSSP[0], dataChar + destSSPOff * sizeof(char));
+  m_destination = std::string(buffSSP);
+  // Source
+  strcpy(&buffScheme[0], dataChar + srcOff * sizeof(char));
+  strcpy(&buffSSP[0], dataChar + srcSSPOff * sizeof(char));
+  m_source = std::string(buffSSP);
+  // ReportTo
+  strcpy(&buffScheme[0], dataChar + reportOff * sizeof(char));
+  strcpy(&buffSSP[0], dataChar + reportSSPOff * sizeof(char));
+  m_reportTo = std::string(buffSSP);
+  // Custodian
+  strcpy(&buffScheme[0], dataChar + custOff * sizeof(char));
+  strcpy(&buffSSP[0], dataChar + custSSPOff * sizeof(char));
+  m_custodian = std::string(buffSSP);
 }
 
 PrimaryBlock::PrimaryBlock(const std::string &source,
@@ -126,7 +232,77 @@ bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
 }
 
 std::string PrimaryBlock::getRaw() {
-  return "";
+  /**
+   * Primary Block format
+   *
+   * Version - 1 byte
+   * Proc. Flags - SDNV
+   * Block Length (Length of the remaining fields) - SDNV
+   * Destination Scheme offset - SDNV
+   * Destination SSP offset - SDNV
+   * Source Scheme offset - SDNV
+   * Source SSP offset - SDNV
+   * ReportTo Scheme offset - SDNV
+   * ReportTo SSP offset - SDNV
+   * Custodian Scheme offset - SDNV
+   * Custodian SSP offset - SDNV
+   * Creation timestamp - SDNV
+   * Creation timestamp seq. number - SDNV
+   * Lifetime - SDNV
+   * Dictionary length - SDNV
+   * Dictionary data - variable
+   * Fragment offset (if IS_FRAGMENT flag is active) - SDNV
+   * Fragment Application Data length (if IS_FRAGMENT flag is active) - SDNV
+   */
+  std::stringstream ss;
+  std::stringstream ss1;
+  std::stringstream dictionary;
+  // Version of the bundle
+  ss << (uint8_t) 0x06;
+  ss << encode(m_procFlags.to_ulong());
+  // ss1 contains the fields after the block length
+  // Scheme offset. We use only one scheme ("adtn").
+  // Destination case
+  ss1 << encode(0);
+  dictionary << "adtn:";
+  dictionary << std::ends;
+  size_t offset = dictionary.str().size();
+  dictionary << m_destination.c_str();
+  dictionary << std::ends;
+  ss1 << encode(offset);
+  offset = dictionary.str().size();
+  // Source case
+  ss1 << encode(0);
+  dictionary << m_source.c_str();
+  dictionary << std::ends;
+  ss1 << encode(offset);
+  offset = dictionary.str().size();
+  // ReportTo case
+  ss1 << encode(0);
+  dictionary << m_reportTo.c_str();
+  dictionary << std::ends;
+  ss1 << encode(offset);
+  offset = dictionary.str().size();
+  // Custodian case
+  ss1 << encode(0);
+  dictionary << m_custodian.c_str();
+  dictionary << std::ends;
+  ss1 << encode(offset);
+  // Creation timestamp
+  ss1 << encode(m_creationTimestamp);
+  // Creation timestamp seq. number
+  ss1 << encode(m_creationTimestampSeqNumber);
+  // Lifetime
+  ss1 << encode(m_lifetime);
+  // Dictionay length
+  ss1 << encode(dictionary.str().size());
+  // Dictionary
+  ss1 << dictionary.str();
+  // Add block length
+  ss << encode(ss1.str().size());
+  // Append all the block
+  ss << ss1.str();
+  return ss.str();
 }
 
 const std::string PrimaryBlock::getDestination() {
