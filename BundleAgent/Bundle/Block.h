@@ -43,14 +43,6 @@ class Block {
    */
   Block();
   /**
-   * @brief Raw constructor.
-   *
-   * Generates a block from a raw data.
-   *
-   * @param rawData the raw containing the block information.
-   */
-  explicit Block(const std::string &rawData);
-  /**
    * Destructor of the class.
    */
   virtual ~Block();

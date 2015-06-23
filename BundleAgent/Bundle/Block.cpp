@@ -31,11 +31,6 @@ Block::Block()
       m_procFlags() {
 }
 
-Block::Block(const std::string &rawData)
-    : m_blockType(0),
-      m_procFlags() {
-}
-
 Block::~Block() {
 }
 
