@@ -37,12 +37,6 @@ class Block;
 class Bundle {
  public:
   /**
-   * @brief Empty constructor.
-   *
-   * This constructor will create an empty bundle, with an empty primaryBlock, and a payloadBlock.
-   */
-  Bundle();
-  /**
    * @brief Raw constructor.
    **
    * This constructor will take a raw bundle and reconstruct the bundle from it.
