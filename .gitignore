@@ -63,6 +63,9 @@ tmp/
 local.properties
 .settings/
 .loadpath
+Debug/
+Release/
+build/
 
 # Eclipse Core
 .project
