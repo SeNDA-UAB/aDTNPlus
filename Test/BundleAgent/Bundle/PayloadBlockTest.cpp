@@ -67,3 +67,18 @@ TEST(PayloadBlockTest, RawFunctions) {
                 pb1.getBlockType());
   ASSERT_EQ("This is a test payload", pb1.getPayload());
 }
+
+/**
+ * Check Flags
+ */
+TEST(PayloadBlockTest, FlagTest) {
+  PayloadBlock pb = PayloadBlock();
+  pb.setProcFlag(BlockControlFlags::LAST_BLOCK);
+  pb.setProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
+  ASSERT_TRUE(pb.testProcFlag(BlockControlFlags::LAST_BLOCK));
+  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::DELETE_BUNDLE));
+  ASSERT_TRUE(pb.testProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
+  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::REPLICATE_FRAGMENT));
+  pb.clearProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
+  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
+}
