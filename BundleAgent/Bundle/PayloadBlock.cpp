@@ -48,8 +48,7 @@ PayloadBlock::PayloadBlock(const std::string &rawData) {
   if (blockType == static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
     // Set the block type to payload
     m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
-    std::string data = rawData;
-    data = data.substr(1);
+    std::string data = rawData.substr(1);
     // Get the proc flags.
     size_t procFlagsSize = getLength(data);
     uint64_t procFlags = decode(data);

@@ -52,6 +52,12 @@ TEST(PayloadBlockTest, SetGetPayload) {
   ASSERT_EQ("This is a new test payload", pb.getPayload());
 }
 
+/**
+ * Check the raw functions.
+ * Generate a PayloadBlock, convert it to raw.
+ * Generate a new PayloadBlock from the raw.
+ * The new PayloadBlock must contain the same as the original.
+ */
 TEST(PayloadBlockTest, RawFunctions) {
   PayloadBlock pb = PayloadBlock();
   pb.setPayload("This is a test payload");

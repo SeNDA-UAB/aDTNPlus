@@ -24,6 +24,7 @@
 
 #include "Bundle/Block.h"
 #include <string>
+#include "Utils/SDNV.h"
 
 Block::Block()
     : m_blockType(0),
@@ -39,7 +40,37 @@ Block::~Block() {
 }
 
 size_t Block::getFirstBlockLength(const std::string &rawData) {
-  return 0;
+  // BlockType 1 byte
+  size_t blockLength = 1;
+  std::string data = rawData.substr(1);
+  // Proc. flags SDNV
+  size_t dataSize = getLength(data);
+  blockLength += dataSize;
+  uint64_t procFlags = decode(data);
+  std::bitset<7> blockFlags = std::bitset<7>(procFlags);
+  data = data.substr(dataSize);
+  // Check if EID fields are present
+  if (blockFlags.test(static_cast<ulong>(BlockControlFlags::EID_FIELD))) {
+    dataSize = getLength(data);
+    blockLength += dataSize;
+    int numberOfEID = decode(data);
+    data = data.substr(dataSize);
+    for (int i = 0; i < numberOfEID; ++i) {
+      // Every EID consists of two SDNV fields
+      dataSize = getLength(data);
+      blockLength += dataSize;
+      data = data.substr(dataSize);
+      dataSize = getLength(data);
+      blockLength += dataSize;
+      data = data.substr(dataSize);
+    }
+  }
+  // Block data Length
+  dataSize = getLength(data);
+  blockLength += dataSize;
+  uint64_t blockDataSize = decode(data);
+  blockLength += blockDataSize;
+  return blockLength;
 }
 
 void Block::setProcFlag(BlockControlFlags procFlag) {
