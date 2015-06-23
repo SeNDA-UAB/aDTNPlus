@@ -29,17 +29,6 @@
 #include <iostream>
 #include "Utils/SDNV.h"
 
-PrimaryBlock::PrimaryBlock()
-    : m_procFlags(),
-      m_destination(),
-      m_source(),
-      m_reportTo(),
-      m_custodian(),
-      m_creationTimestamp(0),
-      m_creationTimestampSeqNumber(0),
-      m_lifetime(0) {
-}
-
 PrimaryBlock::PrimaryBlock(const std::string &rawData)
     : m_procFlags(),
       m_destination(),

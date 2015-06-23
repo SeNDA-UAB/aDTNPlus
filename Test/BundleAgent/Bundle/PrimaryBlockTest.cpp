@@ -64,3 +64,70 @@ TEST(PrimaryBlockTest, RawFunctions) {
   ASSERT_EQ(pb.getCreationTimestampSeqNumber(),
             pb1.getCreationTimestampSeqNumber());
 }
+
+/**
+ * Check a full PrimaryBlock to raw and to PrimaryBlock again.
+ */
+TEST(PrimaryBlockTest, FullRawFunctions) {
+  std::pair<uint64_t, uint64_t> time = TimestampManager::getInstance()
+      ->getTimestamp();
+  PrimaryBlock pb = PrimaryBlock("Source", "Destination", time.first,
+                                 time.second);
+  pb.setSource("newSource");
+  pb.setDestination("newDestination");
+  pb.setReportTo("ReportTo");
+  pb.setCustodian("Custodian");
+  pb.setLifetime(time.first);
+  pb.setProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
+  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  pb.setProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING);
+  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
+  pb.clearProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
+  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
+  std::string rawData = pb.getRaw();
+  PrimaryBlock pb1 = PrimaryBlock(rawData);
+  ASSERT_EQ(pb.getSource(), pb1.getSource());
+  ASSERT_EQ(pb.getDestination(), pb1.getDestination());
+  ASSERT_EQ(pb.getReportTo(), pb1.getReportTo());
+  ASSERT_EQ(pb.getCustodian(), pb1.getCustodian());
+  ASSERT_EQ(pb.getLifetime(), pb1.getLifetime());
+  ASSERT_EQ(pb.getCreationTimestamp(), pb1.getCreationTimestamp());
+  ASSERT_EQ(pb.getCreationTimestampSeqNumber(),
+            pb1.getCreationTimestampSeqNumber());
+  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER),
+            pb1.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
+  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL),
+            pb1.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING),
+            pb1.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
+  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON),
+            pb1.testFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON));
+  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD),
+            pb1.testFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD));
+}
+
+/**
+ * Check the flag functions
+ */
+TEST(PrimaryBlockTest, FlagFunctions) {
+  std::pair<uint64_t, uint64_t> time = TimestampManager::getInstance()
+      ->getTimestamp();
+  PrimaryBlock pb = PrimaryBlock("Source", "Destination", time.first,
+                                 time.second);
+  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
+  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
+  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
+  // Default priority is BULK
+  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
+  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
+  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
+}

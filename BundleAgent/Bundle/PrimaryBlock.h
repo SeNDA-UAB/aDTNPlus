@@ -36,12 +36,6 @@
 class PrimaryBlock {
  public:
   /**
-   * @brief Empty constructor.
-   *
-   * THis constructor will create an empty PrimaryBlock.
-   */
-  PrimaryBlock();
-  /**
    * @brief Raw constructor.
    *
    * This constructor will take a raw primary block and reconstruct it.
