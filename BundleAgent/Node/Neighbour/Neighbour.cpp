@@ -22,7 +22,7 @@
  * This file contains the implementation of the Neighbour class.
  */
 
-#include "Neighbour.h"
+#include "Node/Neighbour/Neighbour.h"
 #include <string>
 #include <cstdint>
 #include <chrono>

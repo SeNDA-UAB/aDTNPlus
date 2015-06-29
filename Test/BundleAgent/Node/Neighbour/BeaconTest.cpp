@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 29, 2015
  * VERSION 1
- * This file contains the test of the Beacon class.
+ * This file contains the tests of the Beacon class.
  */
 
 #include <string>

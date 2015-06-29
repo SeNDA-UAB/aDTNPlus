@@ -22,7 +22,7 @@
  * This file contains the implementation of the Beacon class.
  */
 
-#include "Beacon.h"
+#include "Node/Neighbour/Beacon.h"
 #include <string>
 #include <cstdint>
 #include <cstring>
