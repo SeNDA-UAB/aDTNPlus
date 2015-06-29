@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 29, 2015
  * VERSION 1
- *
+ * This file contains the implementation of the Neighbour class.
  */
 
 #include "Neighbour.h"
@@ -47,5 +47,12 @@ int Neighbour::getElapsedActivityTime() {
 
 void Neighbour::Update() {
   m_lastActivity = std::chrono::steady_clock::now();
+}
+
+bool Neighbour::operator ==(const Neighbour &neighbour) const {
+  bool equals = m_nodeId == neighbour.m_nodeId;
+  equals &= m_nodeAddress == neighbour.m_nodeAddress;
+  equals &= m_nodePort == neighbour.m_nodePort;
+  return equals;
 }
 

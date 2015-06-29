@@ -40,3 +40,11 @@ TEST(NeighbourTest, Activity) {
   n.Update();
   ASSERT_EQ(0, n.getElapsedActivityTime());
 }
+
+TEST(NeighbourTest, Equality) {
+  Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
+  Neighbour n1 = Neighbour("node100", "192.168.1.2", 40000);
+  ASSERT_TRUE(n1 == n);
+  n.m_nodeId = "node101";
+  ASSERT_FALSE(n1 == n);
+}

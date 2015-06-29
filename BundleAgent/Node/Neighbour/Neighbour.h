@@ -64,6 +64,12 @@ class Neighbour {
    */
   void Update();
   /**
+   * Equality operator overload.
+   * @param neighbour to compare.
+   * @return True if the neighbours are equals.
+   */
+  bool operator==(const Neighbour &neighbour) const;
+  /**
    * Identifier of the neighbour node.
    */
   std::string m_nodeId;
