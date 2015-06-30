@@ -25,6 +25,10 @@
 #include "Node/Neighbour/Neighbour.h"
 #include "gtest/gtest.h"
 
+/**
+ * Check the neighbour constructor.
+ * Generate a neighbour and check the fields.
+ */
 TEST(NeighbourTest, Constructor) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
   ASSERT_EQ("node100", n.m_nodeId);
@@ -32,6 +36,11 @@ TEST(NeighbourTest, Constructor) {
   ASSERT_EQ(40000, n.m_nodePort);
 }
 
+/**
+ * Check the activity time.
+ * Create the neighbour and sleep, the activity time must be the same.
+ * After that update the neighbour and check that the activity time is 0.
+ */
 TEST(NeighbourTest, Activity) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
   ASSERT_EQ(0, n.getElapsedActivityTime());
@@ -41,6 +50,10 @@ TEST(NeighbourTest, Activity) {
   ASSERT_EQ(0, n.getElapsedActivityTime());
 }
 
+/**
+ * Check equality.
+ * Check if two nodes are equals.
+ */
 TEST(NeighbourTest, Equality) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
   Neighbour n1 = Neighbour("node100", "192.168.1.2", 40000);

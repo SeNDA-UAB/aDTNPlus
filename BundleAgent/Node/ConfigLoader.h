@@ -34,9 +34,28 @@
  */
 class ConfigLoader {
  public:
+  /**
+   * @brief Empty constructor.
+   *
+   * Generates a ConfigLoader object.
+   */
   ConfigLoader();
+  /**
+   * Destructor of the class.
+   */
   virtual ~ConfigLoader();
+  /**
+   * @brief Load a config file.
+   *
+   * This functions loads an ini file, and saves its values to m_reader.
+   *
+   * @param file path to the file.
+   * @return True if file has been correctly load, false otherwise.
+   */
   bool load(std::string file);
+  /**
+   * INIReader containing all the information.
+   */
   INIReader m_reader;
 };
 

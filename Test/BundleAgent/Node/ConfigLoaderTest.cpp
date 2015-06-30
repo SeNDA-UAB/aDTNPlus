@@ -25,6 +25,10 @@
 #include "Node/ConfigLoader.h"
 #include "gtest/gtest.h"
 
+/**
+ * Check the configuration load.
+ * Load the configuration file and check that all the fields are correct.
+ */
 TEST(ConfigLoaderTest, ParseFile) {
   ConfigLoader cf = ConfigLoader();
   ASSERT_TRUE(cf.load("../BundleAgent/Config/adtn.ini"));

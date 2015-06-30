@@ -29,6 +29,13 @@
 #include "gtest/gtest.h"
 #include "Node/Neighbour/Neighbour.h"
 
+/**
+ * Check the add and remove options.
+ * Add a neighbour, check that the neighbour is in, sleep for 2s,
+ * clean all the neighbours that have more than 1s of time.
+ * Check that we did not loose the neighbour.
+ * Get the neighbours again, and check that now the neighbour is out.
+ */
 TEST(NeighbourTableTest, AddAndRemove) {
   NeighbourTable* nt = NeighbourTable::getInstance();
   nt->update("node100", "192.168.1.1", 40000);
@@ -49,6 +56,10 @@ TEST(NeighbourTableTest, AddAndRemove) {
   ASSERT_TRUE(neighbours.find("node100") == neighbours.end());
 }
 
+/**
+ * Check add and remove with more neighbours.
+ * Make the same as the previous test, but with more neighbours.
+ */
 TEST(NeighbourTableTest, AddAndRemoveMore) {
   NeighbourTable* nt = NeighbourTable::getInstance();
   nt->update("node100", "192.168.1.1", 40100);

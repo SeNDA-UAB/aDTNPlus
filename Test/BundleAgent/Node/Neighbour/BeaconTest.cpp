@@ -26,6 +26,10 @@
 #include "Node/Neighbour/Beacon.h"
 #include "gtest/gtest.h"
 
+/**
+ * Check the constructor.
+ * Generate a Beacon and check that all the fields are the same.
+ */
 TEST(BeaconTest, GenerateBeacon) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
   ASSERT_EQ("Node001", b.m_nodeId);
@@ -33,6 +37,11 @@ TEST(BeaconTest, GenerateBeacon) {
   ASSERT_EQ(40000, b.m_nodePort);
 }
 
+/**
+ * Check the raw functions.
+ * Create a beacon, convert it to raw data. Generate a new bundle from the
+ * raw, the fields must be the same.
+ */
 TEST(BeaconTest, RawFunctions) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
   std::string raw = b.getRaw();
@@ -42,6 +51,11 @@ TEST(BeaconTest, RawFunctions) {
   ASSERT_EQ(b.m_nodePort, b1.m_nodePort);
 }
 
+/**
+ * Check the raw functions with changes.
+ * Create a beacon and test it as the previous test did.
+ * After that change some fields and do the same.
+ */
 TEST(BeaconTest, RawFunctionsWithChange) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
   std::string raw = b.getRaw();
