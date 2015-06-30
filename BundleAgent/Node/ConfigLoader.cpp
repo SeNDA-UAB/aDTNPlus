@@ -31,7 +31,8 @@ ConfigLoader::ConfigLoader() {
 ConfigLoader::~ConfigLoader() {
 }
 
-void ConfigLoader::load(std::string file) {
+bool ConfigLoader::load(std::string file) {
   m_reader.ParseINI(file);
+  return (m_reader.ParseError() == 0);
 }
 

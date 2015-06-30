@@ -36,7 +36,7 @@ class ConfigLoader {
  public:
   ConfigLoader();
   virtual ~ConfigLoader();
-  void load(std::string file);
+  bool load(std::string file);
   INIReader m_reader;
 };
 
