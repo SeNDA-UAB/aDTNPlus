@@ -13,6 +13,11 @@
 
 using std::string;
 
+INIReader::INIReader()
+  : _error(0)
+{
+}
+
 INIReader::INIReader(string filename)
 {
     _error = ini_parse(filename.c_str(), ValueHandler, this);
@@ -21,6 +26,11 @@ INIReader::INIReader(string filename)
 int INIReader::ParseError()
 {
     return _error;
+}
+
+void INIReader::ParseINI(std::string filename)
+{
+    _error = ini_parse(filename.c_str(), ValueHandler, this);
 }
 
 string INIReader::Get(string section, string name, string default_value)
