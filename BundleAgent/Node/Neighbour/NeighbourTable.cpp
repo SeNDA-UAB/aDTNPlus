@@ -55,6 +55,7 @@ void NeighbourTable::update(const std::string &nodeId,
       m_neighbours[nodeId]->m_nodeAddress = nodeAddress;
     if (m_neighbours[nodeId]->m_nodePort != nodePort)
       m_neighbours[nodeId]->m_nodePort = nodePort;
+    m_neighbours[nodeId]->Update();
   } else {
     m_neighbours[nodeId] = std::make_shared<Neighbour>(nodeId, nodeAddress,
                                                        nodePort);
