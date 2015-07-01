@@ -22,6 +22,8 @@
  * This file contains the test of the Bundle Class.
  */
 
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include <string>
 #include "gtest/gtest.h"
 #include "Bundle/Bundle.h"
@@ -65,4 +67,29 @@ TEST(BundleTest, RawFunctions) {
   Block *PB1 = b1.getBlocks()[0];
   ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
             (static_cast<PayloadBlock*>(PB1))->getPayload());
+}
+
+/**
+ * Send a bundle to check it with the wireshark.
+ * The bundle must be valid.
+ * It will appears under UDP.
+ */
+TEST(BundleTest, WiresharkTest) {
+  Bundle b = Bundle("node100", "node101", "This is a test payload");
+  std::string raw = b.getRaw();
+  sockaddr_in remote = { 0 };
+  remote.sin_family = AF_INET;
+  remote.sin_port = htons(0);
+  remote.sin_addr.s_addr = htonl(INADDR_ANY);
+  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+  EXPECT_LE(0,
+            bind(sock, reinterpret_cast<sockaddr*>(&remote), sizeof(remote)));
+  sockaddr_in destination = { 0 };
+  destination.sin_family = AF_INET;
+  destination.sin_port = htons(4556);
+  inet_aton("127.0.0.1", &destination.sin_addr);
+  EXPECT_LT(
+      0,
+      sendto(sock, raw.c_str(), raw.size(), 0,
+             reinterpret_cast<sockaddr*>(&destination), sizeof(destination)));
 }
