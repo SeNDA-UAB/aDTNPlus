@@ -26,9 +26,9 @@
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
 
-Node::Node(std::string filename)
-    : m_configLoader(filename) {
-  m_neighbourDiscovery(m_configLoader);
+Node::Node(std::string filename) {
+  m_configLoader.load(filename);
+  NeighbourDiscovery neighbourDiscovery(m_configLoader);
 }
 
 Node::~Node() {
