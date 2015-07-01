@@ -82,6 +82,14 @@ class NeighbourDiscovery {
    * Function to stop all the threads.
    */
   void stop();
+  /**
+   * @brief Function to set the test mode.
+   *
+   * This mode allows to save our beacons as neighbours.
+   *
+   * @param mode new value to set.
+   */
+  void setTestMode(bool mode);
 
  private:
   /**
@@ -89,25 +97,13 @@ class NeighbourDiscovery {
    */
   std::atomic<bool> m_stop;
   /**
-   * IP address to send the beacons.
+   * Atomic variable to check if we want to receive our beacon.
    */
-  std::string m_discoveryAddress;
+  std::atomic<bool> m_testMode;
   /**
-   * Port to send the beacons.
+   * ConfigLoader initialised.
    */
-  uint16_t m_discoveryPort;
-  /**
-   * Time in seconds between sending the beacons.
-   */
-  int m_discoveryPeriod;
-  /**
-   * Time in seconds that a neighbour passes to be expired.
-   */
-  int m_neighbourExpirationTime;
-  /**
-   * Time in seconds between cleaning neighbours.
-   */
-  int m_neighbourCleanerTime;
+  ConfigLoader m_config;
   /**
    * Neighbour cleaner thread.
    */
