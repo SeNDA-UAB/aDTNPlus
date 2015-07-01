@@ -22,7 +22,7 @@
  * This file contains the implementation of the Beacon class.
  */
 
-#include "Beacon.h"
+#include "Node/Neighbour/Beacon.h"
 #include <string>
 #include <cstdint>
 #include <cstring>
@@ -30,7 +30,7 @@
 #include <sstream>
 
 Beacon::Beacon(std::string rawData) {
-  char buff[1024];
+  char buff[MAX_BEACON_SIZE];
   const char* dataChar = rawData.c_str();
   strcpy(&buff[0], dataChar);
   m_nodeId = std::string(buff);

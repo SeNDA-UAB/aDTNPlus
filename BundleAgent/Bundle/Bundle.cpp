@@ -96,6 +96,8 @@ std::string Bundle::getRaw() {
   if (raw == "") {
     std::stringstream ss;
     ss << m_primaryBlock->getRaw();
+    std::vector<Block*>::reverse_iterator finalBlock = m_blocks.rbegin();
+    (*finalBlock)->setProcFlag(BlockControlFlags::LAST_BLOCK);
     for (std::vector<Block*>::iterator it = m_blocks.begin();
         it != m_blocks.end(); ++it) {
       ss << (*it)->getRaw();

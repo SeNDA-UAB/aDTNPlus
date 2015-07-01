@@ -9,9 +9,11 @@ set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 --coverage")
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")
 include_directories("${SRC_DIR}")
-file(GLOB_RECURSE SRC_FILES "${SRC_DIR}/*.cpp")
+file(GLOB_RECURSE SRC_FILES_CPP "${SRC_DIR}/*.cpp")
+file(GLOB_RECURSE SRC_FILES_C "${SRC_DIR}/*.c")
 set (LIB_NAME "BundleAgent")
-add_library ("${LIB_NAME}" STATIC ${SRC_FILES})
+set (SRC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}")
+add_library ("${LIB_NAME}" STATIC ${SRC_FILES} )
 
 #Set the path of gtest
 set(GTEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Test/gtest-1.7.0")
