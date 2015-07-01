@@ -30,7 +30,7 @@
 #include <sstream>
 
 Beacon::Beacon(std::string rawData) {
-  char buff[1024];
+  char buff[MAX_BEACON_SIZE];
   const char* dataChar = rawData.c_str();
   strcpy(&buff[0], dataChar);
   m_nodeId = std::string(buff);
