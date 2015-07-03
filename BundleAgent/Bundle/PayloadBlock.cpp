@@ -27,9 +27,11 @@
 #include <sstream>
 #include "Bundle/BundleTypes.h"
 #include "Utils/SDNV.h"
+#include "Utils/Logger.h"
 
 PayloadBlock::PayloadBlock()
     : m_payload() {
+  LOG(39) << "Generating new payload block";
   m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
 }
 
@@ -42,6 +44,7 @@ PayloadBlock::PayloadBlock(const std::string &rawData) {
    * Block Length as SDNV
    * Payload variable length
    */
+  LOG(39) << "Generating payload from raw data";
   // Get the Block Type
   uint8_t blockType = static_cast<uint8_t>(rawData[0]);
   // If the block type is a paylod block
@@ -73,6 +76,7 @@ std::string PayloadBlock::getRaw() {
    * Block Length as SDNV
    * Payload variable length
    */
+  LOG(39) << "Generating raw data from payload block";
   std::stringstream ss;
   ss << m_blockType;
   ss << encode(m_procFlags.to_ulong());
@@ -86,6 +90,7 @@ std::string PayloadBlock::getPayload() {
 }
 
 void PayloadBlock::setPayload(const std::string &payload) {
+  LOG(39) << "Setting new payload [" << payload << "]";
   m_payload = payload;
 }
 
