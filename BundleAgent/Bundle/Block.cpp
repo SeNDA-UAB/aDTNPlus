@@ -25,6 +25,7 @@
 #include "Bundle/Block.h"
 #include <string>
 #include "Utils/SDNV.h"
+#include "Utils/Logger.h"
 
 Block::Block()
     : m_blockType(0),
@@ -35,6 +36,7 @@ Block::~Block() {
 }
 
 size_t Block::getFirstBlockLength(const std::string &rawData) {
+  LOG(38) << "Getting length of block";
   // BlockType 1 byte
   size_t blockLength = 1;
   std::string data = rawData.substr(1);
@@ -65,18 +67,22 @@ size_t Block::getFirstBlockLength(const std::string &rawData) {
   blockLength += dataSize;
   uint64_t blockDataSize = decode(data);
   blockLength += blockDataSize;
+  LOG(38) << "The length of the block is " << blockLength;
   return blockLength;
 }
 
 void Block::setProcFlag(BlockControlFlags procFlag) {
+  LOG(38) << "Setting Flag " << static_cast<int>(procFlag);
   m_procFlags.set(static_cast<ulong>(procFlag));
 }
 
 void Block::clearProcFlag(BlockControlFlags procFlag) {
+  LOG(38) << "Clearing Flag " << static_cast<int>(procFlag);
   m_procFlags.reset(static_cast<ulong>(procFlag));
 }
 
 bool Block::testProcFlag(BlockControlFlags procFlag) {
+  LOG(38) << "Testing Flag " << static_cast<int>(procFlag);
   return m_procFlags.test(static_cast<ulong>(procFlag));
 }
 
