@@ -25,7 +25,7 @@
 #define BUNDLEAGENT_UTILS_LOGGER_H_
 
 #ifndef MAX_LOG_LEVEL
-#define MAX_LOG_LEVEL 10
+#define MAX_LOG_LEVEL 100
 #endif
 
 #include <cstring>
