@@ -30,7 +30,7 @@ file(GLOB_RECURSE TEST_SRC_FILES "${TEST_SRC_DIR}/*.cpp")
 
 #Create an executable with the tests
 add_executable(${TEST_EXEC} ${TEST_SRC_FILES})
-target_link_libraries(${TEST_EXEC} ${LIB_NAME} gtest_main gtest)
+target_link_libraries(${TEST_EXEC} ${LIB_NAME} gtest)
 
 #Add the executable as a test
 add_test(BundleTest "${TEST_EXEC}")
