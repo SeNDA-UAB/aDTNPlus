@@ -25,13 +25,26 @@
 #include <string>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
+#include "Utils/Logger.h"
 
-Node::Node(std::string filename)
-    : m_configLoader(filename) {
-  m_neighbourDiscovery(m_configLoader);
+Node::Node(std::string filename) {
+  Logger::getInstance()->setLoggerConfigAndStart(
+      m_configLoader.m_reader.Get("Logger", "filename", "/tmp/adtn.log"));
+  Logger::getInstance()->setLogLevel(
+      m_configLoader.m_reader.GetInteger("Logger", "level", 21));
+  LOG(6) << "Starting Node...";
+  if (!m_configLoader.load(filename)) {
+    LOG(1) << "Configuration File has not been found or contains errors."
+           << "Aborting...";
+  } else {
+    LOG(6) << "Starting NeighbourDiscovery";
+    NeighbourDiscovery neighbourDiscovery(m_configLoader);
+  }
 }
 
 Node::~Node() {
+  LOG(6) << "Closing Node...";
   delete NeighbourTable::getInstance();
+  delete Logger::getInstance();
 }
 

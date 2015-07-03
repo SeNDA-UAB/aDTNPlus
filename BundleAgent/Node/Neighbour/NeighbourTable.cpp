@@ -28,6 +28,7 @@
 #include <map>
 #include <mutex>
 #include "Node/Neighbour/Neighbour.h"
+#include "Utils/Logger.h"
 
 NeighbourTable *NeighbourTable::m_instance = 0;
 
@@ -38,6 +39,7 @@ NeighbourTable::~NeighbourTable() {
 }
 
 NeighbourTable* NeighbourTable::getInstance() {
+  LOG(70) << "Getting instance";
   if (m_instance == 0) {
     m_instance = new NeighbourTable();
   }
@@ -47,6 +49,9 @@ NeighbourTable* NeighbourTable::getInstance() {
 void NeighbourTable::update(const std::string &nodeId,
                             const std::string &nodeAddress,
                             const uint16_t &nodePort) {
+  LOG(61) << "Updating table with neighbour [nodeId: " << nodeId
+          << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
+          << "]";
   mutex.lock();
   std::map<std::string, std::shared_ptr<Neighbour>>::iterator it = m_neighbours
       .find(nodeId);
@@ -57,6 +62,7 @@ void NeighbourTable::update(const std::string &nodeId,
       m_neighbours[nodeId]->m_nodePort = nodePort;
     m_neighbours[nodeId]->Update();
   } else {
+    LOG(17) << "New neighbour " << nodeId << " added";
     m_neighbours[nodeId] = std::make_shared<Neighbour>(nodeId, nodeAddress,
                                                        nodePort);
   }
@@ -64,10 +70,13 @@ void NeighbourTable::update(const std::string &nodeId,
 }
 
 void NeighbourTable::cleanNeighbours(int expirationTime) {
+  LOG(62) << "Cleaning neighbours that have been out for more than "
+          << expirationTime;
   mutex.lock();
   for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it =
       m_neighbours.begin(); it != m_neighbours.end(); ++it) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
+      LOG(17) << "Neighbour " << (*it).second->m_nodeId << " has disappeared";
       m_neighbours.erase(it);
     }
   }
@@ -76,6 +85,7 @@ void NeighbourTable::cleanNeighbours(int expirationTime) {
 
 void NeighbourTable::getNeighbours(
     std::map<std::string, std::shared_ptr<Neighbour>> *map) {
+  LOG(61) << "Returning current neighbours";
   mutex.lock();
   (*map).insert(m_neighbours.begin(), m_neighbours.end());
   mutex.unlock();

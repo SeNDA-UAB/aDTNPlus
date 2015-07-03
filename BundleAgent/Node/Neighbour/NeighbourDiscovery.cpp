@@ -31,6 +31,7 @@
 #include <chrono>
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Beacon.h"
+#include "Utils/Logger.h"
 
 NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
     : m_stop(false),
@@ -42,18 +43,22 @@ NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
   m_neighbourCleanerThread.detach();
   m_sendBeaconsThread.detach();
   m_receiveBeaconsThread.detach();
+  LOG(68) << "Creating neighbour discovery";
 }
 
 NeighbourDiscovery::~NeighbourDiscovery() {
+  LOG(68) << "Deleting neighbour discovery";
   m_stop = true;
 }
 
 void NeighbourDiscovery::sendBeacons() {
+  LOG(14) << "Creating send beacons thread";
   // Get node configuration
   std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
   std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
   uint16_t nodePort = m_config.m_reader.GetInteger("Node", "nodePort", 0);
   // Generate this node address information.
+  LOG(64) << "Starting socket into " << nodeAddress << ":0";
   sockaddr_in discoveryAddr = { 0 };
   discoveryAddr.sin_family = AF_INET;
   discoveryAddr.sin_port = htons(0);
@@ -73,11 +78,18 @@ void NeighbourDiscovery::sendBeacons() {
           m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
               .c_str());
   // Create the beacon with our information.
+  LOG(64)
+      << "Sending beacons to "
+      << m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
+      << ":"
+      << m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort", 0);
   Beacon b = Beacon(nodeId, nodeAddress, nodePort);
   int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
                                                "discoveryPeriod", 1);
   while (!m_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+    LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
+            << nodePort;
     size_t t = sendto(sock, b.getRaw().c_str(), b.getRaw().size(), 0,
                       reinterpret_cast<sockaddr*>(&discoveryDestinationAddr),
                       sizeof(discoveryDestinationAddr));
@@ -86,6 +98,7 @@ void NeighbourDiscovery::sendBeacons() {
 
 void NeighbourDiscovery::receiveBeacons() {
   // Get node configuration
+  LOG(15) << "Starting receiver beacon thread";
   std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
   std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
   uint16_t discoveryPort = m_config.m_reader.GetInteger("NeighbourDiscovery",
@@ -97,6 +110,8 @@ void NeighbourDiscovery::receiveBeacons() {
   discoveryAddr.sin_family = AF_INET;
   discoveryAddr.sin_port = htons(discoveryPort);
   discoveryAddr.sin_addr.s_addr = inet_addr(discoveryAddress.c_str());
+  LOG(65) << "Starting socket into " << discoveryAddress << ":"
+          << discoveryPort;
   // Create the socket.
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   int flagOn = 1;
@@ -118,6 +133,8 @@ void NeighbourDiscovery::receiveBeacons() {
     // receiving more beacons
     Beacon b = Beacon(std::string(buffer, recvLength));
     if (b.m_nodeId != nodeId || (b.m_nodeId == nodeId && m_testMode.load())) {
+      LOG(15) << "Received beacon from " << b.m_nodeId << " " << b.m_nodeAddress
+              << ":" << b.m_nodePort;
       std::thread([b]() {
         NeighbourTable::getInstance()->update(b.m_nodeId, b.m_nodeAddress,
             b.m_nodePort);
@@ -133,17 +150,24 @@ void NeighbourDiscovery::neighbourCleaner() {
   int expirationTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
                                                     "neighbourExpirationTime",
                                                     10);
+  LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime
+          << "s all the nodes with inactivity for a period of "
+          << expirationTime << "s";
   while (!m_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+    LOG(67) << "Calling to clean neighbours";
     NeighbourTable::getInstance()->cleanNeighbours(expirationTime);
   }
 }
 
 void NeighbourDiscovery::stop() {
+  LOG(16) << "Stopping neighbour discovery";
   m_stop = true;
 }
 
 void NeighbourDiscovery::setTestMode(bool mode) {
+  LOG(4) << "Setting neighbour discovery to test mode."
+         << " This will make this node a neighbour also.";
   m_testMode = mode;
 }
 

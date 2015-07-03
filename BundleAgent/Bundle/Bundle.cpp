@@ -32,6 +32,7 @@
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
+#include "Utils/Logger.h"
 
 Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
@@ -40,7 +41,9 @@ Bundle::Bundle(const std::string &rawData)
    * A bundle is formed by a PrimaryBlock, and other blocks.
    * In this other blocks one of it must be a PayloadBlock.
    */
+  LOG(35) << "New Bundle from raw Data";
   // First generate a PrimaryBlock with the data.
+  LOG(35) << "Generating Primary Block";
   m_primaryBlock = new PrimaryBlock(rawData);
   // Skip the PrimaryBlock (1 byte, a SDNV, and we get the block length)
   std::string data = rawData.substr(1);
@@ -56,6 +59,7 @@ Bundle::Bundle(const std::string &rawData)
   while (data.size() != 0) {
     switch (static_cast<BlockTypes>(data[0])) {
       case BlockTypes::PAYLOAD_BLOCK: {
+        LOG(35) << "Generating Payload Block";
         Block* b = new PayloadBlock(data);
         m_blocks.push_back(b);
         break;
@@ -72,6 +76,9 @@ Bundle::Bundle(const std::string &rawData)
 
 Bundle::Bundle(std::string origin, std::string destination, std::string payload)
     : m_raw() {
+  LOG(34) << "Generating new bundle with parameters [Source: " << origin
+          << "][Destination: " << destination << "][Payload: " << payload
+          << "]";
   TimestampManager *tm = TimestampManager::getInstance();
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
@@ -82,6 +89,7 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
 }
 
 Bundle::~Bundle() {
+  LOG(36) << "Deleting Bundle";
   if (m_primaryBlock != nullptr)
     delete m_primaryBlock;
   for (std::vector<Block*>::iterator it = m_blocks.begin();
@@ -92,14 +100,17 @@ Bundle::~Bundle() {
 }
 
 std::string Bundle::getRaw() {
+  LOG(36) << "Generating bundle in raw format";
   std::string raw = m_raw;
   if (raw == "") {
     std::stringstream ss;
+    LOG(36) << "Getting the primary block in raw";
     ss << m_primaryBlock->getRaw();
     std::vector<Block*>::reverse_iterator finalBlock = m_blocks.rbegin();
     (*finalBlock)->setProcFlag(BlockControlFlags::LAST_BLOCK);
     for (std::vector<Block*>::iterator it = m_blocks.begin();
         it != m_blocks.end(); ++it) {
+      LOG(36) << "Getting the next block in raw";
       ss << (*it)->getRaw();
     }
     raw = ss.str();
@@ -118,9 +129,12 @@ std::vector<Block *> Bundle::getBlocks() {
 void Bundle::addBlock(Block *newBlock) {
   // Check if the block type is a PayloadBlock
   // only one can be present into a bundle.
+  LOG(37) << "Adding new Block to the bundle";
   if (newBlock->getBlockType()
       != static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
     m_blocks.push_back(newBlock);
+  } else {
+    LOG(3) << "Some one is trying to add another Payload block";
   }
 }
 

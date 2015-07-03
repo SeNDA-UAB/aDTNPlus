@@ -56,10 +56,6 @@ class Node {
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
-  /**
-   * Variable that holds the Neighbour Discovery.
-   */
-  NeighbourDiscovery m_neighbourDiscovery;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

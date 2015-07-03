@@ -15,27 +15,26 @@
  *
  */
 /**
- * FILE ConfigLoader.cpp
+ * FILE Logstream.cpp
  * AUTHOR Blackcatn13
- * DATE Jun 29, 2015
+ * DATE Jul 3, 2015
  * VERSION 1
- * This file contains the implementation of the ConfigLoader class.
+ * This file contains the implementation of the Logstream class.
  */
 
-#include "ConfigLoader.h"
-#include <string>
-#include <sstream>
+#include "Utils/Logstream.h"
 #include "Utils/Logger.h"
 
-ConfigLoader::ConfigLoader() {
+Logstream::Logstream(Logger *logger, int level)
+    : m_logger(logger),
+      m_level(level) {
 }
 
-ConfigLoader::~ConfigLoader() {
+Logstream::Logstream(const Logstream &ls)
+    : m_logger(ls.m_logger),
+      m_level(ls.m_level) {
 }
 
-bool ConfigLoader::load(std::string file) {
-  LOG(18) << "Loading configuration file " << file;
-  m_reader.ParseINI(file);
-  return (m_reader.ParseError() == 0);
+Logstream::~Logstream() {
+  m_logger->log(m_level, str());
 }
-
