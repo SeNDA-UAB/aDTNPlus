@@ -26,6 +26,7 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
+#include "Utils/Logger.h"
 
 Neighbour::Neighbour(const std::string &nodeId, const std::string &nodeAddress,
                      const uint16_t &nodePort)
@@ -33,12 +34,16 @@ Neighbour::Neighbour(const std::string &nodeId, const std::string &nodeAddress,
       m_nodeAddress(nodeAddress),
       m_nodePort(nodePort),
       m_lastActivity(std::chrono::steady_clock::now()) {
+  LOG(69) << "Creating new neighbour from parameters [nodeId: " << nodeId
+          << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
+          << "]";
 }
 
 Neighbour::~Neighbour() {
 }
 
 int Neighbour::getElapsedActivityTime() {
+  LOG(69) << "Getting last activity time";
   std::chrono::nanoseconds now = std::chrono::steady_clock::now()
       - m_lastActivity;
   return now.count() * std::chrono::nanoseconds::period::num
@@ -46,6 +51,7 @@ int Neighbour::getElapsedActivityTime() {
 }
 
 void Neighbour::Update() {
+  LOG(69) << "Updating neighbour last activity time to now";
   m_lastActivity = std::chrono::steady_clock::now();
 }
 
