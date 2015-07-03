@@ -56,7 +56,7 @@ void Logger::log(int level, std::string message) {
   else if (level <= 20)
     os << "[INFORMATION]";
   else
-    os << "[DEBUG]";
+    os << "[DEBUG - " << level << "]";
   os << message << std::endl;
   m_mutex.unlock();
 }
