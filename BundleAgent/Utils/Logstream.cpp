@@ -15,29 +15,26 @@
  *
  */
 /**
- * FILE Node.cpp
+ * FILE Logstream.cpp
  * AUTHOR Blackcatn13
- * DATE Jun 29, 2015
+ * DATE Jul 3, 2015
  * VERSION 1
- *
+ * This file contains the implementation of the Logstream class.
  */
 
-#include <string>
-#include "Node/Node.h"
-#include "Node/Neighbour/NeighbourTable.h"
+#include "Utils/Logstream.h"
 #include "Utils/Logger.h"
 
-Node::Node(std::string filename) {
-  m_configLoader.load(filename);
-  NeighbourDiscovery neighbourDiscovery(m_configLoader);
-  Logger::getInstance()->setLoggerConfigAndStart(
-      m_configLoader.m_reader.Get("Logger", "filename", "/tmp/adtn.log"));
-  Logger::getInstance()->setLogLevel(
-      m_configLoader.m_reader.GetInteger("Logger", "level", 21));
+Logstream::Logstream(Logger *logger, int level)
+    : m_logger(logger),
+      m_level(level) {
 }
 
-Node::~Node() {
-  delete NeighbourTable::getInstance();
-  delete Logger::getInstance();
+Logstream::Logstream(const Logstream &ls)
+    : m_logger(ls.m_logger),
+      m_level(ls.m_level) {
 }
 
+Logstream::~Logstream() {
+  m_logger->log(m_level, str());
+}

@@ -24,6 +24,8 @@
 
 #include "ConfigLoader.h"
 #include <string>
+#include <sstream>
+#include "Utils/Logger.h"
 
 ConfigLoader::ConfigLoader() {
 }

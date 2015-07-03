@@ -29,8 +29,11 @@
 #endif
 
 #include <cstring>
-#include <sstream>
+#include <fstream>
 #include <string>
+#include <mutex>
+#include "Utils/Logstream.h"
+#include "Node/ConfigLoader.h"
 
 /**
  * CLASS Logger
@@ -62,14 +65,14 @@ class Logger {
    */
   virtual ~Logger();
   /**
-   * Function to add a log.
+   * @brief Function to add a log.
    *
-   * @param who file that generates the log.
-   * @param line the line that generates the log.
-   * @param level the level of the log.
-   * @return the stream of the logger to add the log.
+   * This function will add a timestamp and the type label to the log.
+   *
+   * @param level of the log to add.
+   * @param message to log.
    */
-  std::stringstream& getLog(std::string who, int line, int level);
+  void log(int level, std::string message);
   /**
    * Function to get the current log level.
    * @return The current log level.
@@ -85,7 +88,23 @@ class Logger {
    * @return an instance to the logger.
    */
   static Logger* getInstance();
- protected:
+  /**
+   * Operator to get a Logstream to put the log.
+   *
+   * @param level of the log.
+   * @return a Logstream to add the log.
+   */
+  Logstream operator()(int level);
+  /**
+   * @brief Function to set the configuration and start the Logger.
+   *
+   * This functions sets the file to save the logs.
+   *
+   * @param filename File to save to logs.
+   */
+  void setLoggerConfigAndStart(std::string filename);
+
+ private:
   /**
    * Constructor of the class.
    */
@@ -97,19 +116,35 @@ class Logger {
   /**
    * Stream to save the logs.
    */
-  std::stringstream os;
+  std::ofstream os;
   /**
    * Current level of log.
    */
   int m_logLevel;
+  /**
+   * Mutex for the stringstream.
+   */
+  std::mutex m_mutex;
+  /**
+   * File to save the logs.
+   */
+  std::string m_filename;
 };
 
+/**
+ * Macro to get only the name of the file.
+ */
 #define _FILE strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__
 
-#define LOG(level) \
-  if (level > MAX_LOG_LEVEL) ; \
-  else if (level > Logger::getInstance()->logLevel()) ; \
-  else \
-    Logger::getInstance()->getLog(_FILE, __LINE__, level)
+/**
+ * Macro to get a Logstream, and add to it the file name and the line
+ * that generate the log.
+ */
+#define LOG(level)                                          \
+  if (level > MAX_LOG_LEVEL) ;                              \
+  else if (level > Logger::getInstance()->logLevel()) ;     \
+  else                                                      \
+    Logger::getInstance()->operator()(level) << "[" <<      \
+        std::string(_FILE) << ":" << __LINE__ << "] - "
 
 #endif  // BUNDLEAGENT_UTILS_LOGGER_H_

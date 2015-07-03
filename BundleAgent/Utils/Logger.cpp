@@ -36,11 +36,12 @@ Logger::Logger()
 }
 
 Logger::~Logger() {
-  std::cout << os.str();
   m_instance = 0;
+  os.close();
 }
 
-std::stringstream& Logger::getLog(std::string who, int line, int level) {
+void Logger::log(int level, std::string message) {
+  m_mutex.lock();
   std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
   std::time_t tt;
   tt = std::chrono::system_clock::to_time_t(now);
@@ -48,7 +49,6 @@ std::stringstream& Logger::getLog(std::string who, int line, int level) {
   char buffer[80];
   strftime(buffer, 80, "[%F %T]", timeinfo);
   os << buffer;
-  os << "[" << who << ":" << line << "]";
   if (level == 1)
     os << "[ERROR]";
   else if (level <= 5)
@@ -57,8 +57,8 @@ std::stringstream& Logger::getLog(std::string who, int line, int level) {
     os << "[INFORMATION]";
   else
     os << "[DEBUG]";
-  os << " - ";
-  return os;
+  os << message << std::endl;
+  m_mutex.unlock();
 }
 
 int Logger::logLevel() {
@@ -73,4 +73,12 @@ Logger* Logger::getInstance() {
 
 void Logger::setLogLevel(int level) {
   m_logLevel = level;
+}
+
+Logstream Logger::operator()(int level) {
+  return Logstream(this, level);
+}
+
+void Logger::setLoggerConfigAndStart(std::string filename) {
+  os.open(filename, std::ios_base::app);
 }
