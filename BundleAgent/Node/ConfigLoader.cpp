@@ -34,6 +34,7 @@ ConfigLoader::~ConfigLoader() {
 }
 
 bool ConfigLoader::load(std::string file) {
+  LOG(18) << "Loading configuration file " << file;
   m_reader.ParseINI(file);
   return (m_reader.ParseError() == 0);
 }
