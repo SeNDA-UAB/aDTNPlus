@@ -27,8 +27,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
+#include <cstring>
 #include <thread>
 #include <chrono>
+#include <stdexcept>
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Beacon.h"
 #include "Utils/Logger.h"
@@ -36,13 +38,13 @@
 NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
     : m_stop(false),
       m_testMode(false),
-      m_config(config),
-      m_neighbourCleanerThread(&NeighbourDiscovery::neighbourCleaner, this),
-      m_sendBeaconsThread(&NeighbourDiscovery::sendBeacons, this),
-      m_receiveBeaconsThread(&NeighbourDiscovery::receiveBeacons, this) {
-  m_neighbourCleanerThread.detach();
-  m_sendBeaconsThread.detach();
-  m_receiveBeaconsThread.detach();
+      m_config(config) {
+  std::thread t = std::thread(&NeighbourDiscovery::neighbourCleaner, this);
+  t.detach();
+  t = std::thread(&NeighbourDiscovery::sendBeacons, this);
+  t.detach();
+  t = std::thread(&NeighbourDiscovery::receiveBeacons, this);
+  t.detach();
   LOG(68) << "Creating neighbour discovery";
 }
 
@@ -53,22 +55,27 @@ NeighbourDiscovery::~NeighbourDiscovery() {
 
 void NeighbourDiscovery::sendBeacons() {
   LOG(14) << "Creating send beacons thread";
-  // Get node configuration
+// Get node configuration
   std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
   std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
   uint16_t nodePort = m_config.m_reader.GetInteger("Node", "nodePort", 0);
-  // Generate this node address information.
+// Generate this node address information.
   LOG(64) << "Starting socket into " << nodeAddress << ":0";
   sockaddr_in discoveryAddr = { 0 };
   discoveryAddr.sin_family = AF_INET;
   discoveryAddr.sin_port = htons(0);
   discoveryAddr.sin_addr.s_addr = inet_addr(nodeAddress.c_str());
-  // Create the socket.
+// Create the socket.
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  // Bind the socket.
-  bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
-       sizeof(discoveryAddr));
-  // Generate the destination address.
+  if (sock == -1) {
+    throw std::runtime_error(strerror(errno));
+  }
+// Bind the socket.
+  if (bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
+           sizeof(discoveryAddr)) == -1) {
+    throw std::runtime_error(strerror(errno));
+  }
+// Generate the destination address.
   sockaddr_in discoveryDestinationAddr = { 0 };
   discoveryDestinationAddr.sin_family = AF_INET;
   discoveryDestinationAddr.sin_port = htons(
@@ -77,7 +84,7 @@ void NeighbourDiscovery::sendBeacons() {
       inet_addr(
           m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
               .c_str());
-  // Create the beacon with our information.
+// Create the beacon with our information.
   LOG(64)
       << "Sending beacons to "
       << m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
@@ -90,14 +97,21 @@ void NeighbourDiscovery::sendBeacons() {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
             << nodePort;
-    size_t t = sendto(sock, b.getRaw().c_str(), b.getRaw().size(), 0,
-                      reinterpret_cast<sockaddr*>(&discoveryDestinationAddr),
-                      sizeof(discoveryDestinationAddr));
+    std::string rawBeacon = b.getRaw();
+    int sendSize = sendto(
+        sock, rawBeacon.c_str(), rawBeacon.size(), 0,
+        reinterpret_cast<sockaddr*>(&discoveryDestinationAddr),
+        sizeof(discoveryDestinationAddr));
+    if (sendSize == -1) {
+      LOG(1) << "Error sending beacon " << strerror(errno);
+    } else if (sendSize != rawBeacon.size()) {
+      LOG(4) << "Cannot send all the beacon";
+    }
   }
 }
 
 void NeighbourDiscovery::receiveBeacons() {
-  // Get node configuration
+// Get node configuration
   LOG(15) << "Starting receiver beacon thread";
   std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
   std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
@@ -105,21 +119,21 @@ void NeighbourDiscovery::receiveBeacons() {
                                                         "discoveryPort", 0);
   std::string discoveryAddress = m_config.m_reader.Get("NeighbourDiscovery",
                                                        "discoveryAddress", "");
-  // Generate this node address information.
+// Generate this node address information.
   sockaddr_in discoveryAddr = { 0 };
   discoveryAddr.sin_family = AF_INET;
   discoveryAddr.sin_port = htons(discoveryPort);
   discoveryAddr.sin_addr.s_addr = inet_addr(discoveryAddress.c_str());
   LOG(65) << "Starting socket into " << discoveryAddress << ":"
           << discoveryPort;
-  // Create the socket.
+// Create the socket.
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   int flagOn = 1;
   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &flagOn, sizeof(flagOn));
-  // Bind the socket.
+// Bind the socket.
   bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
        sizeof(discoveryAddr));
-  // Join the multicast group.
+// Join the multicast group.
   ip_mreq mcReq = { 0 };
   mcReq.imr_multiaddr.s_addr = inet_addr(discoveryAddress.c_str());
   mcReq.imr_interface.s_addr = inet_addr(nodeAddress.c_str());

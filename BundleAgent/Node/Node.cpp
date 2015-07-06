@@ -38,12 +38,13 @@ Node::Node(std::string filename) {
            << "Aborting...";
   } else {
     LOG(6) << "Starting NeighbourDiscovery";
-    NeighbourDiscovery neighbourDiscovery(m_configLoader);
+    m_neighbourDiscovery = new NeighbourDiscovery(m_configLoader);
   }
 }
 
 Node::~Node() {
   LOG(6) << "Closing Node...";
+  delete m_neighbourDiscovery;
   delete NeighbourTable::getInstance();
   delete Logger::getInstance();
 }

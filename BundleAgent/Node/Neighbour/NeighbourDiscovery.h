@@ -104,18 +104,6 @@ class NeighbourDiscovery {
    * ConfigLoader initialised.
    */
   ConfigLoader m_config;
-  /**
-   * Neighbour cleaner thread.
-   */
-  std::thread m_neighbourCleanerThread;
-  /**
-   * Send beacons thread.
-   */
-  std::thread m_sendBeaconsThread;
-  /**
-   * Receive beacons thread.
-   */
-  std::thread m_receiveBeaconsThread;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_NEIGHBOURDISCOVERY_H_
