@@ -185,6 +185,8 @@ void PrimaryBlock::setProcFlag(PrimaryBlockControlFlags procFlag) {
         m_procFlags.reset(7);
         m_procFlags.set(8);
         break;
+      default:
+        break;
     }
   }
 }
@@ -222,6 +224,8 @@ bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
         break;
       case PrimaryBlockControlFlags::PRIORITY_EXPEDITED:
         flagActive = !m_procFlags.test(7) && m_procFlags.test(8);
+        break;
+      default:
         break;
     }
   }
