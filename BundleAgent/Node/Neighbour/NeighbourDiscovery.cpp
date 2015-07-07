@@ -120,6 +120,7 @@ void NeighbourDiscovery::sendBeacons() {
     close(sock);
   }
   LOG(14) << "Exit Beacon sender thread.";
+  g_stopped++;
 }
 
 void NeighbourDiscovery::receiveBeacons() {
@@ -206,6 +207,7 @@ void NeighbourDiscovery::receiveBeacons() {
     close(sock);
   }
   LOG(15) << "Exit Beacon receiver thread.";
+  g_stopped++;
 }
 
 void NeighbourDiscovery::neighbourCleaner() {
@@ -223,6 +225,7 @@ void NeighbourDiscovery::neighbourCleaner() {
     NeighbourTable::getInstance()->cleanNeighbours(expirationTime);
   }
   LOG(16) << "Exit Neighbour cleaner thread";
+  g_stopped++;
 }
 
 void NeighbourDiscovery::setTestMode(bool mode) {

@@ -24,11 +24,13 @@
 
 #include <iostream>
 #include <atomic>
+#include <cstdint>
 #include "gtest/gtest.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
 std::atomic<bool> g_stop;
+std::atomic<uint16_t> g_stopped;
 
 GTEST_API_ int main(int argc, char **argv) {
   g_stop = false;

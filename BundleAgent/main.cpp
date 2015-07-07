@@ -22,16 +22,31 @@
  * This is the main file for the application.
  */
 
+#include <unistd.h>
+#include <signal.h>
 #include <atomic>
+#include <cstdint>
 #include "Utils/globals.h"
 #include "Node/Node.h"
 
 std::atomic<bool> g_stop;
+std::atomic<uint16_t> g_stopped;
+
+void stop(int signal) {
+  g_stop = true;
+}
 
 int main(int argc, char **argv) {
+  struct sigaction sigIntHandler;
+  sigIntHandler.sa_handler = stop;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+
+  sigaction(SIGINT, &sigIntHandler, NULL);
+  g_stopped = 0;
   Node n = Node("../BundleAgent/Config/adtn.ini");
   g_stop = false;
-  while (!g_stop) {
+  while (!g_stop || (g_stopped.load() < maxThread)) {
   }
 }
 
