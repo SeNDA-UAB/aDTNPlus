@@ -1,17 +1,27 @@
 cmake_minimum_required(VERSION 2.8)
 
 set(PROJECT_NAME BundleAgent)
-project(${PROJECT_NAME})
+project(${PROJECT_NAME} C CXX)
 
 # Set CMake flags
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++11 --coverage")
+set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread --coverage")
 
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")
 include_directories("${SRC_DIR}")
-file(GLOB_RECURSE SRC_FILES_CPP "${SRC_DIR}/*.cpp")
-file(GLOB_RECURSE SRC_FILES_C "${SRC_DIR}/*.c")
-set (LIB_NAME "BundleAgent")
+file(GLOB_RECURSE SRC_FILES_CPP "${SRC_DIR}/Bundle/*.cpp" "${SRC_DIR}/ExternTools/*.cpp" "${SRC_DIR}/Node/*.cpp" "${SRC_DIR}/Utils/*.cpp")
+file(GLOB_RECURSE SRC_FILES_C "${SRC_DIR}/ExternTools/*.c")
+file(GLOB MAIN_FILE "${SRC_DIR}/*.cpp")
+set(EXEC_NAME "BundleAgent")
+#Create program executable
+SET(EXEC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}" "${MAIN_FILE}")
+add_executable(${EXEC_NAME} ${EXEC_FILES})
+find_package(Threads)
+target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
+# Exclude main for static library
+#list(REMOVE_ITEM SRC_FILES_CPP "${SRC_DIR}/main.cpp")
+set (LIB_NAME "${EXEC_NAME}_lib")
 set (SRC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}")
 add_library ("${LIB_NAME}" STATIC ${SRC_FILES} )
 
@@ -24,7 +34,7 @@ enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 #Get the test files
-set(TEST_EXEC "${LIB_NAME}_test")
+set(TEST_EXEC "${EXEC_NAME}_test")
 set(TEST_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Test/BundleAgent")
 file(GLOB_RECURSE TEST_SRC_FILES "${TEST_SRC_DIR}/*.cpp")
 

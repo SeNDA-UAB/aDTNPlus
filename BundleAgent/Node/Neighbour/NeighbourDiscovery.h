@@ -79,10 +79,6 @@ class NeighbourDiscovery {
    */
   void neighbourCleaner();
   /**
-   * Function to stop all the threads.
-   */
-  void stop();
-  /**
    * @brief Function to set the test mode.
    *
    * This mode allows to save our beacons as neighbours.
@@ -93,10 +89,6 @@ class NeighbourDiscovery {
 
  private:
   /**
-   * Atomic variable to tell the threads when to stop.
-   */
-  std::atomic<bool> m_stop;
-  /**
    * Atomic variable to check if we want to receive our beacon.
    */
   std::atomic<bool> m_testMode;
@@ -104,18 +96,6 @@ class NeighbourDiscovery {
    * ConfigLoader initialised.
    */
   ConfigLoader m_config;
-  /**
-   * Neighbour cleaner thread.
-   */
-  std::thread m_neighbourCleanerThread;
-  /**
-   * Send beacons thread.
-   */
-  std::thread m_sendBeaconsThread;
-  /**
-   * Receive beacons thread.
-   */
-  std::thread m_receiveBeaconsThread;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_NEIGHBOURDISCOVERY_H_
