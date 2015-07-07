@@ -34,10 +34,10 @@
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Beacon.h"
 #include "Utils/Logger.h"
+#include "Utils/globals.h"
 
 NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
-    : m_stop(false),
-      m_testMode(false),
+    : m_testMode(false),
       m_config(config) {
   std::thread t = std::thread(&NeighbourDiscovery::neighbourCleaner, this);
   t.detach();
@@ -50,7 +50,6 @@ NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
 
 NeighbourDiscovery::~NeighbourDiscovery() {
   LOG(68) << "Deleting neighbour discovery";
-  m_stop = true;
 }
 
 void NeighbourDiscovery::sendBeacons() {
@@ -93,7 +92,7 @@ void NeighbourDiscovery::sendBeacons() {
   Beacon b = Beacon(nodeId, nodeAddress, nodePort);
   int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
                                                "discoveryPeriod", 1);
-  while (!m_stop.load()) {
+  while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
             << nodePort;
@@ -139,7 +138,7 @@ void NeighbourDiscovery::receiveBeacons() {
   mcReq.imr_interface.s_addr = inet_addr(nodeAddress.c_str());
   setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
              reinterpret_cast<void*>(&mcReq), sizeof(mcReq));
-  while (!m_stop.load()) {
+  while (!g_stop.load()) {
     char* buffer = reinterpret_cast<char*>(malloc(
         Beacon::MAX_BEACON_SIZE * sizeof(char)));
     size_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
@@ -167,21 +166,16 @@ void NeighbourDiscovery::neighbourCleaner() {
   LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime
           << "s all the nodes with inactivity for a period of "
           << expirationTime << "s";
-  while (!m_stop.load()) {
+  while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(67) << "Calling to clean neighbours";
     NeighbourTable::getInstance()->cleanNeighbours(expirationTime);
   }
 }
 
-void NeighbourDiscovery::stop() {
-  LOG(16) << "Stopping neighbour discovery";
-  m_stop = true;
-}
-
 void NeighbourDiscovery::setTestMode(bool mode) {
-  LOG(4) << "Setting neighbour discovery to test mode."
-         << " This will make this node a neighbour also.";
+  LOG(4) << "Setting neighbour discovery test mode to " << mode
+         << " If true this will make this node a neighbour also.";
   m_testMode = mode;
 }
 

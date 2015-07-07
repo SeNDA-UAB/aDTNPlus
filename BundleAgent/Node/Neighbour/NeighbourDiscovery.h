@@ -79,10 +79,6 @@ class NeighbourDiscovery {
    */
   void neighbourCleaner();
   /**
-   * Function to stop all the threads.
-   */
-  void stop();
-  /**
    * @brief Function to set the test mode.
    *
    * This mode allows to save our beacons as neighbours.
@@ -92,10 +88,6 @@ class NeighbourDiscovery {
   void setTestMode(bool mode);
 
  private:
-  /**
-   * Atomic variable to tell the threads when to stop.
-   */
-  std::atomic<bool> m_stop;
   /**
    * Atomic variable to check if we want to receive our beacon.
    */

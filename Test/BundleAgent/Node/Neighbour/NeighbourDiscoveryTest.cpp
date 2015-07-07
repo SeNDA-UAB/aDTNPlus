@@ -30,6 +30,7 @@
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
 #include "Node/ConfigLoader.h"
+#include "Utils/globals.h"
 
 /**
  * Check NeighbourCleaner thread.
@@ -38,6 +39,7 @@
  * Stop the cleaner and check that it has really stopped.
  */
 TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
+  g_stop = false;
   ConfigLoader cf = ConfigLoader();
   cf.load("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
@@ -67,7 +69,7 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   neighbours.clear();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(0, neighbours.size());
-  nd.stop();
+  g_stop = true;
   // The neighbour cleaner thread has been stopped, so the new neighbours
   // must not be cleaned.
   NeighbourTable::getInstance()->update("node101", "192.168.1.1", 4000);
@@ -82,7 +84,8 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
  * To do this, we start the neighbour discovery, and put in test mode.
  * With this we are going to have a neighbour, ourselves.
  */
-TEST(NeighbourDiscoveryTtest, NeighbourSendAndReceiveTest) {
+TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
+  g_stop = false;
   ConfigLoader cf = ConfigLoader();
   cf.load("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
@@ -90,7 +93,7 @@ TEST(NeighbourDiscoveryTtest, NeighbourSendAndReceiveTest) {
   NeighbourTable::getInstance()->cleanNeighbours(1);
   NeighbourDiscovery nd(cf);
   nd.setTestMode(true);
-  sleep(4);
+  sleep(3);
   std::map<std::string, std::shared_ptr<Neighbour>> neighbours = std::map<
       std::string, std::shared_ptr<Neighbour>>();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
@@ -98,5 +101,5 @@ TEST(NeighbourDiscoveryTtest, NeighbourSendAndReceiveTest) {
   ASSERT_EQ("node1", (*neighbours.begin()).second->m_nodeId);
   ASSERT_EQ("127.0.0.1", (*neighbours.begin()).second->m_nodeAddress);
   ASSERT_EQ(40000, (*neighbours.begin()).second->m_nodePort);
-  nd.stop();
+  g_stop = true;
 }

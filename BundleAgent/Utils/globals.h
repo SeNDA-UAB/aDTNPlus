@@ -15,29 +15,17 @@
 *
 */
 /**
- * FILE main.cpp
+ * FILE globals.h
  * AUTHOR Blackcatn13
- * DATE Jul 3, 2015
+ * DATE Jul 6, 2015
  * VERSION 1
- * This file contains the call to start all the tests.
+ * This file contains the global variables.
  */
+#ifndef BUNDLEAGENT_UTILS_GLOBALS_H_
+#define BUNDLEAGENT_UTILS_GLOBALS_H_
 
-#include <iostream>
 #include <atomic>
-#include "gtest/gtest.h"
-#include "Utils/Logger.h"
-#include "Utils/globals.h"
 
-std::atomic<bool> g_stop;
+extern std::atomic<bool> g_stop;
 
-GTEST_API_ int main(int argc, char **argv) {
-  g_stop = false;
-  std::cout << "Runing tests" << std::endl;
-  testing::InitGoogleTest(&argc, argv);
-  std::cout << "Starting Logger" << std::endl;
-  Logger::getInstance()->setLoggerConfigAndStart("/tmp/adtn-test.log");
-  Logger::getInstance()->setLogLevel(100);
-  int ret = RUN_ALL_TESTS();
-  delete Logger::getInstance();
-  return ret;
-}
+#endif  // BUNDLEAGENT_UTILS_GLOBALS_H_
