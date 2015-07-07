@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <string>
 #include <cstring>
 #include <thread>
@@ -67,46 +68,58 @@ void NeighbourDiscovery::sendBeacons() {
 // Create the socket.
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (sock == -1) {
-    throw std::runtime_error(strerror(errno));
-  }
-// Bind the socket.
-  if (bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
-           sizeof(discoveryAddr)) == -1) {
-    throw std::runtime_error(strerror(errno));
-  }
-// Generate the destination address.
-  sockaddr_in discoveryDestinationAddr = { 0 };
-  discoveryDestinationAddr.sin_family = AF_INET;
-  discoveryDestinationAddr.sin_port = htons(
-      m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort", 0));
-  discoveryDestinationAddr.sin_addr.s_addr =
-      inet_addr(
+    // Stop the application
+    LOG(1) << "Cannot create socket into sendBeacons thread reason: "
+           << strerror(errno);
+    g_stop = true;
+  } else {
+    // Bind the socket.
+    if (bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
+             sizeof(discoveryAddr)) == -1) {
+      // Stop the application
+      LOG(1) << "Cannot bind socket to " << nodeAddress << " reason: "
+             << strerror(errno);
+      g_stop = true;
+    } else {
+      // Generate the destination address.
+      sockaddr_in discoveryDestinationAddr = { 0 };
+      discoveryDestinationAddr.sin_family = AF_INET;
+      discoveryDestinationAddr.sin_port = htons(
+          m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort",
+                                       0));
+      discoveryDestinationAddr.sin_addr.s_addr = inet_addr(
           m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
               .c_str());
-// Create the beacon with our information.
-  LOG(64)
-      << "Sending beacons to "
-      << m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
-      << ":"
-      << m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort", 0);
-  Beacon b = Beacon(nodeId, nodeAddress, nodePort);
-  int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
-                                               "discoveryPeriod", 1);
-  while (!g_stop.load()) {
-    std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
-    LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
-            << nodePort;
-    std::string rawBeacon = b.getRaw();
-    int sendSize = sendto(
-        sock, rawBeacon.c_str(), rawBeacon.size(), 0,
-        reinterpret_cast<sockaddr*>(&discoveryDestinationAddr),
-        sizeof(discoveryDestinationAddr));
-    if (sendSize == -1) {
-      LOG(1) << "Error sending beacon " << strerror(errno);
-    } else if (sendSize != rawBeacon.size()) {
-      LOG(4) << "Cannot send all the beacon";
+      // Create the beacon with our information.
+      LOG(64)
+          << "Sending beacons to "
+          << m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
+          << ":"
+          << m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort",
+                                          0);
+      Beacon b = Beacon(nodeId, nodeAddress, nodePort);
+      int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
+                                                   "discoveryPeriod", 1);
+      while (!g_stop.load()) {
+        std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+        LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
+                << nodePort;
+        std::string rawBeacon = b.getRaw();
+        int sendSize = sendto(
+            sock, rawBeacon.c_str(), rawBeacon.size(), 0,
+            reinterpret_cast<sockaddr*>(&discoveryDestinationAddr),
+            sizeof(discoveryDestinationAddr));
+        if (sendSize == -1) {
+          LOG(1) << "Error sending beacon " << strerror(errno);
+        } else if ((size_t) sendSize != rawBeacon.size()) {
+          LOG(4) << "Cannot send all the beacon";
+        }
+      }
     }
+    // Close the socket
+    close(sock);
   }
+  LOG(14) << "Exit Beacon sender thread.";
 }
 
 void NeighbourDiscovery::receiveBeacons() {
@@ -127,34 +140,72 @@ void NeighbourDiscovery::receiveBeacons() {
           << discoveryPort;
 // Create the socket.
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  int flagOn = 1;
-  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &flagOn, sizeof(flagOn));
-// Bind the socket.
-  bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
-       sizeof(discoveryAddr));
-// Join the multicast group.
-  ip_mreq mcReq = { 0 };
-  mcReq.imr_multiaddr.s_addr = inet_addr(discoveryAddress.c_str());
-  mcReq.imr_interface.s_addr = inet_addr(nodeAddress.c_str());
-  setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-             reinterpret_cast<void*>(&mcReq), sizeof(mcReq));
-  while (!g_stop.load()) {
-    char* buffer = reinterpret_cast<char*>(malloc(
-        Beacon::MAX_BEACON_SIZE * sizeof(char)));
-    size_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
-    // Create a thread to add the new neighbour and let this
-    // receiving more beacons
-    Beacon b = Beacon(std::string(buffer, recvLength));
-    if (b.m_nodeId != nodeId || (b.m_nodeId == nodeId && m_testMode.load())) {
-      LOG(15) << "Received beacon from " << b.m_nodeId << " " << b.m_nodeAddress
-              << ":" << b.m_nodePort;
-      std::thread([b]() {
-        NeighbourTable::getInstance()->update(b.m_nodeId, b.m_nodeAddress,
-            b.m_nodePort);
-      }).detach();
+  if (sock == -1) {
+    // Stop the application
+    LOG(1) << "Cannot create socket into receiveBeacons thread reason: "
+           << strerror(errno);
+    g_stop = true;
+  } else {
+    int flagOn = 1;
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &flagOn, sizeof(flagOn))
+        == -1) {
+      // Stop the application
+      LOG(1) << "Cannot set flag REUSEADDR to socket, reason: "
+             << strerror(errno);
+      g_stop = true;
+    } else {
+      // Bind the socket.
+      if (bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
+               sizeof(discoveryAddr)) == -1) {
+        // Stop the application
+        LOG(1) << "Cannot bind the socket to " << discoveryAddress << ":"
+               << discoveryPort << " reason: " << strerror(errno);
+        g_stop = true;
+      } else {
+        // Join the multicast group.
+        ip_mreq mcReq = { 0 };
+        mcReq.imr_multiaddr.s_addr = inet_addr(discoveryAddress.c_str());
+        mcReq.imr_interface.s_addr = inet_addr(nodeAddress.c_str());
+        if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                       reinterpret_cast<void*>(&mcReq), sizeof(mcReq)) == -1) {
+          // Stop the application
+          LOG(1) << "Cannot join the multicast group, reason: "
+                 << strerror(errno);
+          g_stop = true;
+        } else {
+          while (!g_stop.load()) {
+            char* buffer = reinterpret_cast<char*>(malloc(
+                Beacon::MAX_BEACON_SIZE * sizeof(char)));
+            size_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
+            // Create a thread to add the new neighbour and let this
+            // receiving more beacons
+            Beacon b = Beacon(std::string(buffer, recvLength));
+            if (b.m_nodeId != nodeId
+                || (b.m_nodeId == nodeId && m_testMode.load())) {
+              LOG(15) << "Received beacon from " << b.m_nodeId << " "
+                      << b.m_nodeAddress << ":" << b.m_nodePort;
+              std::thread([b]() {
+                NeighbourTable::getInstance()->update(b.m_nodeId,
+                    b.m_nodeAddress,
+                    b.m_nodePort);
+              }).detach();
+            }
+            free(buffer);
+          }
+          // Leave from the multicast group
+          if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
+                         reinterpret_cast<void*>(&mcReq), sizeof(mcReq))
+              == -1) {
+            LOG(1) << "Cannot leave the multicast group, reason: "
+                   << strerror(errno);
+          }
+        }
+      }
     }
-    free(buffer);
+    // Close the socket
+    close(sock);
   }
+  LOG(15) << "Exit Beacon receiver thread.";
 }
 
 void NeighbourDiscovery::neighbourCleaner() {
@@ -171,6 +222,7 @@ void NeighbourDiscovery::neighbourCleaner() {
     LOG(67) << "Calling to clean neighbours";
     NeighbourTable::getInstance()->cleanNeighbours(expirationTime);
   }
+  LOG(16) << "Exit Neighbour cleaner thread";
 }
 
 void NeighbourDiscovery::setTestMode(bool mode) {
