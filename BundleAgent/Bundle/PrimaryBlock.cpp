@@ -27,6 +27,8 @@
 #include <sstream>
 #include <cstring>
 #include <iostream>
+#include <map>
+#include <vector>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
@@ -263,33 +265,51 @@ std::string PrimaryBlock::getRaw() {
   ss << (uint8_t) 0x06;
   ss << encode(m_procFlags.to_ulong());
   // ss1 contains the fields after the block length
-  // Scheme offset. We use only one scheme ("adtn").
-  // Destination case
-  ss1 << encode(0);
-  dictionary << "adtn:";
-  dictionary << std::ends;
-  size_t offset = dictionary.str().size();
-  dictionary << m_destination.c_str();
-  dictionary << std::ends;
-  ss1 << encode(offset);
-  offset = dictionary.str().size();
-  // Source case
-  ss1 << encode(0);
-  dictionary << m_source.c_str();
-  dictionary << std::ends;
-  ss1 << encode(offset);
-  offset = dictionary.str().size();
-  // ReportTo case
-  ss1 << encode(0);
-  dictionary << m_reportTo.c_str();
-  dictionary << std::ends;
-  ss1 << encode(offset);
-  offset = dictionary.str().size();
-  // Custodian case
-  ss1 << encode(0);
-  dictionary << m_custodian.c_str();
-  dictionary << std::ends;
-  ss1 << encode(offset);
+  std::vector<std::string> namesToInsert;
+  // Add the names that are going to go to the dictionary
+  // We use our scheme ("adtn").
+  // We take into account the dtn scheme if a null endpoint exists.
+  std::string scheme = "adtn";
+  std::string dtnScheme = "dtn";
+  // Add the field to insert, add null endpoint if are empty.
+  namesToInsert.push_back(m_destination != "" ? m_destination : m_nullEndpoint);
+  namesToInsert.push_back(m_source != "" ? m_source : m_nullEndpoint);
+  namesToInsert.push_back(m_reportTo != "" ? m_reportTo : m_nullEndpoint);
+  namesToInsert.push_back(m_custodian != "" ? m_custodian : m_nullEndpoint);
+  std::map<std::string, size_t> offsetMap;
+  std::vector<std::string> orderedNames;
+  // Set our scheme offset to 0
+  offsetMap[scheme] = 0;
+  dictionary << scheme.c_str() << std::ends;
+  size_t offset = scheme.size() + 1;
+  // If one of the fields is empty, we add the dtn scheme.
+  if (m_destination == "" || m_source == "" || m_reportTo == ""
+      || m_custodian == "") {
+    offsetMap[dtnScheme] = offset;
+    offset += dtnScheme.size() + 1;
+    dictionary << dtnScheme.c_str() << std::ends;
+  }
+  // For every name
+  for (size_t i = 0; i < namesToInsert.size(); ++i) {
+    // If not found add it with it's offset
+    if (offsetMap.find(namesToInsert[i]) == offsetMap.end()) {
+      offsetMap[namesToInsert[i]] = offset;
+      offset += namesToInsert[i].size() + 1;
+    }
+    // Add the name to the ordered vector.
+    orderedNames.push_back(namesToInsert[i]);
+  }
+  // For evey name in the ordered vector.
+  for (size_t i = 0; i < orderedNames.size(); ++i) {
+    // If is nullpoint, check the dtn scheme offset
+    // If not use the adtn scheme offset
+    if (orderedNames[i] == m_nullEndpoint)
+      ss1 << encode(offsetMap[dtnScheme]);
+    else
+      ss1 << encode(offsetMap[scheme]);
+    ss1 << encode(offsetMap[orderedNames[i]]);
+    dictionary << orderedNames[i].c_str() << std::ends;
+  }
   // Creation timestamp
   ss1 << encode(m_creationTimestamp);
   // Creation timestamp seq. number
