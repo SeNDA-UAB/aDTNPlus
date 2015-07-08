@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+IFS=' '
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+while read local_ref local_sha remote_ref remote_sha;
+do
+	echo "Passing UnitTests"
+	bash ../generateTestAndCoverage.sh
+	RET=$?
+	exit $RET
+    fi
+done
+exit 0
