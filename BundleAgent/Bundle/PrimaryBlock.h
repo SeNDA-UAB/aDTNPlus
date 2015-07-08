@@ -193,6 +193,8 @@ class PrimaryBlock {
    * Bundle lifetime.
    */
   uint64_t m_lifetime;
+
+  const std::string m_nullEndpoint = "none";
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_PRIMARYBLOCK_H_
