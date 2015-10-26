@@ -1,0 +1,134 @@
+@startuml
+class Bundle {
+	-m_primaryBlock : PrimaryBlock*
+	-m_blocks : std::vector<Block *>
+	-m_raw : std::string
+	+Bundle(rawData : std::string)
+	+Bundle(origin : std::string, destination : std::string, payload : std::string)
+	+~Bundle()
+	+getPrimaryBlock() : PrimaryBlock*
+	+getBlocks() : std::vector<Block *>
+	+getRaw() : std::string
+	+addBlock(newBlock : Block*) : void
+}
+
+class Block {
+	-m_blockType : uint8_t
+	-m_procFlags : bitset<7>
+	+Block()
+	+~Block()
+	+{abstract}getRaw() : std::string
+	+{static}getFirstBlockLength(rawData : std::string) : size_t
+	+setProcFlags(procFlag : BlockControlFlags) : void
+	+clearProcFlags(procFlag : BlockControlFlags) : void
+	+testProcFlags(procFlag : BlockControlFlags) : bool
+	+getBlockType() : uint8_t
+}
+
+class MetadataExtensionBlock {
+	-m_metadataType : uint8_t
+	-m_metadata : std::string
+	+MetadataExtensionBlock()
+	+MetadataExtensionBlock(rawData : std::string)
+	+~MetadataExtensionBlock()
+	+{abstract}getRaw() : std::string
+	+getMetadataType() : uint8_t
+	+{abstract}getMetadataContent() : std::string
+}
+
+class PayloadBlock {
+	-m_payload : std::string
+	+PayloadBlock()
+	+PayloadBlock(rawData : std::string)
+	+~PayloadBlock()
+	+getRaw() : std::string
+	+getPayload() : std::string
+	+setPayload(payload : std::string) : void
+}
+
+
+class PrimaryBlock {
+	-m_procFlags : bitset<21>
+	-m_destination : std::string
+	-m_source : std::string
+	-m_reportTo : std::string
+	-m_custodian : std::string
+	-m_creationTimestamp : uint64_t
+	-m_creationTimestampSeqNumber : uint64_t
+	-m_lifetime : uint64_t
+	+PrimaryBlock(rawData : std::string)
+	+PrimaryBlock(source : std::string, destination : std::string, timestamp : uint64_t, seqNumber : uint64_t)
+	+~PrimaryBlock()
+	+getRaw() : std::string
+	+setProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+clearProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+testFlag(procFlag : PrimaryBlockControlFlags) : bool
+	+getDestination() : std::string
+	+getSource() : std::string
+	+getReportTo() : std::string
+	+getCustodian() : std::string
+	+getCreationTimestamp() : uint64_t
+	+getLifetime() : uint64_t
+	+setDestination(destination : std::string) : void
+	+setSource(source : std::string) : void
+	+setReportTo(reportTo : std::string) : void
+	+setCustodian(custodian : std::string) : void
+	+setLifetime(lifetime : uint64_t) : void
+}
+
+enum BlockControlFlags {
+	REPLICATE_FRAGMENT : 0
+	TRANSMIT_STATUS_REPORT : 1
+	DELETE_BUNDLE : 2
+	LAST_BLOCK : 3
+	DISCARD_BLOCK : 4
+	BLOCK_NOT_PROCESSED : 5
+	EID_FIELD : 6
+}
+
+enum PrimaryBlockControlFlags {
+	IS_FRAGMENT : 0
+	IS_ADMINISTRATIVE_RECORD : 1
+	NOT_FRAGMENTED : 2
+	CUSTODY_TRANSFER : 3
+	DESTINATION_SINGLETON : 4
+	ACKNOWLEDGEMENT_REQUESTED : 5
+	PRIORITY_BULK : 21
+	PRIORITY_NORMAL : 22
+	PRIOTIRY_EXPEDITED : 23
+	REQUEST_RECEPTION : 14
+	REQUEST_CUSTODY_ACCEPT : 15
+	REQUEST_FORWARDING : 16
+	REQUEST_DELIVERY : 17
+	REQUEST_DELETION : 18
+}
+
+enum BlockTypes {
+	PAYLOAD_BLOCK : 1
+	METADATA_EXTENSION_BLOCK : 8
+}
+
+class TimestampManager << (S,#FF7700) Singleton >> {
+	-{static}m_instance : TimestampManager*
+	-m_lastTimestamp : uint64_t
+	-m_lastSeqNum : uint64_t
+	-TimestampManager()
+	+~TimestampManager()
+	+{static}getInstance() : TimestampManager*
+	+getTimestamp() : std::pair<uint64_t, uint64_t>
+}
+
+class SDNV {
+	encode(value : uint64_t) : std::string
+	decode(encodedValue : std::string) : uint64_t
+	getLength(value : uint64_t) : size_t
+	getLenght(encodedValue : std::string) : size_t
+}
+hide SDNV circle
+
+Block <|-- MetadataExtensionBlock
+Block <|-- PayloadBlock
+Bundle "1" *-- "1" PrimaryBlock
+Bundle "1" *-- "1..n" Block
+
+@enduml

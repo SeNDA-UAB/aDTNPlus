@@ -1,0 +1,71 @@
+@startuml
+
+class Node {
+	+Node()
+	+~Node()
+}
+
+class ConfigLoader {
+	+m_reader : INIReader
+	+load(ConfigFile : std::string ) : void
+	+ConfigLoader()
+	+~ConfigLoader()
+}
+
+class Neighbour {
+	+m_nodeId : std::string
+	+m_nodeAddress : std::string
+	+m_nodePort : uint16_t
+	-m_lastActivity : time_point
+	+Neighbour(nodeId : std::string, nodeAddress : std::string, nodePort : short)
+	+~Neighbour()
+	+getElapsedActivityTime() : int
+	+Update() : void
+	+operator== : bool
+}
+
+class NeighbourTable {
+ 	-{static} m_instance : NeighbourTable*
+ 	-m_neighbours : std::map<std::string, shared_ptr<Neighbours>>
+	-NeighbourTable()
+	+~NeighbourTable()
+	+update(nodeId : std::string, nodeAddress : std::string, nodePort : short) : void
+	+cleanNeighbours() : void
+	+getInstance() : {static} NeighbourTable*
+	+getNeighbours(map : std::map<std::string, shared_ptr<Neighbours>>) : void
+}
+
+class NeighbourDiscovery {
+	-m_stop : atomic<bool>
+	-m_testMode : atomic<bool>
+	-m_config : ConfigLoader
+	-m_neighbourCleanerThread : thread
+	-m_sendBeaconsThread : thread
+	-m_receiveBeaconsThread : thread
+	+NeighbourDiscovery(&Configuration : ConfigLoader)
+	+~NeighbourDiscovery()
+	+sendBeacons() : void
+	+receiveBeacons() : void
+	+neighbourCleaner() : void
+	+stop() : void
+	+setTestMode(mode : bool) : void
+}
+
+class Beacon {
+	+m_nodeId : std::string
+	+m_nodeAddress : std::string
+	+m_nodePort : short
+	+{static} MAX_BEACON_SIZE = 1050 : int
+	+Beacon(rawBeacon : std::string)
+	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : short)
+	+~Beacon()
+	+getRaw() : std::string
+}
+
+Node "1" *-- "1" ConfigLoader
+Node "1" *-- "1" NeighbourDiscovery
+Beacon ..> NeighbourDiscovery
+Node "1" *-- "1" NeighbourTable
+NeighbourTable "1" *-- "n" Neighbour
+
+@enduml
