@@ -1,15 +1,18 @@
 @startuml
 class Bundle {
-	-m_primaryBlock : PrimaryBlock*
-	-m_blocks : std::vector<Block *>
 	-m_raw : std::string
+	-m_primaryBlock : PrimaryBlock*
+	-m_payloadBlock : PayloadBlock*
+	-m_extraBlocks : std::vector<Block *>
 	+Bundle(rawData : std::string)
 	+Bundle(origin : std::string, destination : std::string, payload : std::string)
 	+~Bundle()
-	+getPrimaryBlock() : PrimaryBlock*
-	+getBlocks() : std::vector<Block *>
 	+getRaw() : std::string
-	+addBlock(newBlock : Block*) : void
+	+toRaw() : std::string
+	+getPrimaryBlock() : PrimaryBlock*
+	+getPayloadBlock() : PayloadBlock*
+	+getExtraBlocks() : std::vector<Block *>
+	+addExtraBlock(newBlock : Block*) : void
 }
 
 class Block {
@@ -17,7 +20,7 @@ class Block {
 	-m_procFlags : bitset<7>
 	+Block()
 	+~Block()
-	+{abstract}getRaw() : std::string
+	+{abstract}toRaw() : std::string
 	+{static}getFirstBlockLength(rawData : std::string) : size_t
 	+setProcFlags(procFlag : BlockControlFlags) : void
 	+clearProcFlags(procFlag : BlockControlFlags) : void
@@ -28,22 +31,21 @@ class Block {
 class MetadataExtensionBlock {
 	-m_metadataType : uint8_t
 	-m_metadata : std::string
-	+MetadataExtensionBlock()
 	+MetadataExtensionBlock(rawData : std::string)
+	+MetadataExtensionBlock(metadataType : uint8_t, metadata : std::string)
 	+~MetadataExtensionBlock()
-	+{abstract}getRaw() : std::string
+	+{abstract}toRaw() : std::string
 	+getMetadataType() : uint8_t
-	+{abstract}getMetadataContent() : std::string
+	+{abstract}getMetadata() : std::string
 }
 
 class PayloadBlock {
 	-m_payload : std::string
-	+PayloadBlock()
 	+PayloadBlock(rawData : std::string)
+	+PayloadBlock(payload : std::string)
 	+~PayloadBlock()
-	+getRaw() : std::string
+	+toRaw() : std::string
 	+getPayload() : std::string
-	+setPayload(payload : std::string) : void
 }
 
 
@@ -129,6 +131,7 @@ hide SDNV circle
 Block <|-- MetadataExtensionBlock
 Block <|-- PayloadBlock
 Bundle "1" *-- "1" PrimaryBlock
+Bundle "1" *-- "1" PayloadBlock
 Bundle "1" *-- "1..n" Block
 
 @enduml
