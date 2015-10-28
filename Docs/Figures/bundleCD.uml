@@ -3,7 +3,7 @@ class Bundle {
 	-m_raw : std::string
 	-m_primaryBlock : PrimaryBlock*
 	-m_payloadBlock : PayloadBlock*
-	-m_Blocks : std::vector<Block *>
+	-m_blocks : std::vector<Block *>
 	+Bundle(rawData : std::string)
 	+Bundle(source : std::string, destination : std::string, payload : std::string)
 	+~Bundle()
