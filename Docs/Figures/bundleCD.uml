@@ -3,29 +3,36 @@ class Bundle {
 	-m_raw : std::string
 	-m_primaryBlock : PrimaryBlock*
 	-m_payloadBlock : PayloadBlock*
-	-m_extraBlocks : std::vector<Block *>
+	-m_Blocks : std::vector<Block *>
 	+Bundle(rawData : std::string)
-	+Bundle(origin : std::string, destination : std::string, payload : std::string)
+	+Bundle(source : std::string, destination : std::string, payload : std::string)
 	+~Bundle()
 	+getRaw() : std::string
 	+toRaw() : std::string
 	+getPrimaryBlock() : PrimaryBlock*
 	+getPayloadBlock() : PayloadBlock*
-	+getExtraBlocks() : std::vector<Block *>
-	+addExtraBlock(newBlock : Block*) : void
+	+getBlocks() : std::vector<Block *>
+	+addBlock(newBlock : Block*) : void
 }
 
-class Block {
-	-m_blockType : uint8_t
-	-m_procFlags : bitset<7>
+abstract class Block {
+	-m_raw : std::string
 	+Block()
 	+~Block()
 	+{abstract}toRaw() : std::string
-	+{static}getFirstBlockLength(rawData : std::string) : size_t
-	+setProcFlags(procFlag : BlockControlFlags) : void
-	+clearProcFlags(procFlag : BlockControlFlags) : void
-	+testProcFlags(procFlag : BlockControlFlags) : bool
+	+getRaw() : std::string
+}
+
+class CanonicalBlock {
+	-m_blockType : uint8_t
+	-m_procFlags : bitset<7>
+	#m_bodyDataIndex : int
+	+CanonicalBlock(rawData:std::string)
+	+~CanonicalBlock()
 	+getBlockType() : uint8_t
+	+setProcFlags(procFlag : BlockControlFlags) : void
+	+unsetProcFlags(procFlag : BlockControlFlags) : void
+	+checkProcFlags(procFlag : BlockControlFlags) : bool
 }
 
 class MetadataExtensionBlock {
@@ -34,9 +41,9 @@ class MetadataExtensionBlock {
 	+MetadataExtensionBlock(rawData : std::string)
 	+MetadataExtensionBlock(metadataType : uint8_t, metadata : std::string)
 	+~MetadataExtensionBlock()
-	+{abstract}toRaw() : std::string
+	+toRaw() : std::string
 	+getMetadataType() : uint8_t
-	+{abstract}getMetadata() : std::string
+	+getMetadata() : std::string
 }
 
 class PayloadBlock {
@@ -61,18 +68,16 @@ class PrimaryBlock {
 	+PrimaryBlock(rawData : std::string)
 	+PrimaryBlock(source : std::string, destination : std::string, timestamp : uint64_t, seqNumber : uint64_t)
 	+~PrimaryBlock()
-	+getRaw() : std::string
-	+setProcFlag(procFlag : PrimaryBlockControlFlags) : void
-	+clearProcFlag(procFlag : PrimaryBlockControlFlags) : void
-	+testFlag(procFlag : PrimaryBlockControlFlags) : bool
+	+setPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+unsetPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+checkPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : bool
+	+toRaw() : std::string
 	+getDestination() : std::string
 	+getSource() : std::string
 	+getReportTo() : std::string
 	+getCustodian() : std::string
 	+getCreationTimestamp() : uint64_t
 	+getLifetime() : uint64_t
-	+setDestination(destination : std::string) : void
-	+setSource(source : std::string) : void
 	+setReportTo(reportTo : std::string) : void
 	+setCustodian(custodian : std::string) : void
 	+setLifetime(lifetime : uint64_t) : void
@@ -128,8 +133,10 @@ class SDNV {
 }
 hide SDNV circle
 
-Block <|-- MetadataExtensionBlock
-Block <|-- PayloadBlock
+Block <|-- PrimaryBlock
+Block <|-- CanonicalBlock
+CanonicalBlock <|-- MetadataExtensionBlock
+CanonicalBlock <|-- PayloadBlock
 Bundle "1" *-- "1" PrimaryBlock
 Bundle "1" *-- "1" PayloadBlock
 Bundle "1" *-- "1..n" Block
