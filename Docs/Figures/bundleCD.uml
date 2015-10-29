@@ -29,6 +29,7 @@ class CanonicalBlock {
 	#m_bodyDataIndex : int
 	+CanonicalBlock(rawData:std::string)
 	+~CanonicalBlock()
+	+toRaw() : std::string
 	+getBlockType() : uint8_t
 	+setProcFlags(procFlag : BlockControlFlags) : void
 	+unsetProcFlags(procFlag : BlockControlFlags) : void
