@@ -22,5 +22,6 @@
  * This file contains the test of the MetadataExtensionBlock class.
  */
 
-#include "Bundle/MetadataExtensionBlock.h"
+#include "../../../BundleAgent/Bundle/MetadataExtensionBlock.h"
+
 #include "gtest/gtest.h"

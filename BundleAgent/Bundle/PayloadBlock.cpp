@@ -22,20 +22,25 @@
  * This file contains the implementation of the PayloadBlock class.
  */
 
-#include "Bundle/PayloadBlock.h"
+#include "PayloadBlock.h"
+
 #include <string>
 #include <sstream>
 #include "Bundle/BundleTypes.h"
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
-PayloadBlock::PayloadBlock()
-    : m_payload() {
+PayloadBlock::PayloadBlock(const std::string &payload, bool ok)
+    : m_payload(payload) {
   LOG(39) << "Generating new payload block";
   m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
 }
 
 PayloadBlock::PayloadBlock(const std::string &rawData) {
+  /*
+   * TODO to be implemented again.
+   * Use CanonicalBlock(rawData) constructor and complete the parsing here knowing that the body data content starts at m_bodyDataIndex.
+   */
   /**
    * The payload block contains
    *
@@ -67,7 +72,7 @@ PayloadBlock::PayloadBlock(const std::string &rawData) {
 PayloadBlock::~PayloadBlock() {
 }
 
-std::string PayloadBlock::getRaw() {
+std::string PayloadBlock::toRaw() {
   /**
    * The payload block contains
    *
@@ -82,15 +87,11 @@ std::string PayloadBlock::getRaw() {
   ss << encode(m_procFlags.to_ulong());
   ss << encode(m_payload.size());
   ss << m_payload;
-  return ss.str();
+  Block::m_raw = ss.str();
+  return Block::m_raw;
 }
 
 std::string PayloadBlock::getPayload() {
   return m_payload;
-}
-
-void PayloadBlock::setPayload(const std::string &payload) {
-  LOG(39) << "Setting new payload [" << payload << "]";
-  m_payload = payload;
 }
 

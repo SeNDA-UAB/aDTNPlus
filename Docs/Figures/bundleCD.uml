@@ -12,11 +12,11 @@ class Bundle {
 	+getPrimaryBlock() : PrimaryBlock*
 	+getPayloadBlock() : PayloadBlock*
 	+getBlocks() : std::vector<Block *>
-	+addBlock(newBlock : Block*) : void
+	+addBlock(newBlock : CanonicalBlock*) : void
 }
 
 abstract class Block {
-	-m_raw : std::string
+	#m_raw : std::string
 	+Block()
 	+~Block()
 	+{abstract}toRaw() : std::string
@@ -24,7 +24,7 @@ abstract class Block {
 }
 
 class CanonicalBlock {
-	-m_blockType : uint8_t
+	#m_blockType : uint8_t
 	-m_procFlags : bitset<7>
 	#m_bodyDataIndex : int
 	+CanonicalBlock(rawData:std::string)
@@ -37,8 +37,8 @@ class CanonicalBlock {
 }
 
 class MetadataExtensionBlock {
-	-m_metadataType : uint8_t
-	-m_metadata : std::string
+	#m_metadataType : uint8_t
+	#m_metadata : std::string
 	+MetadataExtensionBlock(rawData : std::string)
 	+MetadataExtensionBlock(metadataType : uint8_t, metadata : std::string)
 	+~MetadataExtensionBlock()
@@ -50,7 +50,7 @@ class MetadataExtensionBlock {
 class PayloadBlock {
 	-m_payload : std::string
 	+PayloadBlock(rawData : std::string)
-	+PayloadBlock(payload : std::string)
+	+PayloadBlock(payload : std::string, ok : bool)
 	+~PayloadBlock()
 	+toRaw() : std::string
 	+getPayload() : std::string
@@ -78,6 +78,7 @@ class PrimaryBlock {
 	+getReportTo() : std::string
 	+getCustodian() : std::string
 	+getCreationTimestamp() : uint64_t
+	+getCreationTimestampSeqNumber() : uint64_t
 	+getLifetime() : uint64_t
 	+setReportTo(reportTo : std::string) : void
 	+setCustodian(custodian : std::string) : void

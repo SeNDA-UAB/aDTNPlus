@@ -33,7 +33,8 @@
 #include "Utils/Logger.h"
 
 PrimaryBlock::PrimaryBlock(const std::string &rawData)
-    : m_procFlags(),
+    : Block::m_raw(rawData),
+	  m_procFlags(),
       m_destination(),
       m_source(),
       m_reportTo(),
@@ -165,7 +166,7 @@ PrimaryBlock::PrimaryBlock(const std::string &source,
 PrimaryBlock::~PrimaryBlock() {
 }
 
-void PrimaryBlock::setProcFlag(PrimaryBlockControlFlags procFlag) {
+void PrimaryBlock::setPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   LOG(40) << "Setting flag " << static_cast<uint32_t>(procFlag);
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
@@ -193,7 +194,7 @@ void PrimaryBlock::setProcFlag(PrimaryBlockControlFlags procFlag) {
   }
 }
 
-void PrimaryBlock::clearProcFlag(PrimaryBlockControlFlags procFlag) {
+void PrimaryBlock::unsetPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   LOG(40) << "Clearing flag " << static_cast<uint32_t>(procFlag);
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
@@ -207,7 +208,7 @@ void PrimaryBlock::clearProcFlag(PrimaryBlockControlFlags procFlag) {
   }
 }
 
-bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
+bool PrimaryBlock::checkPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   LOG(40) << "Testing flag " << static_cast<uint32_t>(procFlag);
   bool flagActive = false;
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
@@ -234,7 +235,7 @@ bool PrimaryBlock::testFlag(PrimaryBlockControlFlags procFlag) {
   return flagActive;
 }
 
-std::string PrimaryBlock::getRaw() {
+std::string PrimaryBlock::toRaw() {
   /**
    * Primary Block format
    *
@@ -324,7 +325,8 @@ std::string PrimaryBlock::getRaw() {
   ss << encode(ss1.str().size());
   // Append all the block
   ss << ss1.str();
-  return ss.str();
+  Block::m_raw = ss.str();
+  return Block::m_raw;
 }
 
 const std::string PrimaryBlock::getDestination() {
@@ -353,16 +355,6 @@ const uint64_t PrimaryBlock::getLifetime() {
 
 const uint64_t PrimaryBlock::getCreationTimestampSeqNumber() {
   return m_creationTimestampSeqNumber;
-}
-
-void PrimaryBlock::setDestination(const std::string &destination) {
-  LOG(40) << "Setting new destination [" << destination << "]";
-  m_destination = destination;
-}
-
-void PrimaryBlock::setSource(const std::string &source) {
-  LOG(40) << "Setting new source [" << source << "]";
-  m_source = source;
 }
 
 void PrimaryBlock::setReportTo(const std::string &reportTo) {

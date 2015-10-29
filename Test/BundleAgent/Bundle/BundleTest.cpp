@@ -27,10 +27,11 @@
 #include <string>
 #include "gtest/gtest.h"
 #include "Bundle/Bundle.h"
+
+#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
+#include "../../../BundleAgent/Bundle/PayloadBlock.h"
 #include "Bundle/PrimaryBlock.h"
-#include "Bundle/Block.h"
 #include "Bundle/BundleTypes.h"
-#include "Bundle/PayloadBlock.h"
 
 /**
  * Check the constructor with parameters.
@@ -44,6 +45,7 @@ TEST(BundleTest, FilledConstructor) {
   ASSERT_EQ(1, b.getBlocks().size());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
             b.getBlocks()[0]->getBlockType());
+  //TODO adapt this method to the new meaning of blocks. The fits block (primary) is not canonical and thus has no type.
 }
 
 /**
@@ -63,8 +65,9 @@ TEST(BundleTest, RawFunctions) {
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
   ASSERT_EQ(b.getBlocks()[0]->getBlockType(),
             b1.getBlocks()[0]->getBlockType());
-  Block *PB = b.getBlocks()[0];
-  Block *PB1 = b1.getBlocks()[0];
+  //TODO adapt this method to the new meaning of blocks. The fits block (primary) is not canonical and thus has no type.
+  CanonicalBlock *PB = b.getBlocks()[0];
+  CanonicalBlock *PB1 = b1.getBlocks()[0];
   ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
             (static_cast<PayloadBlock*>(PB1))->getPayload());
 }

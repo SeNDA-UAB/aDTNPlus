@@ -16,8 +16,8 @@
  */
 /**
  * FILE Block.h
- * AUTHOR Blackcatn13
- * DATE Jun 15, 2015
+ * AUTHOR AngelaFabregues
+ * DATE Oct 29, 2015
  * VERSION 1
  * This file contains the Block class.
  */
@@ -31,7 +31,7 @@
 
 /**
  * CLASS Block
- * This class represents a canonical block as described into the RFC 5050.
+ * This class represents a block as described into the RFC 5050.
  * This class is a base class for all the blocks that a bundle can hold.
  */
 class Block {
@@ -47,70 +47,28 @@ class Block {
    */
   virtual ~Block();
   /**
-   * @brief Function to get he block length.
+   * @brief Function to get the block in raw format.
    *
-   * This function returns the length of the first found block.
-   * This function is used to jump between blocks.
+   * This function will provide the last version of the piece of bundle raw that corresponds to this block. Notice that it may not be up to date.
    *
-   * @return The size of the next found block.
+   * @return the block in raw format.
    */
-  static size_t getFirstBlockLength(const std::string &rawData);
+  std::string getRaw();
   /**
-   * @brief Function to transform this block to raw format.
+   * @brief Function to update the block in raw format.
    *
-   * Virtual function, all the blocks that derives from this class must implement it.
-   * This function must return the block in raw format.
+   * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
+   * Pure virtual function, all the blocks must implement it.
    *
-   * @return The block in raw format.
+   * @return the block in raw format.
    */
-  virtual std::string getRaw() = 0;
-  /**
-   * @brief Sets the given flag.
-   *
-   * This function sets the given flag to value 1.
-   *
-   * @param procFlag the flag to set.
-   *
-   * @sa BlockControlFlags
-   */
-  void setProcFlag(BlockControlFlags procFlag);
-  /**
-   * @brief Clears the given flag.
-   *
-   * This function sets the given flag to value 0.
-   *
-   * @param procFlag the flag to clear.
-   *
-   * @sa BlockControlFlags
-   */
-  void clearProcFlag(BlockControlFlags procFlag);
-  /**
-   * @brief Test if a flag is active or not.
-   *
-   * This function tests if the given flag is active or not.
-   *
-   * @param procFlag the flag to test.
-   * @return True if the flag is active, false otherwise.
-   *
-   * @sa BlockControlFlags
-   */
-  bool testProcFlag(BlockControlFlags procFlag);
-  /**
-   * This function returns the block type value.
-   *
-   * @return The block type field.
-   */
-  uint8_t getBlockType();
+  virtual std::string toRaw() = 0;
 
  protected:
   /**
-   * Variable that holds the Block Type value.
+   * Byte array containing the piece of raw bundle that corresponds to this block.
    */
-  uint8_t m_blockType;
-  /**
-   * Block processing control flags, as described into the RFC 5050.
-   */
-  std::bitset<7> m_procFlags;
+  std::string m_raw;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BLOCK_H_

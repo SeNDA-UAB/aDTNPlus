@@ -16,76 +16,24 @@
  */
 /**
  * FILE Block.cpp
- * AUTHOR Blackcatn13
- * DATE Jun 15, 2015
+ * AUTHOR AngelaFabregues
+ * DATE Oct 20, 2015
  * VERSION 1
  * This file contains the implementation of the Block class.
  */
 
-#include "Bundle/Block.h"
+#include "Block.h"
+
 #include <string>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
-Block::Block()
-    : m_blockType(0),
-      m_procFlags() {
+Block::Block() {
 }
 
 Block::~Block() {
 }
 
-size_t Block::getFirstBlockLength(const std::string &rawData) {
-  LOG(38) << "Getting length of block";
-  // BlockType 1 byte
-  size_t blockLength = 1;
-  std::string data = rawData.substr(1);
-  // Proc. flags SDNV
-  size_t dataSize = getLength(data);
-  blockLength += dataSize;
-  uint64_t procFlags = decode(data);
-  std::bitset<7> blockFlags = std::bitset<7>(procFlags);
-  data = data.substr(dataSize);
-  // Check if EID fields are present
-  if (blockFlags.test(static_cast<ulong>(BlockControlFlags::EID_FIELD))) {
-    dataSize = getLength(data);
-    blockLength += dataSize;
-    int numberOfEID = decode(data);
-    data = data.substr(dataSize);
-    for (int i = 0; i < numberOfEID; ++i) {
-      // Every EID consists of two SDNV fields
-      dataSize = getLength(data);
-      blockLength += dataSize;
-      data = data.substr(dataSize);
-      dataSize = getLength(data);
-      blockLength += dataSize;
-      data = data.substr(dataSize);
-    }
-  }
-  // Block data Length
-  dataSize = getLength(data);
-  blockLength += dataSize;
-  uint64_t blockDataSize = decode(data);
-  blockLength += blockDataSize;
-  LOG(38) << "The length of the block is " << blockLength;
-  return blockLength;
-}
-
-void Block::setProcFlag(BlockControlFlags procFlag) {
-  LOG(38) << "Setting Flag " << static_cast<int>(procFlag);
-  m_procFlags.set(static_cast<ulong>(procFlag));
-}
-
-void Block::clearProcFlag(BlockControlFlags procFlag) {
-  LOG(38) << "Clearing Flag " << static_cast<int>(procFlag);
-  m_procFlags.reset(static_cast<ulong>(procFlag));
-}
-
-bool Block::testProcFlag(BlockControlFlags procFlag) {
-  LOG(38) << "Testing Flag " << static_cast<int>(procFlag);
-  return m_procFlags.test(static_cast<ulong>(procFlag));
-}
-
-uint8_t Block::getBlockType() {
-  return m_blockType;
+std::string Bundle::getRaw() {
+  return m_raw;
 }

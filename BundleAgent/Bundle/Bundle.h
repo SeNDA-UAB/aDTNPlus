@@ -49,11 +49,11 @@ class Bundle {
    *
    * This constructor will create a bundle with a source, a destination and a payload.
    *
-   * @param origin of the bundle to generate.
+   * @param source of the bundle to generate.
    * @param destination to send the bundle.
    * @param payload information to add to the bundle.
    */
-  Bundle(std::string origin, std::string destination, std::string payload);
+  Bundle(std::string source, std::string destination, std::string payload);
   /**
    * Destructor of the class.
    */
@@ -61,11 +61,19 @@ class Bundle {
   /**
    * @brief Function to get the bundle in raw format.
    *
-   * This function will generate a raw version of the current bundle.
+   * This function will provide the last raw version of the bundle. Notice that it may not be up to date.
    *
    * @return the bundle in raw format.
    */
   std::string getRaw();
+  /**
+   * @brief Function to update the bundle raw format.
+   *
+   * This function will generate a raw version of the current bundle.
+   *
+   * @return the bundle in raw format.
+   */
+  std::string toRaw();
   /**
    * @brief Function to get the PrimaryBlock.
    *
@@ -75,7 +83,15 @@ class Bundle {
    */
   PrimaryBlock* getPrimaryBlock();
   /**
-   * @brief Function to get the other blocks of the bundle.
+   * @brief Function to get the PayloadBlock.
+   *
+   * This function returns a pointer to the payload block of the bundle.
+   *
+   * @return a pointer to the payload block.
+   */
+  PayloadBlock* getPayloadBlock();
+  /**
+   * @brief Function to get all the bundle blocks.
    *
    * This function returns all the blocks that the bundle holds.
    *
@@ -83,14 +99,14 @@ class Bundle {
    */
   std::vector<Block *> getBlocks();
   /**
-   * @brief Function to add a block to the bundle.
+   * @brief Function to add a canonical block to the bundle.
    *
-   * This functions takes the block passed by parameter, and adds it to the
-   * blocks list.
+   * This functions takes the canonical block passed by parameter, and adds it to the
+   * blocks vector.
    *
    * @param A pointer to the block.
    */
-  void addBlock(Block *newBlock);
+  void addBlock(CanonicalBlock *newBlock);
 
  private:
   /**
@@ -101,6 +117,10 @@ class Bundle {
    * Pointer to the primary block of the bundle.
    */
   PrimaryBlock* m_primaryBlock;
+  /**
+   * Pointer to the payload block of the bundle.
+   */
+  PayloadBlock* m_payloadBlock;
   /**
    * Vector containing the pointers to all the blocks that the bundle holds.
    */

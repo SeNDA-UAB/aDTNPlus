@@ -22,22 +22,36 @@
  * This file contains the implementation of the metadata extension block
  */
 
-#include "Bundle/MetadataExtensionBlock.h"
+#include "MetadataExtensionBlock.h"
+
 #include <string>
 
-MetadataExtensionBlock::MetadataExtensionBlock()
-    : m_metadataType(0),
-      m_metadata(nullptr) {
+MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType, const std::string metadata)
+    : m_metadataType(metadataType),
+      m_metadata(metadata) {
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
     : m_metadataType(0),
       m_metadata() {
+  /*
+   * TODO to be implemented again.
+   * Use CanonicalBlock(rawData) constructor and complete the parsing here knowing that the body data content starts at m_bodyDataIndex.
+   */
+
 }
 
 MetadataExtensionBlock::~MetadataExtensionBlock() {
 }
 
+std::string PayloadBlock::toRaw() {
+//TODO to implement
+}
+
 uint8_t MetadataExtensionBlock::getMetadataType() {
   return m_metadataType;
+}
+
+std::string MetadataExtensionBlock::getMetadata() {
+	return m_metadata;
 }

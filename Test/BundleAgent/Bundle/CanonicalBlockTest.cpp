@@ -22,11 +22,13 @@
  * This file contains the test of the Block class.
  */
 
+#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
+
 #include <string>
 #include <sstream>
 #include <bitset>
-#include "Bundle/Block.h"
-#include "Bundle/PayloadBlock.h"
+
+#include "../../../BundleAgent/Bundle/PayloadBlock.h"
 #include "Utils/SDNV.h"
 #include "gtest/gtest.h"
 
@@ -36,10 +38,10 @@
  * The size returned by the function must be the same as the raw block.
  */
 TEST(BlockTest, GetLenght) {
-  PayloadBlock pb = PayloadBlock();
-  pb.setPayload("This is a test payload");
+  PayloadBlock pb = PayloadBlock("This is a test payload");
   std::string rawBlock = pb.getRaw();
-  uint64_t size = Block::getFirstBlockLength(rawBlock);
+  //TODO adapt this test to the new implementation
+  uint64_t size = CanonicalBlock::getFirstBlockLength(rawBlock);
   ASSERT_EQ(rawBlock.size(), size);
 }
 
@@ -50,16 +52,15 @@ TEST(BlockTest, GetLenght) {
  */
 TEST(BlockTest, GetMultipleLenght) {
   std::stringstream ss;
-  PayloadBlock pb = PayloadBlock();
-  pb.setPayload("This is a test payload");
+  PayloadBlock pb = PayloadBlock("This is a test payload");
   std::string rawBlock = pb.getRaw();
   int size1 = rawBlock.size();
   ss << rawBlock;
-  pb.setPayload("This is a new test payload with a different size");
+  pb = PayloadBlock("This is a new test payload with a different size");
   rawBlock = pb.getRaw();
   int size2 = rawBlock.size();
   ss << rawBlock;
-  pb.setPayload(
+  pb = PayloadBlock(
       "This is a bigger payload to have a big value into the "
       "data size field: Lorem ipsum dolor sit amet, consectetur adipiscing "
       "elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam."
@@ -98,13 +99,14 @@ TEST(BlockTest, GetMultipleLenght) {
   int size3 = rawBlock.size();
   ss << rawBlock;
   rawBlock = ss.str();
-  uint64_t calSize = Block::getFirstBlockLength(rawBlock);
+  //TODO adapt this test to the new implementation
+  uint64_t calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
   ASSERT_EQ(size1, calSize);
   rawBlock = rawBlock.substr(calSize);
-  calSize = Block::getFirstBlockLength(rawBlock);
+  calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
   ASSERT_EQ(size2, calSize);
   rawBlock = rawBlock.substr(calSize);
-  calSize = Block::getFirstBlockLength(rawBlock);
+  calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
   ASSERT_EQ(size3, calSize);
 }
 
@@ -130,6 +132,6 @@ TEST(BlockTest, GetLenghtWithEID) {
   std::string data = "This is a data for test";
   ss << data.substr(0, 10);
   std::string rawBlock = ss.str();
-  uint64_t size = Block::getFirstBlockLength(rawBlock);
+  uint64_t size = CanonicalBlock::getFirstBlockLength(rawBlock);
   ASSERT_EQ(rawBlock.size(), size);
 }

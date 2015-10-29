@@ -26,20 +26,24 @@
 
 #include <string>
 #include <cstdint>
-#include "Bundle/Block.h"
+
+#include "CanonicalBlock.h"
 
 /**
  * CLASS PayloadBlock
  * This class represents a payload block from a bundle as described into the RFC 5050.
  */
-class PayloadBlock : public Block {
+class PayloadBlock : public CanonicalBlock {
  public:
   /**
-   * @brief Empty constructor.
+   * @brief Constructor.
    *
-   * Constructs an empty payload block.
+   * Generates a Payload block from its payload.
+   *
+   * @param payload, string with payload value.
+   * @param ok, boolean ignored by the code. We need it in order to differentiate this constructor from the other.
    */
-  PayloadBlock();
+  PayloadBlock(const std::string &payload, bool ok);
   /**
    * @brief Raw constructor.
    *
@@ -52,26 +56,23 @@ class PayloadBlock : public Block {
    * Destructor of the class
    */
   virtual ~PayloadBlock();
+
   /**
-   * @brief Get the payload block in raw format.
+   * @brief Function to update the block in raw format.
    *
-   * This functions converts the payload block to raw format.
+   * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
+   * Overrides CanonicalBlock::toRaw()
    *
-   * @return The block in raw format.
+   * @return the block in raw format.
    */
-  std::string getRaw();
+   std::string toRaw();
+
   /**
    * Function to get the payload value.
    *
    * @return The payload value.
    */
   std::string getPayload();
-  /**
-   * Function to set the payload value.
-   *
-   * @param payload to save into the block.
-   */
-  void setPayload(const std::string &payload);
 
  private:
   /**

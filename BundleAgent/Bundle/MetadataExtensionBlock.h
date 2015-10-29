@@ -26,21 +26,22 @@
 
 #include <cstdint>
 #include <string>
-#include "Bundle/Block.h"
+
+#include "CanonicalBlock.h"
 
 /**
  * CLASS MetadataExtensionBlock
  * This class represents a Metadata extension block for the bundle protocol
  * as described into the RFC 6258.
  */
-class MetadataExtensionBlock : public Block {
+class MetadataExtensionBlock : public CanonicalBlock {
  public:
   /**
    * @brief Empty constructor.
    *
    * This will generate an empty Metadata extension block.
    */
-  MetadataExtensionBlock();
+  MetadataExtensionBlock(const uint8_t metadataType, const std::string metadata);
   /**
    * @brief Raw constructor.
    *
@@ -63,6 +64,12 @@ class MetadataExtensionBlock : public Block {
    */
   virtual std::string getRaw() = 0;
   /**
+   * Function to get the metadata.
+   *
+   * @return The type of the block.
+   */
+  std::string getMetadata();
+  /**
    * Function to get the type of the metadata extension block.
    *
    * @return The type of the block.
@@ -78,7 +85,7 @@ class MetadataExtensionBlock : public Block {
    */
   virtual std::string getMetadataContent() = 0;
 
- private:
+ protected:
   /**
    * Type of the metadata block.
    */

@@ -73,18 +73,16 @@ TEST(PrimaryBlockTest, FullRawFunctions) {
       ->getTimestamp();
   PrimaryBlock pb = PrimaryBlock("Source", "Destination", time.first,
                                  time.second);
-  pb.setSource("newSource");
-  pb.setDestination("newDestination");
   pb.setReportTo("ReportTo");
   pb.setCustodian("Custodian");
   pb.setLifetime(time.first);
-  pb.setProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
-  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
-  pb.setProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING);
-  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
-  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
-  pb.clearProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
-  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING);
+  ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
+  pb.unsetPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
+  ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
   std::string rawData = pb.getRaw();
   PrimaryBlock pb1 = PrimaryBlock(rawData);
   ASSERT_EQ(pb.getSource(), pb1.getSource());
@@ -95,16 +93,16 @@ TEST(PrimaryBlockTest, FullRawFunctions) {
   ASSERT_EQ(pb.getCreationTimestamp(), pb1.getCreationTimestamp());
   ASSERT_EQ(pb.getCreationTimestampSeqNumber(),
             pb1.getCreationTimestampSeqNumber());
-  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER),
-            pb1.testFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
-  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL),
-            pb1.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
-  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING),
-            pb1.testFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
-  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON),
-            pb1.testFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON));
-  ASSERT_EQ(pb.testFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD),
-            pb1.testFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD));
+  ASSERT_EQ(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER),
+            pb1.checkPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
+  ASSERT_EQ(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL),
+            pb1.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  ASSERT_EQ(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING),
+            pb1.checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
+  ASSERT_EQ(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON),
+            pb1.checkPrimaryProcFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON));
+  ASSERT_EQ(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD),
+            pb1.checkPrimaryProcFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD));
 }
 
 /**
@@ -115,19 +113,19 @@ TEST(PrimaryBlockTest, FlagFunctions) {
       ->getTimestamp();
   PrimaryBlock pb = PrimaryBlock("Source", "Destination", time.first,
                                  time.second);
-  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
-  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
-  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
-  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
+  ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
+  ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.unsetPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK);
   // Default priority is BULK
-  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
-  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
-  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
-  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
-  ASSERT_TRUE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
-  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
-  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
-  pb.setProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
-  pb.clearProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
-  ASSERT_FALSE(pb.testFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
+  ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK));
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
+  ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.unsetPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL);
+  ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL));
+  pb.setPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  pb.unsetPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED);
+  ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED));
 }

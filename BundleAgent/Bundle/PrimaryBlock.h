@@ -33,7 +33,7 @@
  * CLASS PrimaryBlock
  * This class represents a Primary Block as described into the RFC 5050.
  */
-class PrimaryBlock {
+class PrimaryBlock : Block{
  public:
   /**
    * @brief Raw constructor.
@@ -69,36 +69,36 @@ class PrimaryBlock {
    *
    * @sa PrimaryBlockControlFlags
    */
-  void setProcFlag(PrimaryBlockControlFlags procFlag);
+  void setPrimaryProcFlag(PrimaryBlockControlFlags procFlag);
   /**
-   * @brief Clears the given flag.
+   * @brief Unsets the given flag.
    *
    * This function sets the given flag to value 0.
    *
-   * @param procFlag the flag to clear.
+   * @param procFlag the flag to unset.
    *
    * @sa PrimaryBlockControlFlags
    */
-  void clearProcFlag(PrimaryBlockControlFlags procFlag);
+  void unsetPrimaryProcFlag(PrimaryBlockControlFlags procFlag);
   /**
-   * @brief Test if a flag is active or not.
+   * @brief Checks if a flag is set.
    *
-   * This function tests if the given flag is active or not.
+   * This function checks if the given flag is set.
    *
-   * @param procFlag the flag to test.
-   * @return True if the flag is active, false otherwise.
+   * @param procFlag the flag to check.
+   * @return True if the flag is set, false otherwise.
    *
    * @sa PrimaryBlockControlFlags
    */
-  bool testFlag(PrimaryBlockControlFlags procFlag);
+  bool checkPrimaryProcFlag(PrimaryBlockControlFlags procFlag);
   /**
-   * @brief Function to get the primary block in raw format.
+   * @brief Function to update the block in raw format.
    *
-   * This function converts the primary block into raw format.
+   * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
    *
-   * @return This primary block as raw.
+   * @return the block in raw format.
    */
-  std::string getRaw();
+  std::string toRaw();
   /**
    * Function to get the Destination set in the primary block.
    * @return the destination field.
@@ -134,16 +134,6 @@ class PrimaryBlock {
    * @return the timestamp sequence number field.
    */
   const uint64_t getCreationTimestampSeqNumber();
-  /**
-   * Function to set a new destination into the primary block.
-   * @param destination new destination to set.
-   */
-  void setDestination(const std::string &destination);
-  /**
-   * Function to set a new source into the primary block.
-   * @param source new source to set.
-   */
-  void setSource(const std::string &source);
   /**
    * Function to set a new reportTo into the primary block.
    * @param reportTo new reportTo to set.

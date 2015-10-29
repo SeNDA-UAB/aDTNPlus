@@ -22,8 +22,10 @@
  * This file contains the test of the PayloadBlock class.
  */
 
+#include "../../../BundleAgent/Bundle/PayloadBlock.h"
+
 #include <string>
-#include "Bundle/PayloadBlock.h"
+
 #include "gtest/gtest.h"
 
 /**
@@ -46,9 +48,9 @@ TEST(PayloadBlockTest, DefaultConstructor) {
 TEST(PayloadBlockTest, SetGetPayload) {
   PayloadBlock pb = PayloadBlock();
   ASSERT_EQ("", pb.getPayload());
-  pb.setPayload("This is a test payload");
+  pb = PayloadBlock("This is a test payload");
   ASSERT_EQ("This is a test payload", pb.getPayload());
-  pb.setPayload("This is a new test payload");
+  pb = PayloadBlock("This is a new test payload");
   ASSERT_EQ("This is a new test payload", pb.getPayload());
 }
 
@@ -59,8 +61,7 @@ TEST(PayloadBlockTest, SetGetPayload) {
  * The new PayloadBlock must contain the same as the original.
  */
 TEST(PayloadBlockTest, RawFunctions) {
-  PayloadBlock pb = PayloadBlock();
-  pb.setPayload("This is a test payload");
+  PayloadBlock pb = PayloadBlock("This is a test payload");
   std::string rawBlock = pb.getRaw();
   PayloadBlock pb1 = PayloadBlock(rawBlock);
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
@@ -75,10 +76,10 @@ TEST(PayloadBlockTest, FlagTest) {
   PayloadBlock pb = PayloadBlock();
   pb.setProcFlag(BlockControlFlags::LAST_BLOCK);
   pb.setProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
-  ASSERT_TRUE(pb.testProcFlag(BlockControlFlags::LAST_BLOCK));
-  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::DELETE_BUNDLE));
-  ASSERT_TRUE(pb.testProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
-  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::REPLICATE_FRAGMENT));
-  pb.clearProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
-  ASSERT_FALSE(pb.testProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
+  ASSERT_TRUE(pb.checkProcFlag(BlockControlFlags::LAST_BLOCK));
+  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::DELETE_BUNDLE));
+  ASSERT_TRUE(pb.checkProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
+  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::REPLICATE_FRAGMENT));
+  pb.unsetProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
+  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
 }

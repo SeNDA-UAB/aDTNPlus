@@ -28,6 +28,7 @@
 #include <utility>
 #include <sstream>
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/CanonicalBlock.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -37,6 +38,7 @@
 Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
       m_primaryBlock(nullptr) {
+	// TODO to be implemented again
   /**
    * A bundle is formed by a PrimaryBlock, and other blocks.
    * In this other blocks one of it must be a PayloadBlock.
@@ -69,8 +71,8 @@ Bundle::Bundle(const std::string &rawData)
         // a derived block of it.
       }
     }
-    size_t size = Block::getFirstBlockLength(data);
-    data = data.substr(size);
+    //size_t size = Block::getFirstBlockLength(data);
+    //data = data.substr(size);
   }
 }
 
@@ -83,8 +85,7 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
                                     timestampValue.second);
-  Block* pb = new PayloadBlock();
-  (static_cast<PayloadBlock*>(pb))->setPayload(payload);
+  Block* pb = new PayloadBlock(payload);
   m_blocks.push_back(pb);
 }
 
@@ -126,7 +127,7 @@ std::vector<Block *> Bundle::getBlocks() {
   return m_blocks;
 }
 
-void Bundle::addBlock(Block *newBlock) {
+void Bundle::addBlock(CanonicalBlock *newBlock) {
   // Check if the block type is a PayloadBlock
   // only one can be present into a bundle.
   LOG(37) << "Adding new Block to the bundle";
