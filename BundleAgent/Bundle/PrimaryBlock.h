@@ -28,12 +28,13 @@
 #include <string>
 #include <bitset>
 #include "Bundle/BundleTypes.h"
+#include "Bundle/Block.h"
 
 /**
  * CLASS PrimaryBlock
  * This class represents a Primary Block as described into the RFC 5050.
  */
-class PrimaryBlock : Block{
+class PrimaryBlock : public Block {
  public:
   /**
    * @brief Raw constructor.

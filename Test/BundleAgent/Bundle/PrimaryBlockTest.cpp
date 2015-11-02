@@ -56,7 +56,7 @@ TEST(PrimaryBlockTest, RawFunctions) {
       ->getTimestamp();
   PrimaryBlock pb = PrimaryBlock("source", "destination", time.first,
                                  time.second);
-  std::string rawData = pb.getRaw();
+  std::string rawData = pb.toRaw();
   PrimaryBlock pb1 = PrimaryBlock(rawData);
   ASSERT_EQ(pb.getSource(), pb1.getSource());
   ASSERT_EQ(pb.getDestination(), pb1.getDestination());
@@ -83,7 +83,7 @@ TEST(PrimaryBlockTest, FullRawFunctions) {
   ASSERT_TRUE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING));
   pb.unsetPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER);
   ASSERT_FALSE(pb.checkPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER));
-  std::string rawData = pb.getRaw();
+  std::string rawData = pb.toRaw();
   PrimaryBlock pb1 = PrimaryBlock(rawData);
   ASSERT_EQ(pb.getSource(), pb1.getSource());
   ASSERT_EQ(pb.getDestination(), pb1.getDestination());

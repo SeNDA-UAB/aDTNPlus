@@ -37,8 +37,8 @@
 
 Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
-      m_primaryBlock(nullptr) {
-	// TODO to be implemented again
+      m_primaryBlock(nullptr),
+      m_payloadBlock(nullptr) {
   /**
    * A bundle is formed by a PrimaryBlock, and other blocks.
    * In this other blocks one of it must be a PayloadBlock.
@@ -47,23 +47,20 @@ Bundle::Bundle(const std::string &rawData)
   // First generate a PrimaryBlock with the data.
   LOG(35) << "Generating Primary Block";
   m_primaryBlock = new PrimaryBlock(rawData);
-  // Skip the PrimaryBlock (1 byte, a SDNV, and we get the block length)
-  std::string data = rawData.substr(1);
-  size_t offset = 1;
-  size_t length = getLength(data);
-  offset += length;
-  data = data.substr(length);
-  length = getLength(data);
-  uint64_t blockSize = decode(data);
-  offset += length + blockSize;
-  data = rawData.substr(offset);
+  // Skip the PrimaryBlock
+  std::string data = rawData.substr(m_primaryBlock->getLength());
   // We now can start to generate the known blocks.
+  size_t offset = 0;
   while (data.size() != 0) {
     switch (static_cast<BlockTypes>(data[0])) {
       case BlockTypes::PAYLOAD_BLOCK: {
-        LOG(35) << "Generating Payload Block";
-        Block* b = new PayloadBlock(data);
-        m_blocks.push_back(b);
+        // Check if another payload block is present
+        if (m_payloadBlock == nullptr) {
+          LOG(35) << "Generating Payload Block";
+          m_payloadBlock = new PayloadBlock(data, true);
+          m_blocks.push_back(m_payloadBlock);
+          offset = m_payloadBlock->getLength();
+        }
         break;
       }
       case BlockTypes::METADATA_EXTENSION_BLOCK: {
@@ -71,8 +68,7 @@ Bundle::Bundle(const std::string &rawData)
         // a derived block of it.
       }
     }
-    //size_t size = Block::getFirstBlockLength(data);
-    //data = data.substr(size);
+    data = data.substr(offset);
   }
 }
 
@@ -85,8 +81,8 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
                                     timestampValue.second);
-  Block* pb = new PayloadBlock(payload);
-  m_blocks.push_back(pb);
+  m_payloadBlock = new PayloadBlock(payload);
+  m_blocks.push_back(m_payloadBlock);
 }
 
 Bundle::~Bundle() {
@@ -101,18 +97,23 @@ Bundle::~Bundle() {
 }
 
 std::string Bundle::getRaw() {
+  return m_raw;
+}
+
+std::string Bundle::toRaw() {
   LOG(36) << "Generating bundle in raw format";
   std::string raw = m_raw;
   if (raw == "") {
     std::stringstream ss;
     LOG(36) << "Getting the primary block in raw";
-    ss << m_primaryBlock->getRaw();
+    ss << m_primaryBlock->toRaw();
     std::vector<Block*>::reverse_iterator finalBlock = m_blocks.rbegin();
-    (*finalBlock)->setProcFlag(BlockControlFlags::LAST_BLOCK);
+    static_cast<CanonicalBlock *>(*finalBlock)->setProcFlag(
+        BlockControlFlags::LAST_BLOCK);
     for (std::vector<Block*>::iterator it = m_blocks.begin();
         it != m_blocks.end(); ++it) {
       LOG(36) << "Getting the next block in raw";
-      ss << (*it)->getRaw();
+      ss << (*it)->toRaw();
     }
     raw = ss.str();
   }
@@ -121,6 +122,10 @@ std::string Bundle::getRaw() {
 
 PrimaryBlock* Bundle::getPrimaryBlock() {
   return m_primaryBlock;
+}
+
+PayloadBlock* Bundle::getPayloadBlock() {
+  return m_payloadBlock;
 }
 
 std::vector<Block *> Bundle::getBlocks() {

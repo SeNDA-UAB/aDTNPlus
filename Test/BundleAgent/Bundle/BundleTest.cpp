@@ -44,8 +44,7 @@ TEST(BundleTest, FilledConstructor) {
   ASSERT_EQ("destination", b.getPrimaryBlock()->getDestination());
   ASSERT_EQ(1, b.getBlocks().size());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
-            b.getBlocks()[0]->getBlockType());
-  //TODO adapt this method to the new meaning of blocks. The fits block (primary) is not canonical and thus has no type.
+              b.getPayloadBlock()->getBlockType());
 }
 
 /**
@@ -56,18 +55,17 @@ TEST(BundleTest, FilledConstructor) {
  */
 TEST(BundleTest, RawFunctions) {
   Bundle b = Bundle("Source", "Destination", "This is a payload");
-  std::string raw = b.getRaw();
+  std::string raw = b.toRaw();
   Bundle b1 = Bundle(raw);
   ASSERT_EQ(b.getPrimaryBlock()->getSource(),
             b1.getPrimaryBlock()->getSource());
   ASSERT_EQ(b.getPrimaryBlock()->getDestination(),
             b1.getPrimaryBlock()->getDestination());
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
-  ASSERT_EQ(b.getBlocks()[0]->getBlockType(),
-            b1.getBlocks()[0]->getBlockType());
-  //TODO adapt this method to the new meaning of blocks. The fits block (primary) is not canonical and thus has no type.
-  CanonicalBlock *PB = b.getBlocks()[0];
-  CanonicalBlock *PB1 = b1.getBlocks()[0];
+  ASSERT_EQ(static_cast<CanonicalBlock*>(b.getBlocks()[0])->getBlockType(),
+            static_cast<CanonicalBlock*>(b1.getBlocks()[0])->getBlockType());
+  CanonicalBlock *PB = static_cast<CanonicalBlock*>(b.getBlocks()[0]);
+  CanonicalBlock *PB1 = static_cast<CanonicalBlock*>(b1.getBlocks()[0]);
   ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
             (static_cast<PayloadBlock*>(PB1))->getPayload());
 }
@@ -79,7 +77,7 @@ TEST(BundleTest, RawFunctions) {
  */
 TEST(BundleTest, WiresharkTest) {
   Bundle b = Bundle("node100", "node101", "This is a test payload");
-  std::string raw = b.getRaw();
+  std::string raw = b.toRaw();
   sockaddr_in remote = { 0 };
   remote.sin_family = AF_INET;
   remote.sin_port = htons(0);

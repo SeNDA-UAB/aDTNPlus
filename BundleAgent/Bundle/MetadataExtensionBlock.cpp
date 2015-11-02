@@ -26,7 +26,8 @@
 
 #include <string>
 
-MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType, const std::string metadata)
+MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
+                                               const std::string metadata)
     : m_metadataType(metadataType),
       m_metadata(metadata) {
 }
@@ -38,14 +39,9 @@ MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
    * TODO to be implemented again.
    * Use CanonicalBlock(rawData) constructor and complete the parsing here knowing that the body data content starts at m_bodyDataIndex.
    */
-
 }
 
 MetadataExtensionBlock::~MetadataExtensionBlock() {
-}
-
-std::string PayloadBlock::toRaw() {
-//TODO to implement
 }
 
 uint8_t MetadataExtensionBlock::getMetadataType() {
@@ -53,5 +49,5 @@ uint8_t MetadataExtensionBlock::getMetadataType() {
 }
 
 std::string MetadataExtensionBlock::getMetadata() {
-	return m_metadata;
+  return m_metadata;
 }

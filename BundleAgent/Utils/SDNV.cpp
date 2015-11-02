@@ -26,11 +26,11 @@
 #include <string>
 #include <sstream>
 
-std::string encode(uint64_t value) {
+std::string SDNV::encode(uint64_t value) {
   unsigned char buffer[10];  // Max bytes for a SDNV codifying
                              // a value of 2^64 - 1
   unsigned char *bufferPosition = &buffer[0];
-  const size_t length_value = getLength(value);
+  const size_t length_value = SDNV::getLength(value);
   bufferPosition += length_value;
   unsigned char high_bit = 0;  // for the last byte
   uint64_t auxValue = value;
@@ -44,7 +44,7 @@ std::string encode(uint64_t value) {
   return ret;
 }
 
-uint64_t decode(std::string encodedValue) {
+uint64_t SDNV::decode(std::string encodedValue) {
   size_t value_length = 0;
   unsigned char bufferPosition = 0;
   uint64_t value = 0;
@@ -60,7 +60,7 @@ uint64_t decode(std::string encodedValue) {
   return value;
 }
 
-size_t getLength(uint64_t value) {
+size_t SDNV::getLength(uint64_t value) {
   size_t value_length = 0;
   uint64_t auxValue = value;
   do {
@@ -70,7 +70,7 @@ size_t getLength(uint64_t value) {
   return value_length;
 }
 
-size_t getLength(std::string encodedValue) {
+size_t SDNV::getLength(std::string encodedValue) {
   size_t value_length = 0;
   unsigned char bufferPosition = 0;
   std::stringstream ss;

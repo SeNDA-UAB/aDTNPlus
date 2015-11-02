@@ -23,23 +23,19 @@
  */
 
 #include "CanonicalBlock.h"
-
 #include <string>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
-CanonicalBlock::CanonicalBlock(const std::string &rawData)
-    : Block::m_raw(rawData),
-	  m_blockType(0),
+CanonicalBlock::CanonicalBlock()
+    : m_blockType(0),
+      m_bodyDataIndex(0),
       m_procFlags() {
-	/*
-	 * TODO Method implementation to be finished.
-	 * Assume that the Block is unknown (not Primary, not Payload, not MetadataExtension).
-	 * Get from rawData content the m_blockType, m_procFlags and length.
-	 * Save at m_bodyDataIndex the cardinality of the first bit containing body data (after length).
-	 * Save at Block::m_raw the substring of rawData corresponding to this block (from 0 to length).
-	 * Save m_blockType and m_procFlags.
-	 */
+}
+
+CanonicalBlock::CanonicalBlock(const std::string &rawData)
+    : m_blockType(0),
+      m_procFlags() {
   /**
    * The canonical block contains
    *
@@ -48,35 +44,54 @@ CanonicalBlock::CanonicalBlock(const std::string &rawData)
    * Block Length as SDNV
    * BodyDataContent variable length
    */
-  LOG(39) << "Generating canonicalblock from raw data";
-  // Get the Block Type
-  m_blockType = static_cast<uint8_t>(rawData[0]);
-  std::string data = rawData.substr(1);
-  // Get the proc flags.
-  size_t procFlagsSize = getLength(data);
-  uint64_t procFlags = decode(data);
-  m_procFlags = std::bitset<7>(procFlags);
-  data = data.substr(procFlagsSize);
-  // Jump the payload length, the rawData only contains this block
-  size_t payloadSize = getLength(data);
-  data = data.substr(payloadSize);
-  m_bodyDataIndex = 0;
+  initFromRaw(rawData);
 }
 
 CanonicalBlock::~CanonicalBlock() {
 }
 
-std::string PrimaryBlock::toRaw() {
+void CanonicalBlock::initFromRaw(const std::string &rawData) {
+  LOG(39) << "Generating canonicalblock from raw data";
+  // Get the Block Type
+  m_blockType = static_cast<uint8_t>(rawData[0]);
+  size_t blockLength = 1;
+  std::string data = rawData.substr(1);
+  // Get the proc flags.
+  size_t dataSize = SDNV::getLength(data);
+  blockLength += dataSize;
+  uint64_t procFlags = SDNV::decode(data);
+  m_procFlags = std::bitset<7>(procFlags);
+  data = data.substr(dataSize);
+  if (m_procFlags.test(static_cast<ulong>(BlockControlFlags::EID_FIELD))) {
+    dataSize = SDNV::getLength(data);
+    blockLength += dataSize;
+    int numberOfEID = SDNV::decode(data);
+    data = data.substr(dataSize);
+    for (int i = 0; i < numberOfEID; ++i) {
+      // Every EID consists of two SDNV fields
+      dataSize = SDNV::getLength(data);
+      blockLength += dataSize;
+      data = data.substr(dataSize);
+      dataSize = SDNV::getLength(data);
+      blockLength += dataSize;
+      data = data.substr(dataSize);
+    }
+  }
+  // Block data Length
+  dataSize = SDNV::getLength(data);
+  blockLength += dataSize;
+  m_bodyDataIndex = blockLength;
+  uint64_t blockDataSize = SDNV::decode(data);
+  blockLength += blockDataSize;
+  m_raw = rawData.substr(0, blockLength);
+}
+
+std::string CanonicalBlock::toRaw() {
   std::stringstream ss;
-  ss << Block::m_raw;
- /*
-  * TODO Method to be implemented.
-  * Assume that the Block is unknown (not Primary, not Payload, not MetadataExtension).
-  * Take Block::m_raw and update its flags. The rest must for sure be OK because it is not possible to be changed.
-  * Return the updated Block::m_raw.
-  */
-  Block::m_raw = ss.str();
-  return Block::m_raw;
+  ss << m_blockType;
+  ss << SDNV::encode(m_procFlags.to_ulong());
+  m_raw = ss.str();
+  return m_raw;
 }
 
 uint8_t CanonicalBlock::getBlockType() {

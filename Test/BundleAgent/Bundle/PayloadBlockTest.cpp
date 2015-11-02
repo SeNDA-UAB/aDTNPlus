@@ -22,11 +22,9 @@
  * This file contains the test of the PayloadBlock class.
  */
 
-#include "../../../BundleAgent/Bundle/PayloadBlock.h"
-
 #include <string>
-
 #include "gtest/gtest.h"
+#include "../../../BundleAgent/Bundle/PayloadBlock.h"
 
 /**
  * Check the default constructor.
@@ -34,7 +32,7 @@
  * a PAYLOAD_BLOCK type.
  */
 TEST(PayloadBlockTest, DefaultConstructor) {
-  PayloadBlock pb = PayloadBlock();
+  PayloadBlock pb = PayloadBlock("");
   ASSERT_EQ("", pb.getPayload());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
               pb.getBlockType());
@@ -46,7 +44,7 @@ TEST(PayloadBlockTest, DefaultConstructor) {
  * the same value.
  */
 TEST(PayloadBlockTest, SetGetPayload) {
-  PayloadBlock pb = PayloadBlock();
+  PayloadBlock pb = PayloadBlock("");
   ASSERT_EQ("", pb.getPayload());
   pb = PayloadBlock("This is a test payload");
   ASSERT_EQ("This is a test payload", pb.getPayload());
@@ -62,8 +60,8 @@ TEST(PayloadBlockTest, SetGetPayload) {
  */
 TEST(PayloadBlockTest, RawFunctions) {
   PayloadBlock pb = PayloadBlock("This is a test payload");
-  std::string rawBlock = pb.getRaw();
-  PayloadBlock pb1 = PayloadBlock(rawBlock);
+  std::string rawBlock = pb.toRaw();
+  PayloadBlock pb1 = PayloadBlock(rawBlock, true);
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
                 pb1.getBlockType());
   ASSERT_EQ("This is a test payload", pb1.getPayload());
@@ -73,7 +71,7 @@ TEST(PayloadBlockTest, RawFunctions) {
  * Check Flags
  */
 TEST(PayloadBlockTest, FlagTest) {
-  PayloadBlock pb = PayloadBlock();
+  PayloadBlock pb = PayloadBlock("");
   pb.setProcFlag(BlockControlFlags::LAST_BLOCK);
   pb.setProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
   ASSERT_TRUE(pb.checkProcFlag(BlockControlFlags::LAST_BLOCK));

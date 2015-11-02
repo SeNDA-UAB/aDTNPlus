@@ -41,7 +41,8 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * This will generate an empty Metadata extension block.
    */
-  MetadataExtensionBlock(const uint8_t metadataType, const std::string metadata);
+  MetadataExtensionBlock(const uint8_t metadataType,
+                         const std::string metadata);
   /**
    * @brief Raw constructor.
    *
@@ -62,7 +63,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * @return This block in raw format.
    */
-  virtual std::string getRaw() = 0;
+  virtual std::string toRaw() = 0;
   /**
    * Function to get the metadata.
    *
@@ -93,7 +94,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
   /**
    * Metadata contained in the block.
    */
-  std::string  m_metadata;
+  std::string m_metadata;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_METADATAEXTENSIONBLOCK_H_

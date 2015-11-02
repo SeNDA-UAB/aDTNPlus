@@ -31,11 +31,11 @@
  * Check the calculus of codified length.
  */
 TEST(SDNVTest, LengthTest) {
-  ASSERT_EQ(1, getLength(127));
-  ASSERT_EQ(2, getLength(15789));
-  ASSERT_EQ(3, getLength(45123));
-  ASSERT_EQ(4, getLength(9123456));
-  ASSERT_EQ(5, getLength(4294967295));
+  ASSERT_EQ(1, SDNV::getLength(127));
+  ASSERT_EQ(2, SDNV::getLength(15789));
+  ASSERT_EQ(3, SDNV::getLength(45123));
+  ASSERT_EQ(4, SDNV::getLength(9123456));
+  ASSERT_EQ(5, SDNV::getLength(4294967295));
 }
 
 /**
@@ -45,8 +45,8 @@ TEST(SDNVTest, LengthTest) {
  */
 TEST(SDNVTest, EncodeTest) {
   for (uint64_t i = 1; i <= (2 ^ 32); i += (2 ^ 7)) {
-    std::string coded = encode(i);
-    ASSERT_EQ(coded.length(), getLength(i));
+    std::string coded = SDNV::encode(i);
+    ASSERT_EQ(coded.length(), SDNV::getLength(i));
   }
 }
 
@@ -57,9 +57,9 @@ TEST(SDNVTest, EncodeTest) {
  */
 TEST(SDNVTest, EncodeDecodeTest) {
   for (uint64_t i = 1; i <= (2 ^ 32); i += (2 ^ 7)) {
-    std::string coded = encode(i);
-    ASSERT_EQ(coded.length(), getLength(i));
-    uint64_t value = decode(coded);
+    std::string coded = SDNV::encode(i);
+    ASSERT_EQ(coded.length(), SDNV::getLength(i));
+    uint64_t value = SDNV::decode(coded);
     ASSERT_EQ(i, value);
   }
 }
@@ -70,16 +70,16 @@ TEST(SDNVTest, EncodeDecodeTest) {
  * length of the original value.
  */
 TEST(SDNVTest, LengthStringTest) {
-  std::string coded = encode(127);
-  ASSERT_EQ(1, getLength(coded));
-  coded = encode(15789);
-  ASSERT_EQ(2, getLength(coded));
-  coded = encode(45123);
-  ASSERT_EQ(3, getLength(coded));
-  coded = encode(9123456);
-  ASSERT_EQ(4, getLength(coded));
-  coded = encode(4294967295);
-  ASSERT_EQ(5, getLength(coded));
+  std::string coded = SDNV::encode(127);
+  ASSERT_EQ(1, SDNV::getLength(coded));
+  coded = SDNV::encode(15789);
+  ASSERT_EQ(2, SDNV::getLength(coded));
+  coded = SDNV::encode(45123);
+  ASSERT_EQ(3, SDNV::getLength(coded));
+  coded = SDNV::encode(9123456);
+  ASSERT_EQ(4, SDNV::getLength(coded));
+  coded = SDNV::encode(4294967295);
+  ASSERT_EQ(5, SDNV::getLength(coded));
 }
 
 /**
@@ -90,25 +90,25 @@ TEST(SDNVTest, LengthStringTest) {
 TEST(SDNVTest, EncodeDecodeLargeTest) {
   std::string coded;
   uint64_t value;
-  coded = encode(127);
-  ASSERT_EQ(1, getLength(coded));
-  value = decode(coded);
+  coded = SDNV::encode(127);
+  ASSERT_EQ(1, SDNV::getLength(coded));
+  value = SDNV::decode(coded);
   ASSERT_EQ(127, value);
-  coded = encode(15789);
-  ASSERT_EQ(2, getLength(coded));
-  value = decode(coded);
+  coded = SDNV::encode(15789);
+  ASSERT_EQ(2, SDNV::getLength(coded));
+  value = SDNV::decode(coded);
   ASSERT_EQ(15789, value);
-  coded = encode(45123);
-  ASSERT_EQ(3, getLength(coded));
-  value = decode(coded);
+  coded = SDNV::encode(45123);
+  ASSERT_EQ(3, SDNV::getLength(coded));
+  value = SDNV::decode(coded);
   ASSERT_EQ(45123, value);
-  coded = encode(9123456);
-  ASSERT_EQ(4, getLength(coded));
-  value = decode(coded);
+  coded = SDNV::encode(9123456);
+  ASSERT_EQ(4, SDNV::getLength(coded));
+  value = SDNV::decode(coded);
   ASSERT_EQ(9123456, value);
-  coded = encode(4294967295);
-  ASSERT_EQ(5, getLength(coded));
-  value = decode(coded);
+  coded = SDNV::encode(4294967295);
+  ASSERT_EQ(5, SDNV::getLength(coded));
+  value = SDNV::decode(coded);
   ASSERT_EQ(4294967295, value);
 }
 
@@ -124,12 +124,12 @@ TEST(SDNVTest, EncodeDecodeStringTest) {
   uint64_t values[5] = { 127, 15788, 45321, 9456789, 4123645897 };
   std::stringstream ss;
   for (int i = 0; i < 5; ++i) {
-    ss << encode(values[i]);
+    ss << SDNV::encode(values[i]);
   }
   std::string coded = ss.str();
   for (int i = 0; i < 5; ++i) {
-    uint64_t size = getLength(coded);
-    ASSERT_EQ(getLength(values[i]), size);
+    uint64_t size = SDNV::getLength(coded);
+    ASSERT_EQ(SDNV::getLength(values[i]), size);
     coded = coded.substr(size);
   }
 }

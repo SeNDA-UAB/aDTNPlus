@@ -28,14 +28,21 @@
 #include <bitset>
 #include <string>
 #include "Bundle/BundleTypes.h"
+#include "Bundle/Block.h"
 
 /**
  * CLASS CanonicalBlock
  * This class represents a canonical block as described into the RFC 5050.
  * This class is a base class for all the blocks that are not primary.
  */
-class CanonicalBlock : Block {
+class CanonicalBlock : public Block {
  public:
+  /**
+   * @ brief Empty constructor.
+   *
+   * Generates an empty CanonicalBlock.
+   */
+  CanonicalBlock();
   /**
    * @brief Constructor.
    *
@@ -43,7 +50,7 @@ class CanonicalBlock : Block {
    *
    * @param raw data of this block.
    */
-  CanonicalBlock(const std::string &rawData);
+  explicit CanonicalBlock(const std::string &rawData);
   /**
    * Destructor of the class.
    */
@@ -52,7 +59,7 @@ class CanonicalBlock : Block {
    * @brief Function to update the block in raw format.
    *
    * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
-   * Virtual function, function implementation in derived blocks override this implementation.
+   * It returns only the block type and flags of the block.
    *
    * @return the block in raw format.
    */
@@ -101,9 +108,18 @@ class CanonicalBlock : Block {
    */
   uint8_t m_blockType;
   /**
-   * Variable that holda the bodyDataIndex of the rawData
+   * Variable that hold the bodyDataIndex of the rawData
    */
   int m_bodyDataIndex;
+  /**
+   * @brief Parses a Canonical Block from raw.
+   *
+   * This function parses a canonical block from raw.
+   * Saving the raw data into the block.
+   *
+   * @param rawData Raw data to parse.
+   */
+  void initFromRaw(const std::string &rawData);
 
  private:
   /**

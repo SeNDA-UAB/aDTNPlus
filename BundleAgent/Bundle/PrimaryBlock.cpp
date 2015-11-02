@@ -26,15 +26,14 @@
 #include <string>
 #include <sstream>
 #include <cstring>
-#include <iostream>
 #include <map>
 #include <vector>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
 PrimaryBlock::PrimaryBlock(const std::string &rawData)
-    : Block::m_raw(rawData),
-	  m_procFlags(),
+    : Block(rawData),
+      m_procFlags(),
       m_destination(),
       m_source(),
       m_reportTo(),
@@ -66,62 +65,65 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
    */
   LOG(40) << "Generating Primary block from raw data";
   std::string data = rawData;
+  size_t length = 1;
   // Jump the version.
   data = data.substr(1);
   // Proc. flags
-  m_procFlags = std::bitset<21>(decode(data));
-  size_t offset = getLength(data);
+  m_procFlags = std::bitset<21>(SDNV::decode(data));
+  size_t offset = SDNV::getLength(data);
+  length += offset;
   data = data.substr(offset);
   // Block Length
-  offset = getLength(data);
+  offset = SDNV::getLength(data);
+  length += offset + SDNV::decode(data);
   data = data.substr(offset);
   // Destination scheme offset
-  uint64_t destOff = decode(data);
-  offset = getLength(data);
+  uint64_t destOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Destination SSP offset
-  uint64_t destSSPOff = decode(data);
-  offset = getLength(data);
+  uint64_t destSSPOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Source scheme offset
-  uint64_t srcOff = decode(data);
-  offset = getLength(data);
+  uint64_t srcOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Source SSP offset
-  uint64_t srcSSPOff = decode(data);
-  offset = getLength(data);
+  uint64_t srcSSPOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // ReportTo scheme offset
-  uint64_t reportOff = decode(data);
-  offset = getLength(data);
+  uint64_t reportOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // ReportTo SSP offset
-  uint64_t reportSSPOff = decode(data);
-  offset = getLength(data);
+  uint64_t reportSSPOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Custodian scheme offset
-  uint64_t custOff = decode(data);
-  offset = getLength(data);
+  uint64_t custOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Custodian SSP offset
-  uint64_t custSSPOff = decode(data);
-  offset = getLength(data);
+  uint64_t custSSPOff = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Creation timestamp
-  m_creationTimestamp = decode(data);
-  offset = getLength(data);
+  m_creationTimestamp = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Timestamp sequence number
-  m_creationTimestampSeqNumber = decode(data);
-  offset = getLength(data);
+  m_creationTimestampSeqNumber = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Lifetime
-  m_lifetime = decode(data);
-  offset = getLength(data);
+  m_lifetime = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Dictionary length
-  uint64_t dictionaryLength = decode(data);
-  offset = getLength(data);
+  uint64_t dictionaryLength = SDNV::decode(data);
+  offset = SDNV::getLength(data);
   data = data.substr(offset);
   // Dictionary
   std::string dictionary = data.substr(0, dictionaryLength);
@@ -145,6 +147,7 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
   strcpy(&buffScheme[0], dataChar + custOff * sizeof(char));
   strcpy(&buffSSP[0], dataChar + custSSPOff * sizeof(char));
   m_custodian = std::string(buffSSP);
+  m_raw = rawData.substr(0, length);
 }
 
 PrimaryBlock::PrimaryBlock(const std::string &source,
@@ -264,7 +267,7 @@ std::string PrimaryBlock::toRaw() {
   std::stringstream dictionary;
   // Version of the bundle
   ss << (uint8_t) 0x06;
-  ss << encode(m_procFlags.to_ulong());
+  ss << SDNV::encode(m_procFlags.to_ulong());
   // ss1 contains the fields after the block length
   std::vector<std::string> namesToInsert;
   // Add the names that are going to go to the dictionary
@@ -305,24 +308,24 @@ std::string PrimaryBlock::toRaw() {
     // If is nullpoint, check the dtn scheme offset
     // If not use the adtn scheme offset
     if (orderedNames[i] == m_nullEndpoint)
-      ss1 << encode(offsetMap[dtnScheme]);
+      ss1 << SDNV::encode(offsetMap[dtnScheme]);
     else
-      ss1 << encode(offsetMap[scheme]);
-    ss1 << encode(offsetMap[orderedNames[i]]);
+      ss1 << SDNV::encode(offsetMap[scheme]);
+    ss1 << SDNV::encode(offsetMap[orderedNames[i]]);
     dictionary << orderedNames[i].c_str() << std::ends;
   }
   // Creation timestamp
-  ss1 << encode(m_creationTimestamp);
+  ss1 << SDNV::encode(m_creationTimestamp);
   // Creation timestamp seq. number
-  ss1 << encode(m_creationTimestampSeqNumber);
+  ss1 << SDNV::encode(m_creationTimestampSeqNumber);
   // Lifetime
-  ss1 << encode(m_lifetime);
+  ss1 << SDNV::encode(m_lifetime);
   // Dictionay length
-  ss1 << encode(dictionary.str().size());
+  ss1 << SDNV::encode(dictionary.str().size());
   // Dictionary
   ss1 << dictionary.str();
   // Add block length
-  ss << encode(ss1.str().size());
+  ss << SDNV::encode(ss1.str().size());
   // Append all the block
   ss << ss1.str();
   Block::m_raw = ss.str();

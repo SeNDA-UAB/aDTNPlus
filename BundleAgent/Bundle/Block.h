@@ -43,13 +43,22 @@ class Block {
    */
   Block();
   /**
+   * @brief Constructor.
+   *
+   * Generates a block.
+   *
+   * @param rawData
+   */
+  explicit Block(std::string rawData);
+  /**
    * Destructor of the class.
    */
   virtual ~Block();
   /**
    * @brief Function to get the block in raw format.
    *
-   * This function will provide the last version of the piece of bundle raw that corresponds to this block. Notice that it may not be up to date.
+   * This function will provide the last version of the piece of bundle raw that
+   * corresponds to this block. Notice that it may not be up to date.
    *
    * @return the block in raw format.
    */
@@ -57,12 +66,19 @@ class Block {
   /**
    * @brief Function to update the block in raw format.
    *
-   * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
+   * This function will generate a raw version of the piece of bundle raw that
+   * corresponds to this block.
    * Pure virtual function, all the blocks must implement it.
    *
    * @return the block in raw format.
    */
   virtual std::string toRaw() = 0;
+  /**
+   * @brief Returns the size of this block.
+   *
+   * @return the size of the block.
+   */
+  size_t getLength();
 
  protected:
   /**

@@ -22,12 +22,11 @@
  * This file contains the test of the Block class.
  */
 
-#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
-
 #include <string>
 #include <sstream>
 #include <bitset>
 
+#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
 #include "../../../BundleAgent/Bundle/PayloadBlock.h"
 #include "Utils/SDNV.h"
 #include "gtest/gtest.h"
@@ -37,11 +36,10 @@
  * Create a payloadBlock, convert it to raw.
  * The size returned by the function must be the same as the raw block.
  */
-TEST(BlockTest, GetLenght) {
+TEST(CanonicalBlockTest, GetLenght) {
   PayloadBlock pb = PayloadBlock("This is a test payload");
-  std::string rawBlock = pb.getRaw();
-  //TODO adapt this test to the new implementation
-  uint64_t size = CanonicalBlock::getFirstBlockLength(rawBlock);
+  std::string rawBlock = pb.toRaw();
+  uint64_t size = pb.getLength();
   ASSERT_EQ(rawBlock.size(), size);
 }
 
@@ -50,14 +48,14 @@ TEST(BlockTest, GetLenght) {
  * Create three payload blocks, concatenate them into one string.
  * Extract the length of the blocks and compare it.
  */
-TEST(BlockTest, GetMultipleLenght) {
+TEST(CanonicalBlockTest, GetMultipleLenght) {
   std::stringstream ss;
   PayloadBlock pb = PayloadBlock("This is a test payload");
-  std::string rawBlock = pb.getRaw();
+  std::string rawBlock = pb.toRaw();
   int size1 = rawBlock.size();
   ss << rawBlock;
   pb = PayloadBlock("This is a new test payload with a different size");
-  rawBlock = pb.getRaw();
+  rawBlock = pb.toRaw();
   int size2 = rawBlock.size();
   ss << rawBlock;
   pb = PayloadBlock(
@@ -95,18 +93,17 @@ TEST(BlockTest, GetMultipleLenght) {
       "dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. "
       "Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, "
       "facilisis ac, ultricies eu, pede.");
-  rawBlock = pb.getRaw();
+  rawBlock = pb.toRaw();
   int size3 = rawBlock.size();
   ss << rawBlock;
   rawBlock = ss.str();
-  //TODO adapt this test to the new implementation
-  uint64_t calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
+  uint64_t calSize = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(size1, calSize);
   rawBlock = rawBlock.substr(calSize);
-  calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
+  calSize = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(size2, calSize);
   rawBlock = rawBlock.substr(calSize);
-  calSize = CanonicalBlock::getFirstBlockLength(rawBlock);
+  calSize = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(size3, calSize);
 }
 
@@ -116,22 +113,22 @@ TEST(BlockTest, GetMultipleLenght) {
  * Add the number of EID references.
  * The size returned must be equal to the raw size.
  */
-TEST(BlockTest, GetLenghtWithEID) {
+TEST(CanonicalBlockTest, GetLenghtWithEID) {
   std::stringstream ss;
   ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
   std::bitset<7> flags = std::bitset<7>(0x48);
-  ss << encode(flags.to_ulong());
-  ss << encode(2);
+  ss << SDNV::encode(flags.to_ulong());
+  ss << SDNV::encode(2);
   // First EID pair of values
-  ss << encode(12);
-  ss << encode(15);
+  ss << SDNV::encode(12);
+  ss << SDNV::encode(15);
   // Second EID pair of values
-  ss << encode(50);
-  ss << encode(128);
-  ss << encode(10);
+  ss << SDNV::encode(50);
+  ss << SDNV::encode(128);
+  ss << SDNV::encode(10);
   std::string data = "This is a data for test";
   ss << data.substr(0, 10);
   std::string rawBlock = ss.str();
-  uint64_t size = CanonicalBlock::getFirstBlockLength(rawBlock);
+  uint64_t size = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(rawBlock.size(), size);
 }

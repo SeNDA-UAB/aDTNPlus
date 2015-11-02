@@ -41,17 +41,10 @@ class PayloadBlock : public CanonicalBlock {
    * Generates a Payload block from its payload.
    *
    * @param payload, string with payload value.
-   * @param ok, boolean ignored by the code. We need it in order to differentiate this constructor from the other.
+   * @param isRaw, default value false, set to true if creating the
+   * payload from raw.
    */
-  PayloadBlock(const std::string &payload, bool ok);
-  /**
-   * @brief Raw constructor.
-   *
-   * Generates a Payload block from a raw data.
-   *
-   * @param rawData that contains the payload block.
-   */
-  explicit PayloadBlock(const std::string &rawData);
+  explicit PayloadBlock(const std::string &payload, bool isRaw = false);
   /**
    * Destructor of the class
    */
@@ -60,12 +53,13 @@ class PayloadBlock : public CanonicalBlock {
   /**
    * @brief Function to update the block in raw format.
    *
-   * This function will generate a raw version of the piece of bundle raw that corresponds to this block.
+   * This function will generate a raw version of the piece of bundle raw that
+   * corresponds to this block.
    * Overrides CanonicalBlock::toRaw()
    *
    * @return the block in raw format.
    */
-   std::string toRaw();
+  std::string toRaw();
 
   /**
    * Function to get the payload value.

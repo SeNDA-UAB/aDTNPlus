@@ -29,6 +29,8 @@
 #include <vector>
 
 class PrimaryBlock;
+class PayloadBlock;
+class CanonicalBlock;
 class Block;
 /**
  * CLASS Bundle
@@ -97,7 +99,7 @@ class Bundle {
    *
    * @return a vector with all the blocks.
    */
-  std::vector<Block *> getBlocks();
+  std::vector<Block*> getBlocks();
   /**
    * @brief Function to add a canonical block to the bundle.
    *
@@ -106,7 +108,7 @@ class Bundle {
    *
    * @param A pointer to the block.
    */
-  void addBlock(CanonicalBlock *newBlock);
+  void addBlock(CanonicalBlock* newBlock);
 
  private:
   /**
@@ -124,7 +126,7 @@ class Bundle {
   /**
    * Vector containing the pointers to all the blocks that the bundle holds.
    */
-  std::vector<Block *> m_blocks;
+  std::vector<Block*> m_blocks;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLE_H_

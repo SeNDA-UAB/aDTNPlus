@@ -30,42 +30,15 @@
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
-PayloadBlock::PayloadBlock(const std::string &payload, bool ok)
-    : m_payload(payload) {
+PayloadBlock::PayloadBlock(const std::string &payload, bool isRaw)
+    : CanonicalBlock() {
   LOG(39) << "Generating new payload block";
-  m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
-}
-
-PayloadBlock::PayloadBlock(const std::string &rawData) {
-  /*
-   * TODO to be implemented again.
-   * Use CanonicalBlock(rawData) constructor and complete the parsing here knowing that the body data content starts at m_bodyDataIndex.
-   */
-  /**
-   * The payload block contains
-   *
-   * Block Type 1 byte
-   * Proc. Flags as SDNV
-   * Block Length as SDNV
-   * Payload variable length
-   */
-  LOG(39) << "Generating payload from raw data";
-  // Get the Block Type
-  uint8_t blockType = static_cast<uint8_t>(rawData[0]);
-  // If the block type is a paylod block
-  if (blockType == static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
-    // Set the block type to payload
+  if (isRaw) {
+    initFromRaw(payload);
+    m_payload = payload.substr(m_bodyDataIndex);
+  } else {
+    m_payload = payload;
     m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
-    std::string data = rawData.substr(1);
-    // Get the proc flags.
-    size_t procFlagsSize = getLength(data);
-    uint64_t procFlags = decode(data);
-    m_procFlags = std::bitset<7>(procFlags);
-    data = data.substr(procFlagsSize);
-    // Jump the payload length, the rawData only contains this block
-    size_t payloadSize = getLength(data);
-    data = data.substr(payloadSize);
-    m_payload = data;
   }
 }
 
@@ -83,12 +56,11 @@ std::string PayloadBlock::toRaw() {
    */
   LOG(39) << "Generating raw data from payload block";
   std::stringstream ss;
-  ss << m_blockType;
-  ss << encode(m_procFlags.to_ulong());
-  ss << encode(m_payload.size());
+  ss << CanonicalBlock::toRaw();
+  ss << SDNV::encode(m_payload.size());
   ss << m_payload;
-  Block::m_raw = ss.str();
-  return Block::m_raw;
+  m_raw = ss.str();
+  return m_raw;
 }
 
 std::string PayloadBlock::getPayload() {

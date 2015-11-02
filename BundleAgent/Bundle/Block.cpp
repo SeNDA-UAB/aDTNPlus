@@ -28,12 +28,21 @@
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
-Block::Block() {
+Block::Block()
+    : m_raw("") {
+}
+
+Block::Block(std::string rawData)
+    : m_raw(rawData) {
 }
 
 Block::~Block() {
 }
 
-std::string Bundle::getRaw() {
+std::string Block::getRaw() {
   return m_raw;
+}
+
+size_t Block::getLength() {
+  return m_raw.size();
 }

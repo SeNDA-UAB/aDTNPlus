@@ -26,9 +26,11 @@
 
 #include <string>
 
-std::string encode(uint64_t value);
-uint64_t decode(std::string encodedValue);
-size_t getLength(uint64_t value);
-size_t getLength(std::string encodedValue);
+namespace SDNV {
+  std::string encode(uint64_t value);
+  uint64_t decode(std::string encodedValue);
+  size_t getLength(uint64_t value);
+  size_t getLength(std::string encodedValue);
+}
 
 #endif  // BUNDLEAGENT_UTILS_SDNV_H_
