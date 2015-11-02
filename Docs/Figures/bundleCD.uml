@@ -21,6 +21,7 @@ abstract class Block {
 	+~Block()
 	+{abstract}toRaw() : std::string
 	+getRaw() : std::string
+	+getLength() : size_t
 }
 
 class CanonicalBlock {
@@ -34,6 +35,7 @@ class CanonicalBlock {
 	+setProcFlags(procFlag : BlockControlFlags) : void
 	+unsetProcFlags(procFlag : BlockControlFlags) : void
 	+checkProcFlags(procFlag : BlockControlFlags) : bool
+	#initFromRaw(rawData : std::string) : void
 }
 
 class MetadataExtensionBlock {
@@ -50,7 +52,7 @@ class MetadataExtensionBlock {
 class PayloadBlock {
 	-m_payload : std::string
 	+PayloadBlock(rawData : std::string)
-	+PayloadBlock(payload : std::string, ok : bool)
+	+PayloadBlock(payload : std::string, isRaw : bool)
 	+~PayloadBlock()
 	+toRaw() : std::string
 	+getPayload() : std::string
@@ -128,10 +130,10 @@ class TimestampManager << (S,#FF7700) Singleton >> {
 }
 
 class SDNV {
-	encode(value : uint64_t) : std::string
-	decode(encodedValue : std::string) : uint64_t
-	getLength(value : uint64_t) : size_t
-	getLenght(encodedValue : std::string) : size_t
+	SDNV::encode(value : uint64_t) : std::string
+	SDNV::decode(encodedValue : std::string) : uint64_t
+	SDNV::getLength(value : uint64_t) : size_t
+	SDNV::getLenght(encodedValue : std::string) : size_t
 }
 hide SDNV circle
 
