@@ -112,6 +112,10 @@ class CanonicalBlock : public Block {
    */
   int m_bodyDataIndex;
   /**
+     * Block processing control flags, as described into the RFC 5050.
+     */
+  std::bitset<7> m_procFlags;
+  /**
    * @brief Parses a Canonical Block from raw.
    *
    * This function parses a canonical block from raw.
@@ -120,12 +124,6 @@ class CanonicalBlock : public Block {
    * @param rawData Raw data to parse.
    */
   void initFromRaw(const std::string &rawData);
-
- private:
-  /**
-   * Block processing control flags, as described into the RFC 5050.
-   */
-  std::bitset<7> m_procFlags;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_CANONICALBLOCK_H_

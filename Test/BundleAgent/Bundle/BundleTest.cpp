@@ -42,7 +42,7 @@ TEST(BundleTest, FilledConstructor) {
   Bundle b = Bundle("source", "destination", "payload");
   ASSERT_EQ("source", b.getPrimaryBlock()->getSource());
   ASSERT_EQ("destination", b.getPrimaryBlock()->getDestination());
-  ASSERT_EQ(1, b.getBlocks().size());
+  ASSERT_EQ(2, b.getBlocks().size());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
               b.getPayloadBlock()->getBlockType());
 }
@@ -62,10 +62,10 @@ TEST(BundleTest, RawFunctions) {
   ASSERT_EQ(b.getPrimaryBlock()->getDestination(),
             b1.getPrimaryBlock()->getDestination());
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
-  ASSERT_EQ(static_cast<CanonicalBlock*>(b.getBlocks()[0])->getBlockType(),
-            static_cast<CanonicalBlock*>(b1.getBlocks()[0])->getBlockType());
-  CanonicalBlock *PB = static_cast<CanonicalBlock*>(b.getBlocks()[0]);
-  CanonicalBlock *PB1 = static_cast<CanonicalBlock*>(b1.getBlocks()[0]);
+  ASSERT_EQ(static_cast<CanonicalBlock*>(b.getBlocks()[1])->getBlockType(),
+            static_cast<CanonicalBlock*>(b1.getBlocks()[1])->getBlockType());
+  CanonicalBlock *PB = static_cast<CanonicalBlock*>(b.getBlocks()[1]);
+  CanonicalBlock *PB1 = static_cast<CanonicalBlock*>(b1.getBlocks()[1]);
   ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
             (static_cast<PayloadBlock*>(PB1))->getPayload());
 }

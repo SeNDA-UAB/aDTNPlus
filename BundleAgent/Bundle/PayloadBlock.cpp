@@ -56,7 +56,8 @@ std::string PayloadBlock::toRaw() {
    */
   LOG(39) << "Generating raw data from payload block";
   std::stringstream ss;
-  ss << CanonicalBlock::toRaw();
+  ss << m_blockType;
+  ss << SDNV::encode(m_procFlags.to_ulong());
   ss << SDNV::encode(m_payload.size());
   ss << m_payload;
   m_raw = ss.str();

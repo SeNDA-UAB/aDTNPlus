@@ -63,7 +63,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * @return This block in raw format.
    */
-  virtual std::string toRaw() = 0;
+  virtual std::string toRaw();
   /**
    * Function to get the metadata.
    *

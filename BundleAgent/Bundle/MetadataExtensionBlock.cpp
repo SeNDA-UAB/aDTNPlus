@@ -25,6 +25,8 @@
 #include "MetadataExtensionBlock.h"
 
 #include <string>
+#include "Utils/SDNV.h"
+#include "Utils/Logger.h"
 
 MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
                                                const std::string metadata)
@@ -33,15 +35,37 @@ MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
-    : m_metadataType(0),
+    : CanonicalBlock(rawData),
+      m_metadataType(0),
       m_metadata() {
-  /*
-   * TODO to be implemented again.
-   * Use CanonicalBlock(rawData) constructor and complete the parsing here knowing that the body data content starts at m_bodyDataIndex.
-   */
+  std::string data = m_raw.substr(m_bodyDataIndex);
+  size_t metadataTypeSize = SDNV::getLength(data);
+  m_metadataType = SDNV::decode(data);
+  m_metadata = data.substr(metadataTypeSize);
 }
 
 MetadataExtensionBlock::~MetadataExtensionBlock() {
+}
+
+std::string MetadataExtensionBlock::toRaw() {
+  /**
+   * The MetadataExtension block contains
+   * according to http://www.rfc-base.org/txt/rfc-6258.txt
+   * ignoring EIDs
+   *
+   * Block Type 1 byte
+   * Proc. Flags as SDNV
+   * Metadata Type as SDNV
+   * Metadata variable length
+   */
+  LOG(39) << "Generating raw data from metadataExtension block";
+  std::stringstream ss;
+  ss << m_blockType;
+  ss << SDNV::encode(m_procFlags.to_ulong());
+  ss << SDNV::encode(m_metadataType);
+  ss << m_metadata;
+  Block::m_raw = ss.str();
+  return Block::m_raw;
 }
 
 uint8_t MetadataExtensionBlock::getMetadataType() {

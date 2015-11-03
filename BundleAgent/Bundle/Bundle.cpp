@@ -47,28 +47,37 @@ Bundle::Bundle(const std::string &rawData)
   // First generate a PrimaryBlock with the data.
   LOG(35) << "Generating Primary Block";
   m_primaryBlock = new PrimaryBlock(rawData);
+  m_blocks.push_back(m_primaryBlock);
   // Skip the PrimaryBlock
   std::string data = rawData.substr(m_primaryBlock->getLength());
   // We now can start to generate the known blocks.
-  size_t offset = 0;
+  Block* b;
   while (data.size() != 0) {
     switch (static_cast<BlockTypes>(data[0])) {
       case BlockTypes::PAYLOAD_BLOCK: {
         // Check if another payload block is present
         if (m_payloadBlock == nullptr) {
           LOG(35) << "Generating Payload Block";
-          m_payloadBlock = new PayloadBlock(data, true);
-          m_blocks.push_back(m_payloadBlock);
-          offset = m_payloadBlock->getLength();
+           b = new PayloadBlock(data, true);
+           m_payloadBlock = static_cast<PayloadBlock*>(b);
         }
         break;
       }
       case BlockTypes::METADATA_EXTENSION_BLOCK: {
         // This is an abstraction of the metadata block, so we need to create
         // a derived block of it.
+        LOG(35) << "Generating Metadata Extension Block";
+        // b = new MetadataExtensionBlock(data);
+        break;
+      }
+      default: {
+        LOG(35) << "Generating Canonical Block";
+        b = new CanonicalBlock(data);
+        break;
       }
     }
-    data = data.substr(offset);
+    m_blocks.push_back(b);
+    data = data.substr(b->getLength());
   }
 }
 
@@ -82,13 +91,12 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
   m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
                                     timestampValue.second);
   m_payloadBlock = new PayloadBlock(payload);
+  m_blocks.push_back(m_primaryBlock);
   m_blocks.push_back(m_payloadBlock);
 }
 
 Bundle::~Bundle() {
   LOG(36) << "Deleting Bundle";
-  if (m_primaryBlock != nullptr)
-    delete m_primaryBlock;
   for (std::vector<Block*>::iterator it = m_blocks.begin();
       it != m_blocks.end(); ++it) {
     if (*it != nullptr)
@@ -106,7 +114,6 @@ std::string Bundle::toRaw() {
   if (raw == "") {
     std::stringstream ss;
     LOG(36) << "Getting the primary block in raw";
-    ss << m_primaryBlock->toRaw();
     std::vector<Block*>::reverse_iterator finalBlock = m_blocks.rbegin();
     static_cast<CanonicalBlock *>(*finalBlock)->setProcFlag(
         BlockControlFlags::LAST_BLOCK);
