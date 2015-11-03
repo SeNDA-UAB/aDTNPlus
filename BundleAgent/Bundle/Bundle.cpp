@@ -29,6 +29,7 @@
 #include <sstream>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
+#include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -67,7 +68,7 @@ Bundle::Bundle(const std::string &rawData)
         // This is an abstraction of the metadata block, so we need to create
         // a derived block of it.
         LOG(35) << "Generating Metadata Extension Block";
-        // b = new MetadataExtensionBlock(data);
+        b = new MetadataExtensionBlock(data);
         break;
       }
       default: {

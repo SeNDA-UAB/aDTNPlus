@@ -87,6 +87,11 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
 }
 
 std::string CanonicalBlock::toRaw() {
+  std::stringstream ss;
+  ss << m_blockType;
+  ss << SDNV::encode(m_procFlags.to_ulong());
+  ss << m_raw.substr(m_bodyDataIndex);
+  m_raw = ss.str();
   return m_raw;
 }
 
