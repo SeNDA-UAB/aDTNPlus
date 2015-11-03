@@ -51,8 +51,7 @@ class MetadataExtensionBlock {
 
 class PayloadBlock {
 	-m_payload : std::string
-	+PayloadBlock(rawData : std::string)
-	+PayloadBlock(payload : std::string, isRaw : bool)
+	+PayloadBlock(data : std::string, isRaw : bool)
 	+~PayloadBlock()
 	+toRaw() : std::string
 	+getPayload() : std::string
