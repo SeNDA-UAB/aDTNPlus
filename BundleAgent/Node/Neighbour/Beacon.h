@@ -61,7 +61,7 @@ class Beacon {
   /**
    * @brief Function to get the beacon in raw format.
    *
-   * This function will generate a raw version of the current beacon.
+   * This function provides the raw version of the current beacon.
    *
    * @return the beacon in raw format.
    */
@@ -84,6 +84,12 @@ class Beacon {
    * of the ip address and the port.
    */
   static const int MAX_BEACON_SIZE = 1050;
+
+private:
+  /**
+   * Byte array containing the beacon as a raw.
+   */
+  std::string m_raw;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_BEACON_H_
