@@ -1,17 +1,5 @@
 @startuml
 
-class Node {
-	+Node()
-	+~Node()
-}
-
-class ConfigLoader {
-	+m_reader : INIReader
-	+load(ConfigFile : std::string ) : void
-	+ConfigLoader()
-	+~ConfigLoader()
-}
-
 class Neighbour {
 	+m_nodeId : std::string
 	+m_nodeAddress : std::string
@@ -51,10 +39,19 @@ class NeighbourDiscovery {
 	+setTestMode(mode : bool) : void
 }
 
+class Beacon {
+	-m_nodeId : std::string
+	-m_nodeAddress : std::string
+	-m_nodePort : short
+	-m_raw: std::string
+	+{static} MAX_BEACON_SIZE = 1050 : int
+	+Beacon(rawBeacon : std::string)
+	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : short)
+	+~Beacon()
+	+getRaw() : std::string
+}
 
-Node "1" *-- "1" ConfigLoader
-Node "1" *-- "1" NeighbourDiscovery
-Node "1" *-- "1" NeighbourTable
+Beacon ..> NeighbourDiscovery
 NeighbourTable "1" *-- "n" Neighbour
 
 @enduml
