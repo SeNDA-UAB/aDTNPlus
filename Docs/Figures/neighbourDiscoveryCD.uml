@@ -1,26 +1,30 @@
 @startuml
 
+title Neighbour Discovery Class Diagram
+
 class Neighbour {
-	+m_nodeId : std::string
-	+m_nodeAddress : std::string
-	+m_nodePort : uint16_t
+	-m_nodeId : std::string
+	-m_nodeAddress : std::string
+	-m_nodePort : uint16_t
 	-m_lastActivity : time_point
 	+Neighbour(nodeId : std::string, nodeAddress : std::string, nodePort : short)
 	+~Neighbour()
+	+getNodeId() : std::string
+	+getNodeAddress() : std::string
+	+getNodePort() : uint16_t
 	+getElapsedActivityTime() : int
-	+Update() : void
-	+operator== : bool
+	+update(nodeAddress : std::string, nodePort : short) : void
 }
 
-class NeighbourTable {
+class NeighbourTable << (S,#FF7700) Singleton >> {
  	-{static} m_instance : NeighbourTable*
- 	-m_neighbours : std::map<std::string, shared_ptr<Neighbours>>
+ 	-m_neighbours : std::map<std::string, shared_ptr<Neighbour>>
 	-NeighbourTable()
 	+~NeighbourTable()
 	+update(nodeId : std::string, nodeAddress : std::string, nodePort : short) : void
 	+cleanNeighbours() : void
 	+getInstance() : {static} NeighbourTable*
-	+getNeighbours(map : std::map<std::string, shared_ptr<Neighbours>>) : void
+	+getNeighbours() : std::map<std::string, shared_ptr<Neighbour>>
 }
 
 class NeighbourDiscovery {
@@ -46,12 +50,16 @@ class Beacon {
 	-m_raw: std::string
 	+{static} MAX_BEACON_SIZE = 1050 : int
 	+Beacon(rawBeacon : std::string)
-	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : short)
+	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : short
 	+~Beacon()
 	+getRaw() : std::string
+	+getNodeId() : std::string
+	+getNodeAddress() : std::string
+	+getNodePort() : uint16_t
 }
 
-Beacon ..> NeighbourDiscovery
+NeighbourDiscovery ..> Beacon : <i>uses</i>
 NeighbourTable "1" *-- "n" Neighbour
+NeighbourDiscovery ..> NeighbourTable : <i>updates</i>
 
 @enduml
