@@ -7,13 +7,13 @@ class Neighbour {
 	-m_nodeAddress : std::string
 	-m_nodePort : uint16_t
 	-m_lastActivity : time_point
-	+Neighbour(nodeId : std::string, nodeAddress : std::string, nodePort : short)
+	+Neighbour(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t)
 	+~Neighbour()
 	+getNodeId() : std::string
 	+getNodeAddress() : std::string
 	+getNodePort() : uint16_t
 	+getElapsedActivityTime() : int
-	+update(nodeAddress : std::string, nodePort : short) : void
+	+update(nodeAddress : std::string, nodePort : uint16_t) : void
 }
 
 class NeighbourTable << (S,#FF7700) Singleton >> {
@@ -21,7 +21,7 @@ class NeighbourTable << (S,#FF7700) Singleton >> {
  	-m_neighbours : std::map<std::string, shared_ptr<Neighbour>>
 	-NeighbourTable()
 	+~NeighbourTable()
-	+update(nodeId : std::string, nodeAddress : std::string, nodePort : short) : void
+	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
 	+cleanNeighbours() : void
 	+getInstance() : {static} NeighbourTable*
 	+getNeighbours() : std::map<std::string, shared_ptr<Neighbour>>
@@ -46,11 +46,11 @@ class NeighbourDiscovery {
 class Beacon {
 	-m_nodeId : std::string
 	-m_nodeAddress : std::string
-	-m_nodePort : short
+	-m_nodePort : uint16_t
 	-m_raw: std::string
 	+{static} MAX_BEACON_SIZE = 1050 : int
 	+Beacon(rawBeacon : std::string)
-	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : short
+	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t
 	+~Beacon()
 	+getRaw() : std::string
 	+getNodeId() : std::string
