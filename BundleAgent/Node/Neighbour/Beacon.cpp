@@ -70,3 +70,15 @@ std::string Beacon::getRaw() {
   return m_raw;
 }
 
+std::string Beacon::getNodeId() {
+	return m_nodeId;
+}
+
+std::string Beacon::getNodeAddress() {
+	return m_nodeAddress;
+}
+
+uint16_t Beacon::getNodePort() {
+	return m_nodePort;
+}
+

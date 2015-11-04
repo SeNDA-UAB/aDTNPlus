@@ -66,6 +66,26 @@ class Beacon {
    * @return the beacon in raw format.
    */
   std::string getRaw();
+
+  /**
+   * Max size of a beacon.
+   * This is taking the max size of the nodeId of 1023 bytes, and the size
+   * of the ip address and the port.
+   */
+  static const int MAX_BEACON_SIZE = 1050;
+
+  std::string getNodeAddress();
+
+  std::string getNodeId();
+
+  uint16_t getNodePort();
+
+
+private:
+  /**
+   * Byte array containing the beacon as a raw.
+   */
+  std::string m_raw;
   /**
    * Identifier of the node.
    */
@@ -78,18 +98,6 @@ class Beacon {
    * Port of the node.
    */
   uint16_t m_nodePort;
-  /**
-   * Max size of a beacon.
-   * This is taking the max size of the nodeId of 1023 bytes, and the size
-   * of the ip address and the port.
-   */
-  static const int MAX_BEACON_SIZE = 1050;
-
-private:
-  /**
-   * Byte array containing the beacon as a raw.
-   */
-  std::string m_raw;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_BEACON_H_
