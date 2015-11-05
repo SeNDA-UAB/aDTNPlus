@@ -32,9 +32,9 @@
  */
 TEST(BeaconTest, GenerateBeacon) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
-  ASSERT_EQ("Node001", b.m_nodeId);
-  ASSERT_EQ("192.168.1.2", b.m_nodeAddress);
-  ASSERT_EQ(40000, b.m_nodePort);
+  ASSERT_EQ("Node001", b.getNodeId());
+  ASSERT_EQ("192.168.1.2", b.getNodeAddress());
+  ASSERT_EQ(40000, b.getNodePort());
 }
 
 /**
@@ -46,9 +46,9 @@ TEST(BeaconTest, RawFunctions) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
   std::string raw = b.getRaw();
   Beacon b1 = Beacon(raw);
-  ASSERT_EQ(b.m_nodeId, b1.m_nodeId);
-  ASSERT_EQ(b.m_nodeAddress, b1.m_nodeAddress);
-  ASSERT_EQ(b.m_nodePort, b1.m_nodePort);
+  ASSERT_EQ(b.getNodeId(), b1.getNodeId());
+  ASSERT_EQ(b.getNodeAddress(), b1.getNodeAddress());
+  ASSERT_EQ(b.getNodePort(), b1.getNodePort());
 }
 
 /**
@@ -60,14 +60,13 @@ TEST(BeaconTest, RawFunctionsWithChange) {
   Beacon b = Beacon("Node001", "192.168.1.2", 40000);
   std::string raw = b.getRaw();
   Beacon b1 = Beacon(raw);
-  ASSERT_EQ(b.m_nodeId, b1.m_nodeId);
-  ASSERT_EQ(b.m_nodeAddress, b1.m_nodeAddress);
-  ASSERT_EQ(b.m_nodePort, b1.m_nodePort);
-  b1.m_nodeId = "Node002";
-  b1.m_nodePort = 50000;
+  ASSERT_EQ(b.getNodeId(), b1.getNodeId());
+  ASSERT_EQ(b.getNodeAddress(), b1.getNodeAddress());
+  ASSERT_EQ(b.getNodePort(), b1.getNodePort());
+  b1 = Beacon("Node002", "192.168.1.2", 5000);
   raw = b1.getRaw();
   b = Beacon(raw);
-  ASSERT_EQ(b1.m_nodeId, b.m_nodeId);
-  ASSERT_EQ(b1.m_nodeAddress, b.m_nodeAddress);
-  ASSERT_EQ(b1.m_nodePort, b.m_nodePort);
+  ASSERT_EQ(b1.getNodeId(), b.getNodeId());
+  ASSERT_EQ(b1.getNodeAddress(), b.getNodeAddress());
+  ASSERT_EQ(b1.getNodePort(), b.getNodePort());
 }

@@ -44,12 +44,12 @@ TEST(NeighbourTableTest, AddAndRemove) {
   // Get the neighbours
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   // Check neighbour
-  ASSERT_EQ("node100", neighbours["node100"]->m_nodeId);
+  ASSERT_EQ("node100", neighbours["node100"]->getNodeId());
   sleep(2);
   // Clean the neighbour
   NeighbourTable::getInstance()->cleanNeighbours(1);
   // Check that we still hold the pointer
-  ASSERT_EQ("node100", neighbours["node100"]->m_nodeId);
+  ASSERT_EQ("node100", neighbours["node100"]->getNodeId());
   // Empty the map and check that the NeigbourTable is not holding the neighbour
   neighbours.clear();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
@@ -71,24 +71,24 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
       std::string, std::shared_ptr<Neighbour>>();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(3, neighbours.size());
-  ASSERT_EQ(40100, neighbours["node100"]->m_nodePort);
-  ASSERT_EQ(40101, neighbours["node101"]->m_nodePort);
-  ASSERT_EQ(40102, neighbours["node102"]->m_nodePort);
+  ASSERT_EQ(40100, neighbours["node100"]->getNodePort());
+  ASSERT_EQ(40101, neighbours["node101"]->getNodePort());
+  ASSERT_EQ(40102, neighbours["node102"]->getNodePort());
   NeighbourTable::getInstance()->cleanNeighbours(2);
   neighbours.clear();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(2, neighbours.size());
-  ASSERT_EQ(40101, neighbours["node101"]->m_nodePort);
-  ASSERT_EQ(40102, neighbours["node102"]->m_nodePort);
+  ASSERT_EQ(40101, neighbours["node101"]->getNodePort());
+  ASSERT_EQ(40102, neighbours["node102"]->getNodePort());
   NeighbourTable::getInstance()->cleanNeighbours(1);
   neighbours.clear();
   nt->update("node102", "192.168.1.1", 40105);
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ(40105, neighbours["node102"]->m_nodePort);
+  ASSERT_EQ(40105, neighbours["node102"]->getNodePort());
   neighbours.clear();
   nt->update("node102", "192.168.1.102", 40105);
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("192.168.1.102", neighbours["node102"]->m_nodeAddress);
+  ASSERT_EQ("192.168.1.102", neighbours["node102"]->getNodeAddress());
 }

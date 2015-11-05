@@ -181,14 +181,14 @@ void NeighbourDiscovery::receiveBeacons() {
             // Create a thread to add the new neighbour and let this
             // receiving more beacons
             Beacon b = Beacon(std::string(buffer, recvLength));
-            if (b.m_nodeId != nodeId
-                || (b.m_nodeId == nodeId && m_testMode.load())) {
-              LOG(15) << "Received beacon from " << b.m_nodeId << " "
-                      << b.m_nodeAddress << ":" << b.m_nodePort;
+            if (b.getNodeId() != nodeId
+                || (b.getNodeId() == nodeId && m_testMode.load())) {
+              LOG(15) << "Received beacon from " << b.getNodeId() << " "
+                      << b.getNodeAddress() << ":" << b.getNodePort();
               std::thread([b]() {
-                NeighbourTable::getInstance()->update(b.m_nodeId,
-                    b.m_nodeAddress,
-                    b.m_nodePort);
+                NeighbourTable::getInstance()->update(b.getNodeId(),
+                    b.getNodeAddress(),
+                    b.getNodePort());
               }).detach();
             }
             free(buffer);

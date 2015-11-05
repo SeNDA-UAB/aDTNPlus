@@ -74,14 +74,13 @@ class Beacon {
    */
   static const int MAX_BEACON_SIZE = 1050;
 
-  std::string getNodeAddress();
+  std::string getNodeAddress() const;
 
-  std::string getNodeId();
+  std::string getNodeId() const;
 
-  uint16_t getNodePort();
+  uint16_t getNodePort() const;
 
-
-private:
+ private:
   /**
    * Byte array containing the beacon as a raw.
    */

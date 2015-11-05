@@ -64,7 +64,7 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   neighbours.clear();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node101", neighbours["node101"]->m_nodeId);
+  ASSERT_EQ("node101", neighbours["node101"]->getNodeId());
   sleep(5);
   neighbours.clear();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
@@ -98,8 +98,8 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
       std::string, std::shared_ptr<Neighbour>>();
   NeighbourTable::getInstance()->getNeighbours(&neighbours);
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node1", (*neighbours.begin()).second->m_nodeId);
-  ASSERT_EQ("127.0.0.1", (*neighbours.begin()).second->m_nodeAddress);
-  ASSERT_EQ(40000, (*neighbours.begin()).second->m_nodePort);
+  ASSERT_EQ("node1", (*neighbours.begin()).second->getNodeId());
+  ASSERT_EQ("127.0.0.1", (*neighbours.begin()).second->getNodeAddress());
+  ASSERT_EQ(40000, (*neighbours.begin()).second->getNodePort());
   g_stop = true;
 }

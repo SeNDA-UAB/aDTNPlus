@@ -42,7 +42,7 @@ Beacon::Beacon(std::string rawData) {
   size += strlen(buff) + 1;
   strcpy(&buff[0], dataChar + size * sizeof(char));
   m_nodePort = static_cast<uint16_t>(atoi(buff));
-  m_raw = rawData; //TODO review whether m_raw must be a substring of rawData.
+  m_raw = rawData;
 }
 
 Beacon::Beacon(const std::string &nodeId, const std::string &nodeAddress,
@@ -70,15 +70,15 @@ std::string Beacon::getRaw() {
   return m_raw;
 }
 
-std::string Beacon::getNodeId() {
-	return m_nodeId;
+std::string Beacon::getNodeId() const {
+  return m_nodeId;
 }
 
-std::string Beacon::getNodeAddress() {
-	return m_nodeAddress;
+std::string Beacon::getNodeAddress() const {
+  return m_nodeAddress;
 }
 
-uint16_t Beacon::getNodePort() {
-	return m_nodePort;
+uint16_t Beacon::getNodePort() const {
+  return m_nodePort;
 }
 

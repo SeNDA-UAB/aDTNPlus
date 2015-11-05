@@ -31,9 +31,9 @@
  */
 TEST(NeighbourTest, Constructor) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
-  ASSERT_EQ("node100", n.m_nodeId);
-  ASSERT_EQ("192.168.1.2", n.m_nodeAddress);
-  ASSERT_EQ(40000, n.m_nodePort);
+  ASSERT_EQ("node100", n.getNodeId());
+  ASSERT_EQ("192.168.1.2", n.getNodeAddress());
+  ASSERT_EQ(40000, n.getNodePort());
 }
 
 /**
@@ -46,7 +46,7 @@ TEST(NeighbourTest, Activity) {
   ASSERT_EQ(0, n.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, n.getElapsedActivityTime());
-  n.Update();
+  n.update("192.168.1.2", 40000);
   ASSERT_EQ(0, n.getElapsedActivityTime());
 }
 
@@ -58,6 +58,6 @@ TEST(NeighbourTest, Equality) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
   Neighbour n1 = Neighbour("node100", "192.168.1.2", 40000);
   ASSERT_TRUE(n1 == n);
-  n.m_nodeId = "node101";
+  n = Neighbour("node101", "192.168.1.2", 40000);
   ASSERT_FALSE(n1 == n);
 }

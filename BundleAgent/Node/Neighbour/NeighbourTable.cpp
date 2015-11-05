@@ -56,11 +56,7 @@ void NeighbourTable::update(const std::string &nodeId,
   std::map<std::string, std::shared_ptr<Neighbour>>::iterator it = m_neighbours
       .find(nodeId);
   if (it != m_neighbours.end()) {
-    if (m_neighbours[nodeId]->m_nodeAddress != nodeAddress)
-      m_neighbours[nodeId]->m_nodeAddress = nodeAddress;
-    if (m_neighbours[nodeId]->m_nodePort != nodePort)
-      m_neighbours[nodeId]->m_nodePort = nodePort;
-    m_neighbours[nodeId]->Update();
+    m_neighbours[nodeId]->update(nodeAddress, nodePort);
   } else {
     LOG(17) << "New neighbour " << nodeId << " added";
     m_neighbours[nodeId] = std::make_shared<Neighbour>(nodeId, nodeAddress,
@@ -76,7 +72,8 @@ void NeighbourTable::cleanNeighbours(int expirationTime) {
   for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it =
       m_neighbours.begin(); it != m_neighbours.end(); ++it) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(17) << "Neighbour " << (*it).second->m_nodeId << " has disappeared";
+      LOG(17) << "Neighbour " << (*it).second->getNodeId()
+              << " has disappeared";
       m_neighbours.erase(it);
     }
   }
