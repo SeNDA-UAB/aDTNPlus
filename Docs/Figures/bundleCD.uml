@@ -1,4 +1,7 @@
 @startuml
+
+title Bundle Class Diagram
+
 class Bundle {
 	-m_raw : std::string
 	-m_primaryBlock : PrimaryBlock*
