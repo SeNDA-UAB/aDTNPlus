@@ -26,8 +26,8 @@
 #include <sstream>
 #include <bitset>
 
-#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
-#include "../../../BundleAgent/Bundle/PayloadBlock.h"
+#include "Bundle/CanonicalBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include "Utils/SDNV.h"
 #include "gtest/gtest.h"
 

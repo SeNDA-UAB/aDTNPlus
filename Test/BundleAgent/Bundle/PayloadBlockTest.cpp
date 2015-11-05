@@ -24,7 +24,7 @@
 
 #include <string>
 #include "gtest/gtest.h"
-#include "../../../BundleAgent/Bundle/PayloadBlock.h"
+#include "Bundle/PayloadBlock.h"
 
 /**
  * Check the default constructor.

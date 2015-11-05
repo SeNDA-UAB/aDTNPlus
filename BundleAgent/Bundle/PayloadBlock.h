@@ -27,7 +27,7 @@
 #include <string>
 #include <cstdint>
 
-#include "CanonicalBlock.h"
+#include "Bundle/CanonicalBlock.h"
 
 /**
  * CLASS PayloadBlock

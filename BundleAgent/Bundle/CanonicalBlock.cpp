@@ -22,8 +22,9 @@
  * This file contains the implementation of the Block class.
  */
 
-#include "CanonicalBlock.h"
+#include "Bundle/CanonicalBlock.h"
 #include <string>
+#include <sstream>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
@@ -90,7 +91,9 @@ std::string CanonicalBlock::toRaw() {
   std::stringstream ss;
   ss << m_blockType;
   ss << SDNV::encode(m_procFlags.to_ulong());
-  ss << m_raw.substr(m_bodyDataIndex);
+  std::string data = m_raw.substr(m_bodyDataIndex);
+  ss << SDNV::encode(data.size());
+  ss << data;
   m_raw = ss.str();
   return m_raw;
 }

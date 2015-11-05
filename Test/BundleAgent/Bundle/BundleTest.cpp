@@ -25,13 +25,16 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <string>
+#include <sstream>
+#include <cstdio>
 #include "gtest/gtest.h"
 #include "Bundle/Bundle.h"
 
-#include "../../../BundleAgent/Bundle/CanonicalBlock.h"
-#include "../../../BundleAgent/Bundle/PayloadBlock.h"
+#include "Bundle/CanonicalBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/BundleTypes.h"
+#include "Utils/SDNV.h"
 
 /**
  * Check the constructor with parameters.
@@ -68,6 +71,29 @@ TEST(BundleTest, RawFunctions) {
   CanonicalBlock *PB1 = static_cast<CanonicalBlock*>(b1.getBlocks()[1]);
   ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
             (static_cast<PayloadBlock*>(PB1))->getPayload());
+}
+
+TEST(BundleTest, ConstructorWithCanonical) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+  std::stringstream ss;
+  // Block Type
+  ss << static_cast<uint8_t>(2);
+  ss << SDNV::encode(std::bitset<7>().to_ulong());
+  std::string data = std::to_string(rand() + 1);
+  ss << SDNV::encode(data.size());
+  ss << data;
+  CanonicalBlock *cb = new CanonicalBlock(ss.str());
+  ASSERT_EQ(ss.str(), cb->toRaw());
+  b.addBlock(cb);
+  ASSERT_EQ(3, b.getBlocks().size());
+  std::string raw = b.toRaw();
+  Bundle b1 = Bundle(raw);
+  ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
+  CanonicalBlock *cb1 = static_cast<CanonicalBlock*>(b1.getBlocks()[2]);
+  std::string aux = cb->toRaw();
+  std::string aux1 = cb1->toRaw();
+  ASSERT_EQ(cb->toRaw(), cb1->toRaw());
+  ASSERT_EQ(cb->getBlockType(), cb1->getBlockType());
 }
 
 /**

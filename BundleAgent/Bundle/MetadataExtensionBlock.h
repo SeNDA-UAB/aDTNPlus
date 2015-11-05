@@ -27,7 +27,7 @@
 #include <cstdint>
 #include <string>
 
-#include "CanonicalBlock.h"
+#include "Bundle/CanonicalBlock.h"
 
 /**
  * CLASS MetadataExtensionBlock
