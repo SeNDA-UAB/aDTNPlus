@@ -14,7 +14,7 @@ class Neighbour {
 	+getNodePort() : uint16_t
 	+getElapsedActivityTime() : int
 	+update(nodeAddress : std::string, nodePort : uint16_t) : void
-	+operator==(const Neighbour &neighbour) : bool
+	+operator==(neighbour : Neighbour) : bool
 }
 
 class NeighbourTable << (S,#FF7700) Singleton >> {
@@ -25,7 +25,8 @@ class NeighbourTable << (S,#FF7700) Singleton >> {
 	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
 	+cleanNeighbours(expirationTime: int) : void
 	+getInstance() : {static} NeighbourTable*
-	+getNeighbours() : std::map<std::string, shared_ptr<Neighbour>>
+	+getNeighbours() : std::vector<std::string*>
+	+getNeighbour(nodeId : std::string ) : Neighbour
 }
 
 class NeighbourDiscovery {
