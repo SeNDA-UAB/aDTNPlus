@@ -51,10 +51,10 @@ int Neighbour::getElapsedActivityTime() {
 }
 
 void Neighbour::update(const std::string &nodeAddress,
-        const uint16_t &nodePort) {
+                       const uint16_t &nodePort) {
   LOG(69) << "Updating neighbour last activity time to now";
   m_nodeAddress = nodeAddress;
-  m_nodeProt = nodePort;
+  m_nodePort = nodePort;
   m_lastActivity = std::chrono::steady_clock::now();
 }
 
@@ -66,13 +66,13 @@ bool Neighbour::operator ==(const Neighbour &neighbour) const {
 }
 
 std::string Neighbour::getNodeId() {
-	return m_nodeId;
+  return m_nodeId;
 }
 
 std::string Neighbour::getNodeAddress() {
-	return m_nodeAddress;
+  return m_nodeAddress;
 }
 
 uint16_t Neighbour::getNodePort() {
-	return m_nodePort;
+  return m_nodePort;
 }
