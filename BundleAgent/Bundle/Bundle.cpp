@@ -68,7 +68,8 @@ Bundle::Bundle(const std::string &rawData)
         // This is an abstraction of the metadata block, so we need to create
         // a derived block of it.
         LOG(35) << "Generating Metadata Extension Block";
-        b = std::shared_ptr<MetadataExtensionBlock>(new MetadataExtensionBlock(data));
+        b = std::shared_ptr<MetadataExtensionBlock>(
+            new MetadataExtensionBlock(data));
         break;
       }
       default: {
@@ -89,8 +90,9 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
           << "]";
   TimestampManager *tm = TimestampManager::getInstance();
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
-  m_primaryBlock = std::shared_ptr<PrimaryBlock>(new PrimaryBlock(origin, destination, timestampValue.first,
-                                    timestampValue.second));
+  m_primaryBlock = std::shared_ptr<PrimaryBlock>(
+      new PrimaryBlock(origin, destination, timestampValue.first,
+                       timestampValue.second));
   m_payloadBlock = std::shared_ptr<PayloadBlock>(new PayloadBlock(payload));
   m_blocks.push_back(m_primaryBlock);
   m_blocks.push_back(m_payloadBlock);
@@ -110,7 +112,8 @@ std::string Bundle::toRaw() {
   if (raw == "") {
     std::stringstream ss;
     LOG(36) << "Getting the primary block in raw";
-    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks.rbegin();
+    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
+        .rbegin();
     std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
         BlockControlFlags::LAST_BLOCK);
     for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
