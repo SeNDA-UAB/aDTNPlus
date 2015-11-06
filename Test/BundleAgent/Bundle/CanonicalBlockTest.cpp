@@ -132,3 +132,11 @@ TEST(CanonicalBlockTest, GetLenghtWithEID) {
   uint64_t size = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(rawBlock.size(), size);
 }
+
+TEST(CanonicalBlockTest, BadRawFormat) {
+  ASSERT_THROW(CanonicalBlock(""), BlockConstructionException);
+  std::stringstream ss;
+  ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
+  ss << "Canonical Block without flags and length SDNV";
+  ASSERT_THROW(CanonicalBlock(ss.str()), BlockConstructionException);
+}
