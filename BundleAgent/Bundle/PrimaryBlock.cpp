@@ -64,90 +64,94 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
    * Fragment Application Data length (if IS_FRAGMENT flag is active) - SDNV
    */
   LOG(40) << "Generating Primary block from raw data";
-  std::string data = rawData;
-  size_t length = 1;
-  // Jump the version.
-  data = data.substr(1);
-  // Proc. flags
-  m_procFlags = std::bitset<21>(SDNV::decode(data));
-  size_t offset = SDNV::getLength(data);
-  length += offset;
-  data = data.substr(offset);
-  // Block Length
-  offset = SDNV::getLength(data);
-  length += offset + SDNV::decode(data);
-  data = data.substr(offset);
-  // Destination scheme offset
-  uint64_t destOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Destination SSP offset
-  uint64_t destSSPOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Source scheme offset
-  uint64_t srcOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Source SSP offset
-  uint64_t srcSSPOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // ReportTo scheme offset
-  uint64_t reportOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // ReportTo SSP offset
-  uint64_t reportSSPOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Custodian scheme offset
-  uint64_t custOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Custodian SSP offset
-  uint64_t custSSPOff = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Creation timestamp
-  m_creationTimestamp = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Timestamp sequence number
-  m_creationTimestampSeqNumber = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Lifetime
-  m_lifetime = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Dictionary length
-  uint64_t dictionaryLength = SDNV::decode(data);
-  offset = SDNV::getLength(data);
-  data = data.substr(offset);
-  // Dictionary
-  std::string dictionary = data.substr(0, dictionaryLength);
-  const char* dataChar = data.c_str();
-  char buffScheme[1024];  // max size of scheme as in RFC 5050
-  char buffSSP[1024];  // max size of SSP as in RFC 5050
-  // For the moment we ignore the scheme value.
-  // Destination
-  strcpy(&buffScheme[0], dataChar + destOff * sizeof(char));
-  strcpy(&buffSSP[0], dataChar + destSSPOff * sizeof(char));
-  m_destination = std::string(buffSSP);
-  // Source
-  strcpy(&buffScheme[0], dataChar + srcOff * sizeof(char));
-  strcpy(&buffSSP[0], dataChar + srcSSPOff * sizeof(char));
-  m_source = std::string(buffSSP);
-  // ReportTo
-  strcpy(&buffScheme[0], dataChar + reportOff * sizeof(char));
-  strcpy(&buffSSP[0], dataChar + reportSSPOff * sizeof(char));
-  m_reportTo = std::string(buffSSP);
-  // Custodian
-  strcpy(&buffScheme[0], dataChar + custOff * sizeof(char));
-  strcpy(&buffSSP[0], dataChar + custSSPOff * sizeof(char));
-  m_custodian = std::string(buffSSP);
-  m_raw = rawData.substr(0, length);
+  try {
+    std::string data = rawData;
+    size_t length = 1;
+    // Jump the version.
+    data = data.substr(1);
+    // Proc. flags
+    m_procFlags = std::bitset<21>(SDNV::decode(data));
+    size_t offset = SDNV::getLength(data);
+    length += offset;
+    data = data.substr(offset);
+    // Block Length
+    offset = SDNV::getLength(data);
+    length += offset + SDNV::decode(data);
+    data = data.substr(offset);
+    // Destination scheme offset
+    uint64_t destOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Destination SSP offset
+    uint64_t destSSPOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Source scheme offset
+    uint64_t srcOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Source SSP offset
+    uint64_t srcSSPOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // ReportTo scheme offset
+    uint64_t reportOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // ReportTo SSP offset
+    uint64_t reportSSPOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Custodian scheme offset
+    uint64_t custOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Custodian SSP offset
+    uint64_t custSSPOff = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Creation timestamp
+    m_creationTimestamp = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Timestamp sequence number
+    m_creationTimestampSeqNumber = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Lifetime
+    m_lifetime = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Dictionary length
+    uint64_t dictionaryLength = SDNV::decode(data);
+    offset = SDNV::getLength(data);
+    data = data.substr(offset);
+    // Dictionary
+    std::string dictionary = data.substr(0, dictionaryLength);
+    const char* dataChar = data.c_str();
+    char buffScheme[1024];  // max size of scheme as in RFC 5050
+    char buffSSP[1024];  // max size of SSP as in RFC 5050
+    // For the moment we ignore the scheme value.
+    // Destination
+    strcpy(&buffScheme[0], dataChar + destOff * sizeof(char));
+    strcpy(&buffSSP[0], dataChar + destSSPOff * sizeof(char));
+    m_destination = std::string(buffSSP);
+    // Source
+    strcpy(&buffScheme[0], dataChar + srcOff * sizeof(char));
+    strcpy(&buffSSP[0], dataChar + srcSSPOff * sizeof(char));
+    m_source = std::string(buffSSP);
+    // ReportTo
+    strcpy(&buffScheme[0], dataChar + reportOff * sizeof(char));
+    strcpy(&buffSSP[0], dataChar + reportSSPOff * sizeof(char));
+    m_reportTo = std::string(buffSSP);
+    // Custodian
+    strcpy(&buffScheme[0], dataChar + custOff * sizeof(char));
+    strcpy(&buffSSP[0], dataChar + custSSPOff * sizeof(char));
+    m_custodian = std::string(buffSSP);
+    m_raw = rawData.substr(0, length);
+  } catch (const std::exception& e) {
+    throw BlockConstructionException("[PrimaryBlock] Bad raw format");
+  }
 }
 
 PrimaryBlock::PrimaryBlock(const std::string &source,

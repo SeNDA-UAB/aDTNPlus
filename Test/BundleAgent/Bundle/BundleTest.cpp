@@ -27,6 +27,7 @@
 #include <string>
 #include <sstream>
 #include <cstdio>
+#include <utility>
 #include "gtest/gtest.h"
 #include "Bundle/Bundle.h"
 
@@ -35,6 +36,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/BundleTypes.h"
 #include "Utils/SDNV.h"
+#include "Utils/TimestampManager.h"
 
 /**
  * Check the constructor with parameters.
@@ -76,15 +78,18 @@ TEST(BundleTest, RawFunctions) {
             std::static_pointer_cast<PayloadBlock>(PB1)->getPayload());
 }
 
+/**
+ * Check the raw functions when a canonical block is added.
+ * Generate a bundle, add a valid canonical block, convert all to raw.
+ * Create a new bundle from that raw, check that all the blocks are correct.
+ */
 TEST(BundleTest, ConstructorWithCanonical) {
   Bundle b = Bundle("Source", "Destination", "This is a payload");
   std::stringstream ss;
   // Block Type
-  ss << static_cast<uint8_t>(2);
-  ss << SDNV::encode(std::bitset<7>().to_ulong());
+  ss << static_cast<uint8_t>(2) << SDNV::encode(std::bitset<7>().to_ulong());
   std::string data = std::to_string(rand() + 1);
-  ss << SDNV::encode(data.size());
-  ss << data;
+  ss << SDNV::encode(data.size()) << data;
   std::shared_ptr<CanonicalBlock> cb = std::shared_ptr<CanonicalBlock>(
       new CanonicalBlock(ss.str()));
   ASSERT_EQ(ss.str(), cb->toRaw());
@@ -99,6 +104,39 @@ TEST(BundleTest, ConstructorWithCanonical) {
   std::string aux1 = cb1->toRaw();
   ASSERT_EQ(cb->toRaw(), cb1->toRaw());
   ASSERT_EQ(cb->getBlockType(), cb1->getBlockType());
+}
+
+/**
+ * Check the bad raw exception.
+ * Create a primary block a payload block and a raw canonical without any flags.
+ * Add all of them into a raw bundle.
+ * The bundle must throw an exception, because no last block flag is found.
+ * Create the canonical block with the raw data, set the flag. Create the new raw
+ * bundle, now no exception will be through.
+ */
+TEST(BundleTest, BadRawException) {
+  std::pair<uint64_t, uint64_t> time = TimestampManager::getInstance()
+      ->getTimestamp();
+  PrimaryBlock pb = PrimaryBlock("Source", "Destination", time.first,
+                                 time.second);
+  PayloadBlock pb1 = PayloadBlock("This is a payload");
+  std::stringstream ss;
+  ss << static_cast<uint8_t>(2) << SDNV::encode(std::bitset<7>().to_ulong());
+  std::string data = std::to_string(rand() + 1);
+  ss << SDNV::encode(data.size()) << data;
+  std::string canonical = ss.str();
+  ss.str(std::string());
+  ss << pb.toRaw() << pb1.toRaw() << canonical;
+  ASSERT_THROW(Bundle(ss.str()), BundleCreationException);
+  // Add last block flag to canonical.
+  ss.str(std::string());
+  ss << static_cast<uint8_t>(2) << SDNV::encode(std::bitset<7>().to_ulong())
+     << SDNV::encode(data.size()) << data;
+  CanonicalBlock cb = CanonicalBlock(ss.str());
+  cb.setProcFlag(BlockControlFlags::LAST_BLOCK);
+  ss.str(std::string());
+  ss << pb.toRaw() << pb1.toRaw() << cb.toRaw();
+  ASSERT_NO_THROW(Bundle(ss.str()));
 }
 
 /**

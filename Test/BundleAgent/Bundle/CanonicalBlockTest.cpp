@@ -117,18 +117,26 @@ TEST(CanonicalBlockTest, GetLenghtWithEID) {
   std::stringstream ss;
   ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
   std::bitset<7> flags = std::bitset<7>(0x48);
-  ss << SDNV::encode(flags.to_ulong());
-  ss << SDNV::encode(2);
+  ss << SDNV::encode(flags.to_ulong()) << SDNV::encode(2);
   // First EID pair of values
-  ss << SDNV::encode(12);
-  ss << SDNV::encode(15);
+  ss << SDNV::encode(12) << SDNV::encode(15);
   // Second EID pair of values
-  ss << SDNV::encode(50);
-  ss << SDNV::encode(128);
-  ss << SDNV::encode(10);
+  ss << SDNV::encode(50) << SDNV::encode(128) << SDNV::encode(10);
   std::string data = "This is a data for test";
   ss << data.substr(0, 10);
   std::string rawBlock = ss.str();
   uint64_t size = CanonicalBlock(rawBlock).getLength();
   ASSERT_EQ(rawBlock.size(), size);
+}
+
+/**
+ * Check if creating Canonical blocks from bad raw throws the correct
+ * exception.
+ */
+TEST(CanonicalBlockTest, BadRawFormat) {
+  ASSERT_THROW(CanonicalBlock(""), BlockConstructionException);
+  std::stringstream ss;
+  ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
+  ss << "Canonical Block without flags and length SDNV";
+  ASSERT_THROW(CanonicalBlock(ss.str()), BlockConstructionException);
 }
