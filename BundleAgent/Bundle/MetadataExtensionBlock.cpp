@@ -75,7 +75,3 @@ uint8_t MetadataExtensionBlock::getMetadataType() {
 std::string MetadataExtensionBlock::getMetadata() {
   return m_metadata;
 }
-
-std::string MetadataExtensionBlock::getMetadataContent() {
-  return m_metadata;
-}

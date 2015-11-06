@@ -67,7 +67,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
   /**
    * Function to get the metadata.
    *
-   * @return The type of the block.
+   * @return The content of the block.
    */
   std::string getMetadata();
   /**
@@ -76,15 +76,6 @@ class MetadataExtensionBlock : public CanonicalBlock {
    * @return The type of the block.
    */
   uint8_t getMetadataType();
-  /**
-   * @brief Get the content of the Metadata extnsion block.
-   *
-   * Virtual function, all the blocks that derive form this class must implement it.
-   * This function must return the content of the Metadata extension block.
-   *
-   * @return The content of the block.
-   */
-  virtual std::string getMetadataContent();
 
  protected:
   /**
