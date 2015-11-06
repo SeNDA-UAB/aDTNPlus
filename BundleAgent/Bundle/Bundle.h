@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 
 class PrimaryBlock;
 class PayloadBlock;
@@ -83,7 +84,7 @@ class Bundle {
    *
    * @return a pointer to the primary block.
    */
-  PrimaryBlock* getPrimaryBlock();
+  std::shared_ptr<PrimaryBlock> getPrimaryBlock();
   /**
    * @brief Function to get the PayloadBlock.
    *
@@ -91,7 +92,7 @@ class Bundle {
    *
    * @return a pointer to the payload block.
    */
-  PayloadBlock* getPayloadBlock();
+  std::shared_ptr<PayloadBlock> getPayloadBlock();
   /**
    * @brief Function to get all the bundle blocks.
    *
@@ -99,7 +100,7 @@ class Bundle {
    *
    * @return a vector with all the blocks.
    */
-  std::vector<Block*> getBlocks();
+  std::vector<std::shared_ptr<Block>> getBlocks();
   /**
    * @brief Function to add a canonical block to the bundle.
    *
@@ -108,7 +109,7 @@ class Bundle {
    *
    * @param A pointer to the block.
    */
-  void addBlock(CanonicalBlock* newBlock);
+  void addBlock(std::shared_ptr<CanonicalBlock> newBlock);
 
  private:
   /**
@@ -118,15 +119,15 @@ class Bundle {
   /**
    * Pointer to the primary block of the bundle.
    */
-  PrimaryBlock* m_primaryBlock;
+  std::shared_ptr<PrimaryBlock> m_primaryBlock;
   /**
    * Pointer to the payload block of the bundle.
    */
-  PayloadBlock* m_payloadBlock;
+  std::shared_ptr<PayloadBlock> m_payloadBlock;
   /**
    * Vector containing the pointers to all the blocks that the bundle holds.
    */
-  std::vector<Block*> m_blocks;
+  std::vector<std::shared_ptr<Block>> m_blocks;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLE_H_

@@ -47,20 +47,20 @@ Bundle::Bundle(const std::string &rawData)
   LOG(35) << "New Bundle from raw Data";
   // First generate a PrimaryBlock with the data.
   LOG(35) << "Generating Primary Block";
-  m_primaryBlock = new PrimaryBlock(rawData);
+  m_primaryBlock = std::shared_ptr<PrimaryBlock>(new PrimaryBlock(rawData));
   m_blocks.push_back(m_primaryBlock);
   // Skip the PrimaryBlock
   std::string data = rawData.substr(m_primaryBlock->getLength());
   // We now can start to generate the known blocks.
-  Block* b;
+  std::shared_ptr<Block> b;
   while (data.size() != 0) {
     switch (static_cast<BlockTypes>(data[0])) {
       case BlockTypes::PAYLOAD_BLOCK: {
         // Check if another payload block is present
         if (m_payloadBlock == nullptr) {
           LOG(35) << "Generating Payload Block";
-           b = new PayloadBlock(data, true);
-           m_payloadBlock = static_cast<PayloadBlock*>(b);
+          b = std::shared_ptr<PayloadBlock>(new PayloadBlock(data, true));
+          m_payloadBlock = std::static_pointer_cast<PayloadBlock>(b);
         }
         break;
       }
@@ -68,12 +68,13 @@ Bundle::Bundle(const std::string &rawData)
         // This is an abstraction of the metadata block, so we need to create
         // a derived block of it.
         LOG(35) << "Generating Metadata Extension Block";
-        b = new MetadataExtensionBlock(data);
+        b = std::shared_ptr<MetadataExtensionBlock>(
+            new MetadataExtensionBlock(data));
         break;
       }
       default: {
         LOG(35) << "Generating Canonical Block";
-        b = new CanonicalBlock(data);
+        b = std::shared_ptr<CanonicalBlock>(new CanonicalBlock(data));
         break;
       }
     }
@@ -89,20 +90,16 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
           << "]";
   TimestampManager *tm = TimestampManager::getInstance();
   std::pair<uint64_t, uint64_t> timestampValue = tm->getTimestamp();
-  m_primaryBlock = new PrimaryBlock(origin, destination, timestampValue.first,
-                                    timestampValue.second);
-  m_payloadBlock = new PayloadBlock(payload);
+  m_primaryBlock = std::shared_ptr<PrimaryBlock>(
+      new PrimaryBlock(origin, destination, timestampValue.first,
+                       timestampValue.second));
+  m_payloadBlock = std::shared_ptr<PayloadBlock>(new PayloadBlock(payload));
   m_blocks.push_back(m_primaryBlock);
   m_blocks.push_back(m_payloadBlock);
 }
 
 Bundle::~Bundle() {
   LOG(36) << "Deleting Bundle";
-  for (std::vector<Block*>::iterator it = m_blocks.begin();
-      it != m_blocks.end(); ++it) {
-    if (*it != nullptr)
-      delete (*it);
-  }
 }
 
 std::string Bundle::getRaw() {
@@ -115,10 +112,11 @@ std::string Bundle::toRaw() {
   if (raw == "") {
     std::stringstream ss;
     LOG(36) << "Getting the primary block in raw";
-    std::vector<Block*>::reverse_iterator finalBlock = m_blocks.rbegin();
-    static_cast<CanonicalBlock *>(*finalBlock)->setProcFlag(
+    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
+        .rbegin();
+    std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
         BlockControlFlags::LAST_BLOCK);
-    for (std::vector<Block*>::iterator it = m_blocks.begin();
+    for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
         it != m_blocks.end(); ++it) {
       LOG(36) << "Getting the next block in raw";
       ss << (*it)->toRaw();
@@ -128,19 +126,19 @@ std::string Bundle::toRaw() {
   return raw;
 }
 
-PrimaryBlock* Bundle::getPrimaryBlock() {
+std::shared_ptr<PrimaryBlock> Bundle::getPrimaryBlock() {
   return m_primaryBlock;
 }
 
-PayloadBlock* Bundle::getPayloadBlock() {
+std::shared_ptr<PayloadBlock> Bundle::getPayloadBlock() {
   return m_payloadBlock;
 }
 
-std::vector<Block *> Bundle::getBlocks() {
+std::vector<std::shared_ptr<Block>> Bundle::getBlocks() {
   return m_blocks;
 }
 
-void Bundle::addBlock(CanonicalBlock *newBlock) {
+void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
   // Check if the block type is a PayloadBlock
   // only one can be present into a bundle.
   LOG(37) << "Adding new Block to the bundle";

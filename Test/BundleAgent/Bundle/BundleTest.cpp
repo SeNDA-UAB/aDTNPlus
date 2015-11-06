@@ -47,7 +47,7 @@ TEST(BundleTest, FilledConstructor) {
   ASSERT_EQ("destination", b.getPrimaryBlock()->getDestination());
   ASSERT_EQ(2, b.getBlocks().size());
   ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
-              b.getPayloadBlock()->getBlockType());
+            b.getPayloadBlock()->getBlockType());
 }
 
 /**
@@ -65,12 +65,15 @@ TEST(BundleTest, RawFunctions) {
   ASSERT_EQ(b.getPrimaryBlock()->getDestination(),
             b1.getPrimaryBlock()->getDestination());
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
-  ASSERT_EQ(static_cast<CanonicalBlock*>(b.getBlocks()[1])->getBlockType(),
-            static_cast<CanonicalBlock*>(b1.getBlocks()[1])->getBlockType());
-  CanonicalBlock *PB = static_cast<CanonicalBlock*>(b.getBlocks()[1]);
-  CanonicalBlock *PB1 = static_cast<CanonicalBlock*>(b1.getBlocks()[1]);
-  ASSERT_EQ((static_cast<PayloadBlock*>(PB))->getPayload(),
-            (static_cast<PayloadBlock*>(PB1))->getPayload());
+  ASSERT_EQ(
+      std::static_pointer_cast<CanonicalBlock>(b.getBlocks()[1])->getBlockType(),
+      std::static_pointer_cast<CanonicalBlock>(b1.getBlocks()[1])->getBlockType());
+  std::shared_ptr<CanonicalBlock> PB = std::static_pointer_cast<CanonicalBlock>(
+      b.getBlocks()[1]);
+  std::shared_ptr<CanonicalBlock> PB1 =
+      std::static_pointer_cast<CanonicalBlock>(b1.getBlocks()[1]);
+  ASSERT_EQ(std::static_pointer_cast<PayloadBlock>(PB)->getPayload(),
+            std::static_pointer_cast<PayloadBlock>(PB1)->getPayload());
 }
 
 TEST(BundleTest, ConstructorWithCanonical) {
@@ -82,14 +85,16 @@ TEST(BundleTest, ConstructorWithCanonical) {
   std::string data = std::to_string(rand() + 1);
   ss << SDNV::encode(data.size());
   ss << data;
-  CanonicalBlock *cb = new CanonicalBlock(ss.str());
+  std::shared_ptr<CanonicalBlock> cb = std::shared_ptr<CanonicalBlock>(
+      new CanonicalBlock(ss.str()));
   ASSERT_EQ(ss.str(), cb->toRaw());
   b.addBlock(cb);
   ASSERT_EQ(3, b.getBlocks().size());
   std::string raw = b.toRaw();
   Bundle b1 = Bundle(raw);
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
-  CanonicalBlock *cb1 = static_cast<CanonicalBlock*>(b1.getBlocks()[2]);
+  std::shared_ptr<CanonicalBlock> cb1 =
+      std::static_pointer_cast<CanonicalBlock>(b1.getBlocks()[2]);
   std::string aux = cb->toRaw();
   std::string aux1 = cb1->toRaw();
   ASSERT_EQ(cb->toRaw(), cb1->toRaw());
