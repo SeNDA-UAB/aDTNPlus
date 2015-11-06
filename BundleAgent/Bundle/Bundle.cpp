@@ -165,6 +165,7 @@ void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
     m_blocks.push_back(newBlock);
   } else {
     LOG(3) << "Some one is trying to add another Payload block";
+    throw BundleException("[Bundle] a paylod block is present");
   }
 }
 

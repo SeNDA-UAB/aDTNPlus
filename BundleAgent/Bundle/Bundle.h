@@ -42,6 +42,13 @@ class BundleCreationException : public std::runtime_error {
   }
 };
 
+class BundleException : public std::runtime_error {
+ public:
+  explicit BundleException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
+
 /**
  * CLASS Bundle
  * This class represents a Bundle as defined into the RFC 5050.
