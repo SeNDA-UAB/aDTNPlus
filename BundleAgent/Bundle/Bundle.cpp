@@ -47,39 +47,57 @@ Bundle::Bundle(const std::string &rawData)
   LOG(35) << "New Bundle from raw Data";
   // First generate a PrimaryBlock with the data.
   LOG(35) << "Generating Primary Block";
-  m_primaryBlock = std::shared_ptr<PrimaryBlock>(new PrimaryBlock(rawData));
-  m_blocks.push_back(m_primaryBlock);
-  // Skip the PrimaryBlock
-  std::string data = rawData.substr(m_primaryBlock->getLength());
-  // We now can start to generate the known blocks.
-  std::shared_ptr<Block> b;
-  while (data.size() != 0) {
-    switch (static_cast<BlockTypes>(data[0])) {
-      case BlockTypes::PAYLOAD_BLOCK: {
-        // Check if another payload block is present
-        if (m_payloadBlock == nullptr) {
-          LOG(35) << "Generating Payload Block";
-          b = std::shared_ptr<PayloadBlock>(new PayloadBlock(data, true));
-          m_payloadBlock = std::static_pointer_cast<PayloadBlock>(b);
+  try {
+    m_primaryBlock = std::shared_ptr<PrimaryBlock>(new PrimaryBlock(rawData));
+    m_blocks.push_back(m_primaryBlock);
+    // Skip the PrimaryBlock
+    std::string data = rawData.substr(m_primaryBlock->getLength());
+    // We now can start to generate the known blocks.
+    std::shared_ptr<Block> b;
+    while (data.size() != 0) {
+      switch (static_cast<BlockTypes>(data[0])) {
+        case BlockTypes::PAYLOAD_BLOCK: {
+          // Check if another payload block is present
+          if (m_payloadBlock == nullptr) {
+            LOG(35) << "Generating Payload Block";
+            b = std::shared_ptr<PayloadBlock>(new PayloadBlock(data, true));
+            m_payloadBlock = std::static_pointer_cast<PayloadBlock>(b);
+          } else {
+            throw BundleCreationException(
+                "[Bundle] More than one payload found");
+          }
+          break;
         }
-        break;
+        case BlockTypes::METADATA_EXTENSION_BLOCK: {
+          // This is an abstraction of the metadata block, so we need to create
+          // a derived block of it.
+          LOG(35) << "Generating Metadata Extension Block";
+          b = std::shared_ptr<MetadataExtensionBlock>(
+              new MetadataExtensionBlock(data));
+          break;
+        }
+        default: {
+          LOG(35) << "Generating Canonical Block";
+          b = std::shared_ptr<CanonicalBlock>(new CanonicalBlock(data));
+          break;
+        }
       }
-      case BlockTypes::METADATA_EXTENSION_BLOCK: {
-        // This is an abstraction of the metadata block, so we need to create
-        // a derived block of it.
-        LOG(35) << "Generating Metadata Extension Block";
-        b = std::shared_ptr<MetadataExtensionBlock>(
-            new MetadataExtensionBlock(data));
-        break;
-      }
-      default: {
-        LOG(35) << "Generating Canonical Block";
-        b = std::shared_ptr<CanonicalBlock>(new CanonicalBlock(data));
-        break;
-      }
+      m_blocks.push_back(b);
+      size_t blockSize = b->getLength();
+      if (blockSize <= 0)
+        throw BundleCreationException("[Bundle] Bad raw format");
+      data = data.substr(blockSize);
     }
-    m_blocks.push_back(b);
-    data = data.substr(b->getLength());
+    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
+        .rbegin();
+    if (!std::static_pointer_cast<CanonicalBlock>(*finalBlock)->checkProcFlag(
+        BlockControlFlags::LAST_BLOCK)) {
+      throw BundleCreationException("[Bundle] Last block not marked as such");
+    }
+  } catch (const BlockConstructionException &e) {
+    throw BundleCreationException(e.what());
+  } catch (const std::exception &e) {
+    throw BundleCreationException("[Bundle] Bad raw format");
   }
 }
 
@@ -139,8 +157,8 @@ std::vector<std::shared_ptr<Block>> Bundle::getBlocks() {
 }
 
 void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
-  // Check if the block type is a PayloadBlock
-  // only one can be present into a bundle.
+// Check if the block type is a PayloadBlock
+// only one can be present into a bundle.
   LOG(37) << "Adding new Block to the bundle";
   if (newBlock->getBlockType()
       != static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {

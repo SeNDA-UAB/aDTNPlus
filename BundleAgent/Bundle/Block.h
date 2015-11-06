@@ -27,7 +27,15 @@
 #include <cstdint>
 #include <bitset>
 #include <string>
+#include <stdexcept>
 #include "Bundle/BundleTypes.h"
+
+class BlockConstructionException : public std::runtime_error {
+ public:
+  explicit BlockConstructionException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
 
 /**
  * CLASS Block

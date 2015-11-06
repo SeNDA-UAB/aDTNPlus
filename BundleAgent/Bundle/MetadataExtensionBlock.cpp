@@ -25,6 +25,7 @@
 #include "Bundle/MetadataExtensionBlock.h"
 
 #include <string>
+#include <stdexcept>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
@@ -38,10 +39,14 @@ MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
     : CanonicalBlock(rawData),
       m_metadataType(0),
       m_metadata() {
-  std::string data = m_raw.substr(m_bodyDataIndex);
-  size_t metadataTypeSize = SDNV::getLength(data);
-  m_metadataType = SDNV::decode(data);
-  m_metadata = data.substr(metadataTypeSize);
+  try {
+    std::string data = m_raw.substr(m_bodyDataIndex);
+    size_t metadataTypeSize = SDNV::getLength(data);
+    m_metadataType = SDNV::decode(data);
+    m_metadata = data.substr(metadataTypeSize);
+  } catch (const std::out_of_range& e) {
+    throw BlockConstructionException("[MetadataExtensionBlock] Bad raw format");
+  }
 }
 
 MetadataExtensionBlock::~MetadataExtensionBlock() {

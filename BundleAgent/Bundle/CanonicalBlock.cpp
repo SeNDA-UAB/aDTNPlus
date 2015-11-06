@@ -25,6 +25,7 @@
 #include "Bundle/CanonicalBlock.h"
 #include <string>
 #include <sstream>
+#include <stdexcept>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
 
@@ -54,37 +55,41 @@ CanonicalBlock::~CanonicalBlock() {
 void CanonicalBlock::initFromRaw(const std::string &rawData) {
   LOG(39) << "Generating canonicalblock from raw data";
   // Get the Block Type
-  m_blockType = static_cast<uint8_t>(rawData[0]);
-  size_t blockLength = 1;
-  std::string data = rawData.substr(1);
-  // Get the proc flags.
-  size_t dataSize = SDNV::getLength(data);
-  blockLength += dataSize;
-  uint64_t procFlags = SDNV::decode(data);
-  m_procFlags = std::bitset<7>(procFlags);
-  data = data.substr(dataSize);
-  if (m_procFlags.test(static_cast<ulong>(BlockControlFlags::EID_FIELD))) {
+  try {
+    m_blockType = static_cast<uint8_t>(rawData[0]);
+    size_t blockLength = 1;
+    std::string data = rawData.substr(1);
+    // Get the proc flags.
+    size_t dataSize = SDNV::getLength(data);
+    blockLength += dataSize;
+    uint64_t procFlags = SDNV::decode(data);
+    m_procFlags = std::bitset<7>(procFlags);
+    data = data.substr(dataSize);
+    if (m_procFlags.test(static_cast<ulong>(BlockControlFlags::EID_FIELD))) {
+      dataSize = SDNV::getLength(data);
+      blockLength += dataSize;
+      int numberOfEID = SDNV::decode(data);
+      data = data.substr(dataSize);
+      for (int i = 0; i < numberOfEID; ++i) {
+        // Every EID consists of two SDNV fields
+        dataSize = SDNV::getLength(data);
+        blockLength += dataSize;
+        data = data.substr(dataSize);
+        dataSize = SDNV::getLength(data);
+        blockLength += dataSize;
+        data = data.substr(dataSize);
+      }
+    }
+    // Block data Length
     dataSize = SDNV::getLength(data);
     blockLength += dataSize;
-    int numberOfEID = SDNV::decode(data);
-    data = data.substr(dataSize);
-    for (int i = 0; i < numberOfEID; ++i) {
-      // Every EID consists of two SDNV fields
-      dataSize = SDNV::getLength(data);
-      blockLength += dataSize;
-      data = data.substr(dataSize);
-      dataSize = SDNV::getLength(data);
-      blockLength += dataSize;
-      data = data.substr(dataSize);
-    }
+    m_bodyDataIndex = blockLength;
+    uint64_t blockDataSize = SDNV::decode(data);
+    blockLength += blockDataSize;
+    m_raw = rawData.substr(0, blockLength);
+  } catch (const std::out_of_range& e) {
+    throw BlockConstructionException("[CanonicalBlock] Bad raw format");
   }
-  // Block data Length
-  dataSize = SDNV::getLength(data);
-  blockLength += dataSize;
-  m_bodyDataIndex = blockLength;
-  uint64_t blockDataSize = SDNV::decode(data);
-  blockLength += blockDataSize;
-  m_raw = rawData.substr(0, blockLength);
 }
 
 std::string CanonicalBlock::toRaw() {

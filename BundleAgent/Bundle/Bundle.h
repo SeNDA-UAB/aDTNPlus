@@ -28,11 +28,20 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 
 class PrimaryBlock;
 class PayloadBlock;
 class CanonicalBlock;
 class Block;
+
+class BundleCreationException : public std::runtime_error {
+ public:
+  explicit BundleCreationException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
+
 /**
  * CLASS Bundle
  * This class represents a Bundle as defined into the RFC 5050.
