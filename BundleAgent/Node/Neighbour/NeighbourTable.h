@@ -29,8 +29,19 @@
 #include <cstdint>
 #include <mutex>
 #include <memory>
+#include <vector>
+#include <stdexcept>
 
 class Neighbour;
+
+class NeighbourTableException : public std::runtime_error {
+ public:
+  explicit NeighbourTableException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
+
+#define NT NeighbourTable::getInstance()
 
 /**
  * CLASS NeighbourTable
@@ -74,11 +85,19 @@ class NeighbourTable {
    */
   void cleanNeighbours(int expirationTime);
   /**
-   * Function to get a copy of the current neighbours list.
+   * Function to get a copy of the current neighbours list id's.
    *
-   * @return a map with the current neighbours.
+   * @return a vector with the current neighbours id's.
    */
-  void getNeighbours(std::map<std::string, std::shared_ptr<Neighbour>> *map);
+  std::vector<std::string> getNeighbours();
+
+  /**
+   * Function to get the information of the given neighbour.
+   *
+   * @param nodeId the node id of the neighbour.
+   * @return a Neighbour pointer if exists, else throws a NeighbourTableException.
+   */
+  std::shared_ptr<Neighbour> getNeighbour(const std::string &nodeId);
 
  private:
   /**

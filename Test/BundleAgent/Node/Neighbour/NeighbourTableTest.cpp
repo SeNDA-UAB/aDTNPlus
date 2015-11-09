@@ -25,6 +25,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <vector>
 #include "Node/Neighbour/NeighbourTable.h"
 #include "gtest/gtest.h"
 #include "Node/Neighbour/Neighbour.h"
@@ -39,21 +40,19 @@
 TEST(NeighbourTableTest, AddAndRemove) {
   NeighbourTable* nt = NeighbourTable::getInstance();
   nt->update("node100", "192.168.1.1", 40000);
-  std::map<std::string, std::shared_ptr<Neighbour>> neighbours = std::map<
-      std::string, std::shared_ptr<Neighbour>>();
   // Get the neighbours
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
+  auto neighbours = nt->getNeighbours();
   // Check neighbour
-  ASSERT_EQ("node100", neighbours["node100"]->getNodeId());
+  ASSERT_EQ("node100", nt->getNeighbour("node100")->getNodeId());
   sleep(2);
   // Clean the neighbour
+  auto node = nt->getNeighbour("node100");
   NeighbourTable::getInstance()->cleanNeighbours(1);
   // Check that we still hold the pointer
-  ASSERT_EQ("node100", neighbours["node100"]->getNodeId());
-  // Empty the map and check that the NeigbourTable is not holding the neighbour
+  ASSERT_EQ("node100", node->getNodeId());
   neighbours.clear();
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
-  ASSERT_TRUE(neighbours.find("node100") == neighbours.end());
+  neighbours = nt->getNeighbours();
+  ASSERT_THROW(nt->getNeighbour("node100"), NeighbourTableException);
 }
 
 /**
@@ -67,28 +66,26 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   nt->update("node101", "192.168.1.1", 40101);
   sleep(1);
   nt->update("node102", "192.168.1.1", 40102);
-  std::map<std::string, std::shared_ptr<Neighbour>> neighbours = std::map<
-      std::string, std::shared_ptr<Neighbour>>();
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
+  auto neighbours = nt->getNeighbours();
   ASSERT_EQ(3, neighbours.size());
-  ASSERT_EQ(40100, neighbours["node100"]->getNodePort());
-  ASSERT_EQ(40101, neighbours["node101"]->getNodePort());
-  ASSERT_EQ(40102, neighbours["node102"]->getNodePort());
+  ASSERT_EQ(40100, nt->getNeighbour("node100")->getNodePort());
+  ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
+  ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
   NeighbourTable::getInstance()->cleanNeighbours(2);
   neighbours.clear();
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(2, neighbours.size());
-  ASSERT_EQ(40101, neighbours["node101"]->getNodePort());
-  ASSERT_EQ(40102, neighbours["node102"]->getNodePort());
+  ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
+  ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
   NeighbourTable::getInstance()->cleanNeighbours(1);
   neighbours.clear();
   nt->update("node102", "192.168.1.1", 40105);
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ(40105, neighbours["node102"]->getNodePort());
+  ASSERT_EQ(40105, nt->getNeighbour("node102")->getNodePort());
   neighbours.clear();
   nt->update("node102", "192.168.1.102", 40105);
-  NeighbourTable::getInstance()->getNeighbours(&neighbours);
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("192.168.1.102", neighbours["node102"]->getNodeAddress());
+  ASSERT_EQ("192.168.1.102", nt->getNeighbour("node102")->getNodeAddress());
 }
