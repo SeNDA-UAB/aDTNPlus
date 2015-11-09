@@ -20,6 +20,7 @@ class Neighbour {
 class NeighbourTable << (S,#FF7700) Singleton >> {
  	-{static} m_instance : NeighbourTable*
  	-m_neighbours : std::map<std::string, shared_ptr<Neighbour>>
+ 	-mutex : std::mutex
 	-NeighbourTable()
 	+~NeighbourTable()
 	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
@@ -36,12 +37,11 @@ class NeighbourDiscovery {
 	-m_neighbourCleanerThread : thread
 	-m_sendBeaconsThread : thread
 	-m_receiveBeaconsThread : thread
-	+NeighbourDiscovery(&Configuration : ConfigLoader)
+	+NeighbourDiscovery(config : ConfigLoader)
 	+~NeighbourDiscovery()
 	+sendBeacons() : void
 	+receiveBeacons() : void
 	+neighbourCleaner() : void
-	+stop() : void
 	+setTestMode(mode : bool) : void
 }
 
@@ -51,7 +51,7 @@ class Beacon {
 	-m_nodePort : uint16_t
 	-m_raw: std::string
 	+{static} MAX_BEACON_SIZE = 1050 : int
-	+Beacon(rawBeacon : std::string)
+	+Beacon(rawData : std::string)
 	+Beacon(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t
 	+~Beacon()
 	+getRaw() : std::string
