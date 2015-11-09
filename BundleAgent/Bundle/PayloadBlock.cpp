@@ -34,8 +34,12 @@ PayloadBlock::PayloadBlock(const std::string &payload, bool isRaw)
     : CanonicalBlock() {
   LOG(39) << "Generating new payload block";
   if (isRaw) {
-    initFromRaw(payload);
-    m_payload = payload.substr(m_bodyDataIndex);
+    try {
+      initFromRaw(payload);
+      m_payload = payload.substr(m_bodyDataIndex);
+    } catch (const std::exception& e) {
+      throw BlockConstructionException("[PayloadBlock] Bad raw format");
+    }
   } else {
     m_payload = payload;
     m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
