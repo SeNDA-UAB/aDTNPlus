@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <vector>
+#include <algorithm>
 #include "Node/Neighbour/Neighbour.h"
 #include "Utils/Logger.h"
 
@@ -80,11 +82,27 @@ void NeighbourTable::cleanNeighbours(int expirationTime) {
   mutex.unlock();
 }
 
-void NeighbourTable::getNeighbours(
-    std::map<std::string, std::shared_ptr<Neighbour>> *map) {
+std::vector<std::string> NeighbourTable::getNeighbours() {
   LOG(61) << "Returning current neighbours";
+  std::vector<std::string> keys;
+  keys.reserve(m_neighbours.size());
   mutex.lock();
-  (*map).insert(m_neighbours.begin(), m_neighbours.end());
+  std::transform(
+      m_neighbours.begin(),
+      m_neighbours.end(),
+      std::back_inserter(keys),
+      [](const std::map<std::string, std::shared_ptr<Neighbour>>::value_type &pair) {return pair.first;});
   mutex.unlock();
+  return keys;
+}
+
+std::shared_ptr<Neighbour> NeighbourTable::getNeighbour(
+    const std::string &nodeId) {
+  LOG(61) << "Returning neighbour " << nodeId;
+  auto it = m_neighbours.find(nodeId);
+  if (it != m_neighbours.end())
+    return it->second;
+  else
+    throw NeighbourTableException("Neighbour not found");
 }
 
