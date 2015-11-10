@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <thread>
 #include <atomic>
-#include "Node/ConfigLoader.h"
+#include "Utils/ConfigLoader.h"
 
 /**
  * CLASS NeighbourDiscovery

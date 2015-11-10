@@ -56,9 +56,9 @@ NeighbourDiscovery::~NeighbourDiscovery() {
 void NeighbourDiscovery::sendBeacons() {
   LOG(14) << "Creating send beacons thread";
 // Get node configuration
-  std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
-  std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
-  uint16_t nodePort = m_config.m_reader.GetInteger("Node", "nodePort", 0);
+  std::string nodeId = m_config.getNodeId();
+  std::string nodeAddress = m_config.getNodeAddress();
+  uint16_t nodePort = m_config.getNodePort();
 // Generate this node address information.
   LOG(64) << "Starting socket into " << nodeAddress << ":0";
   sockaddr_in discoveryAddr = { 0 };
@@ -84,22 +84,14 @@ void NeighbourDiscovery::sendBeacons() {
       // Generate the destination address.
       sockaddr_in discoveryDestinationAddr = { 0 };
       discoveryDestinationAddr.sin_family = AF_INET;
-      discoveryDestinationAddr.sin_port = htons(
-          m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort",
-                                       0));
+      discoveryDestinationAddr.sin_port = htons(m_config.getDiscoveryPort());
       discoveryDestinationAddr.sin_addr.s_addr = inet_addr(
-          m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
-              .c_str());
+          m_config.getDiscoveryAddress().c_str());
       // Create the beacon with our information.
-      LOG(64)
-          << "Sending beacons to "
-          << m_config.m_reader.Get("NeighbourDiscovery", "discoveryAddress", "")
-          << ":"
-          << m_config.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort",
-                                          0);
+      LOG(64) << "Sending beacons to " << m_config.getDiscoveryAddress() << ":"
+              << m_config.getDiscoveryPort();
       Beacon b = Beacon(nodeId, nodeAddress, nodePort);
-      int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
-                                                   "discoveryPeriod", 1);
+      int sleepTime = m_config.getDiscoveryPeriod();
       while (!g_stop.load()) {
         std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
         LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
@@ -126,12 +118,10 @@ void NeighbourDiscovery::sendBeacons() {
 void NeighbourDiscovery::receiveBeacons() {
 // Get node configuration
   LOG(15) << "Starting receiver beacon thread";
-  std::string nodeId = m_config.m_reader.Get("Node", "nodeId", "");
-  std::string nodeAddress = m_config.m_reader.Get("Node", "nodeAddress", "");
-  uint16_t discoveryPort = m_config.m_reader.GetInteger("NeighbourDiscovery",
-                                                        "discoveryPort", 0);
-  std::string discoveryAddress = m_config.m_reader.Get("NeighbourDiscovery",
-                                                       "discoveryAddress", "");
+  std::string nodeId = m_config.getNodeId();
+  std::string nodeAddress = m_config.getNodeAddress();
+  uint16_t discoveryPort = m_config.getDiscoveryPort();
+  std::string discoveryAddress = m_config.getDiscoveryAddress();
 // Generate this node address information.
   sockaddr_in discoveryAddr = { 0 };
   discoveryAddr.sin_family = AF_INET;
@@ -211,11 +201,8 @@ void NeighbourDiscovery::receiveBeacons() {
 }
 
 void NeighbourDiscovery::neighbourCleaner() {
-  int sleepTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
-                                               "neighbourCleanerTime", 1);
-  int expirationTime = m_config.m_reader.GetInteger("NeighbourDiscovery",
-                                                    "neighbourExpirationTime",
-                                                    10);
+  int sleepTime = m_config.getNeighbourCleanerTime();
+  int expirationTime = m_config.getNeighbourExpirationTime();
   LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime
           << "s all the nodes with inactivity for a period of "
           << expirationTime << "s";
