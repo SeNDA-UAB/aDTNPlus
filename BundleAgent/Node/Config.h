@@ -27,19 +27,31 @@
 #include <string>
 #include "Utils/ConfigLoader.h"
 
+/**
+ * CLASS Config
+ * This class is a configuration holder. It loads all the configuration that
+ * will be needed by the node, if the values are not present a default value is
+ * given to them.
+ */
 class Config {
  public:
   /**
+   * @brief Empty constructor.
    *
+   * Generates a Config object with the default parameters.
    */
   Config();
   /**
+   * @brief Loads a configuration file.
    *
-   * @param configFilename
+   * Generates a Config object with the values found in the configuration
+   * file, if no values found the default are used.
+   *
+   * @param configFilename the path to the configuration file.
    */
   explicit Config(const std::string &configFilename);
   /**
-   *
+   * Destructor of the class.
    */
   virtual ~Config();
   /**
