@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
 
   sigaction(SIGINT, &sigIntHandler, NULL);
   g_stopped = 0;
-  Node n = Node("../BundleAgent/Config/adtn.ini");
   g_stop = false;
+  Node n = Node("../BundleAgent/Config/adtn.ini");
   while (!g_stop || (g_stopped.load() < maxThread)) {
     std::this_thread::sleep_for(std::chrono::seconds(5));
   }
