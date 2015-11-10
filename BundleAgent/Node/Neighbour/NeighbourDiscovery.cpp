@@ -37,7 +37,7 @@
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
-NeighbourDiscovery::NeighbourDiscovery(ConfigLoader config)
+NeighbourDiscovery::NeighbourDiscovery(Config config)
     : m_testMode(false),
       m_config(config) {
   std::thread t = std::thread(&NeighbourDiscovery::neighbourCleaner, this);

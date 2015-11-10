@@ -25,7 +25,7 @@
 #define BUNDLEAGENT_NODE_NODE_H_
 
 #include <string>
-#include "Utils/ConfigLoader.h"
+#include "Node/Config.h"
 #include "Node/Neighbour/NeighbourDiscovery.h"
 
 /**
@@ -53,9 +53,9 @@ class Node {
 
  private:
   /**
-   * Variable that holds the Config Loader.
+   * Variable that holds the config. values.
    */
-  ConfigLoader m_configLoader;
+  Config m_config;
   /**
    * Variable that holds the neighbour discovery.
    */
