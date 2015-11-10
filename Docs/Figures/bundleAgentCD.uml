@@ -3,8 +3,57 @@
 title Bundle Agent Class Diagram
 
 class Node {
+	-m_dispatch: bool
+	-m_nextHop: std::vector<std:string>
+	-m_discard: bool
 	+Node()
 	+~Node()
+	+processBundles(): void
+	+receiveBundles(): void
+	+restoreBundles(): void
+	+reset() : void
+	-checkDestination(bundle : Bundle):void
+	-checkLifetime(bundle : Bundle):void
+	-checkForward(bundle : Bundle):void
+	-forward(bundle : Bundle) : void
+	-dispatch(bundle : Bundle) : void	
+}
+
+class Config {
+	-m_configLoader : ConfigLoader
+	-m_nodeId : std::string
+	-m_nodeAddress : std::string
+	-m_nodePort : int
+	-m_discoveryAddress : std::string
+	-m_discoveryProt : int
+	-m_discoveryPeriod : int
+	-m_neighbourExpirationTime : int
+	-m_neighbourCleanerTime : int
+	-m_logFileName : std::string
+	-m_logLevel : int
+	-{static} NODEID : std::string
+	-{static} NODEADDRESS : std::string
+	-{static} NODEPORT : int
+	-{static} DISCOVERYADDRESS : std::string
+	-{static} DISCOVERYPORT : int
+	-{static} DISCOVERYPERIOD : int
+	-{static} NEIGHBOUREXPIRATIONTIME : int
+	-{static} NEIGHBOURCLEANERTIME : int
+	-{static} LOGFILENAME : std::string
+	-{static} LOGLEVEL : int
+	+Config(configFileName : std::string)
+	+Config()
+	+~Config()
+	+getNodeId() : std::string
+	+getNodeAddress() : std::string
+	+getNodePort() : int
+	+getDiscoveryAddress() : std::string
+	+getDiscoveryPort() : int
+	+getDiscoveryPeriod(): int
+	+getNeighbourExpirationTime():int
+	+getNeighbourCLeanerTime():int
+	+getLogFileName() : std::string
+	+getLogLevel():int
 }
 
 class ConfigLoader {
@@ -23,8 +72,20 @@ class NeighbourTable << (S,#FF7700) Singleton >>{
 class NeighbourDiscovery {
 }
 
+class BundleQueue {
+	- m_bundles : std::vector<Bundle>
+	+ dequeue(): Bundle
+	+ enqueue(bundle : Bundle) : void
+}
+note top: Perhaps vector is \nnot the best option \nfor m_bundles
 
-Node ..> ConfigLoader : <i>uses</i>
+class Bundle {
+}
+
+BundleQueue "1" *-- "0..n" Bundle
+Node *-- BundleQueue
+Node ..> Config : <i>uses</i>
+Config --> ConfigLoader 
 Node ..> NeighbourDiscovery : <i>launches</i>
 NeighbourTable "1" *-- "n" Neighbour
 NeighbourDiscovery ..> NeighbourTable : <i>updates</i>

@@ -107,13 +107,13 @@ class Config {
    *
    * @return The log filename.
    */
-  std::string getFilename();
+  std::string getLogFileName();
   /**
    * Get the log level in the configuration.
    *
    * @return The log level.
    */
-  int getLevel();
+  int getLogLevel();
 
  private:
   /**
@@ -151,11 +151,11 @@ class Config {
   /**
    * Filename of the log file.
    */
-  std::string m_filename;
+  std::string m_logFileName;
   /**
    * Log level.
    */
-  int m_level;
+  int m_logLevel;
   /**
    * Variable that holds the Config Loader.
    */
@@ -171,8 +171,8 @@ class Config {
   static const int DISCOVERYPERIOD;
   static const int NEIGHBOUREXPIRATIONTIME;
   static const int NEIGHBOURCLEANERTIME;
-  static const std::string FILENAME;
-  static const int LEVEL;
+  static const std::string LOGFILENAME;
+  static const int LOGLEVEL;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

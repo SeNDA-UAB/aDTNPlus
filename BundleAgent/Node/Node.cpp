@@ -31,9 +31,9 @@
 Node::Node(std::string filename) {
   m_config = Config(filename);
   Logger::getInstance()->setLoggerConfigAndStart(
-      m_config.getFilename());
+      m_config.getLogFileName());
   Logger::getInstance()->setLogLevel(
-      m_config.getLevel());
+      m_config.getLogLevel());
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourDiscovery = new NeighbourDiscovery(m_config);

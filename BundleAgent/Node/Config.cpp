@@ -37,8 +37,8 @@ const int Config::DISCOVERYPORT = 40001;
 const int Config::DISCOVERYPERIOD = 2;
 const int Config::NEIGHBOUREXPIRATIONTIME = 4;
 const int Config::NEIGHBOURCLEANERTIME = 2;
-const std::string Config::FILENAME = "/tmp/adtn.log";
-const int Config::LEVEL = 1;
+const std::string Config::LOGFILENAME = "/tmp/adtn.log";
+const int Config::LOGLEVEL = 1;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -49,8 +49,8 @@ Config::Config()
       m_discoveryPeriod(DISCOVERYPERIOD),
       m_neighbourExpirationTime(NEIGHBOUREXPIRATIONTIME),
       m_neighbourCleanerTime(NEIGHBOURCLEANERTIME),
-      m_filename(FILENAME),
-      m_level(LEVEL) {
+      m_logFileName(LOGFILENAME),
+      m_logLevel(LOGLEVEL) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -75,8 +75,8 @@ Config::Config(const std::string &configFilename) {
         NEIGHBOUREXPIRATIONTIME);
     m_neighbourCleanerTime = m_configLoader.m_reader.GetInteger(
         "NeighbourDiscovery", "neighbourCleanerTime", NEIGHBOURCLEANERTIME);
-    m_filename = m_configLoader.m_reader.Get("Logger", "filename", FILENAME);
-    m_level = m_configLoader.m_reader.GetInteger("Logger", "level", LEVEL);
+    m_logFileName = m_configLoader.m_reader.Get("Logger", "filename", LOGFILENAME);
+    m_logLevel = m_configLoader.m_reader.GetInteger("Logger", "level", LOGLEVEL);
   }
 }
 
@@ -115,10 +115,10 @@ int Config::getNeighbourCleanerTime() {
   return m_neighbourCleanerTime;
 }
 
-std::string Config::getFilename() {
-  return m_filename;
+std::string Config::getLogFileName() {
+  return m_logFileName;
 }
 
-int Config::getLevel() {
-  return m_level;
+int Config::getLogLevel() {
+  return m_logLevel;
 }
