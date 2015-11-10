@@ -32,11 +32,17 @@
 TEST(ConfigLoaderTest, ParseFile) {
   ConfigLoader cf = ConfigLoader();
   ASSERT_TRUE(cf.load("../BundleAgent/Config/adtn.ini"));
-  ASSERT_EQ("node1", cf.getNodeId());
-  ASSERT_EQ("127.0.0.1", cf.getNodeAddress());
-  ASSERT_EQ(40000, cf.getNodePort());
-  ASSERT_EQ("239.100.100.100", cf.getDiscoveryAddress());
-  ASSERT_EQ(40001, cf.getDiscoveryPort());
-  ASSERT_EQ(2, cf.getDiscoveryPeriod());
-  ASSERT_EQ(4, cf.getNeighbourExpirationTime());
+  ASSERT_EQ("node1", cf.m_reader.Get("Node", "nodeId", ""));
+  ASSERT_EQ("127.0.0.1", cf.m_reader.Get("Node", "nodeAddress", ""));
+  ASSERT_EQ(40000, cf.m_reader.GetInteger("Node", "nodePort", 0));
+  ASSERT_EQ("239.100.100.100",
+            cf.m_reader.Get("NeighbourDiscovery", "discoveryAddress", ""));
+  ASSERT_EQ(40001,
+            cf.m_reader.GetInteger("NeighbourDiscovery", "discoveryPort", 0));
+  ASSERT_EQ(2,
+            cf.m_reader.GetInteger("NeighbourDiscovery", "discoveryPeriod", 0));
+  ASSERT_EQ(
+      4,
+      cf.m_reader.GetInteger("NeighbourDiscovery", "neighbourExpirationTime",
+                             0));
 }

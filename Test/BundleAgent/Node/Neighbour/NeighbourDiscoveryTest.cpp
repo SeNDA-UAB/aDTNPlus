@@ -29,7 +29,7 @@
 #include "gtest/gtest.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
-#include "Utils/ConfigLoader.h"
+#include "Node/Config.h"
 #include "Utils/globals.h"
 
 /**
@@ -40,8 +40,7 @@
  */
 TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   g_stop = false;
-  ConfigLoader cf = ConfigLoader();
-  cf.load("../BundleAgent/Config/adtn.ini");
+  Config cf = Config("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
   sleep(1);
   NeighbourTable::getInstance()->cleanNeighbours(1);
@@ -84,8 +83,7 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
  */
 TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
   g_stop = false;
-  ConfigLoader cf = ConfigLoader();
-  cf.load("../BundleAgent/Config/adtn.ini");
+  Config cf = Config("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
   sleep(1);
   NeighbourTable::getInstance()->cleanNeighbours(1);

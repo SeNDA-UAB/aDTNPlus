@@ -28,7 +28,7 @@
 #include <cstdint>
 #include <thread>
 #include <atomic>
-#include "Utils/ConfigLoader.h"
+#include "Node/Config.h"
 
 /**
  * CLASS NeighbourDiscovery
@@ -61,7 +61,7 @@ class NeighbourDiscovery {
    *
    * @param config ConfigLoader with the paramenters.
    */
-  explicit NeighbourDiscovery(ConfigLoader config);
+  explicit NeighbourDiscovery(Config config);
   /**
    * Destructor of the class.
    */
@@ -95,7 +95,7 @@ class NeighbourDiscovery {
   /**
    * ConfigLoader initialised.
    */
-  ConfigLoader m_config;
+  Config m_config;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_NEIGHBOURDISCOVERY_H_

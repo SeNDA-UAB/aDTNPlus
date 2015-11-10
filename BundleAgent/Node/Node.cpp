@@ -29,20 +29,14 @@
 #include "Utils/globals.h"
 
 Node::Node(std::string filename) {
-  bool m_configError = m_configLoader.load(filename);
+  m_config = Config(filename);
   Logger::getInstance()->setLoggerConfigAndStart(
-      m_configLoader.getFilename());
+      m_config.getFilename());
   Logger::getInstance()->setLogLevel(
-      m_configLoader.getLevel());
+      m_config.getLevel());
   LOG(6) << "Starting Node...";
-  if (!m_configError) {
-    LOG(1) << "Configuration File has not been found or contains errors."
-           << "Aborting...";
-    g_stop = true;
-  } else {
-    LOG(6) << "Starting NeighbourDiscovery";
-    m_neighbourDiscovery = new NeighbourDiscovery(m_configLoader);
-  }
+  LOG(6) << "Starting NeighbourDiscovery";
+  m_neighbourDiscovery = new NeighbourDiscovery(m_config);
 }
 
 Node::~Node() {
