@@ -54,9 +54,124 @@ class ConfigLoader {
    */
   bool load(std::string file);
   /**
+   * Get the node id in the configuration.
+   *
+   * @return The node id.
+   */
+  std::string getNodeId();
+  /**
+   * Get the node IP address in the configuration.
+   *
+   * @return The IP address.
+   */
+  std::string getNodeAddress();
+  /**
+   * Get the node Port in the configuration.
+   *
+   * @return The node Port.
+   */
+  int getNodePort();
+  /**
+   * Get the discovery IP address in the configuration.
+   *
+   * @return The discovery IP address.
+   */
+  std::string getDiscoveryAddress();
+  /**
+   * Get the discovery Port in the configuration.
+   *
+   * @return The discovery port.
+   */
+  int getDiscoveryPort();
+  /**
+   * Get the discovery period in the configuration.
+   *
+   * @return The discovery period.
+   */
+  int getDiscoveryPeriod();
+  /**
+   * Get the neighbour expiration time in the configuration.
+   *
+   * @return The neighbour expiration time.
+   */
+  int getNeighbourExpirationTime();
+  /**
+   * Get the neighbour cleaner time in the configuration.
+   *
+   * @return The cleaner time.
+   */
+  int getNeighbourCleanerTime();
+  /**
+   * Get the log filename in the configuration.
+   *
+   * @return The log filename.
+   */
+  std::string getFilename();
+  /**
+   * Get the log level in the configuration.
+   *
+   * @return The log level.
+   */
+  int getLevel();
+  /**
    * INIReader containing all the information.
    */
   INIReader m_reader;
+
+ private:
+  /**
+   * Node id.
+   */
+  std::string m_nodeId;
+  /**
+   * IP address of the node.
+   */
+  std::string m_nodeAddress;
+  /**
+   * Port of the node.
+   */
+  int m_nodePort;
+  /**
+   * IP address of the discovery beacon.
+   */
+  std::string m_discoveryAddress;
+  /**
+   * Port of the discovery beacon.
+   */
+  int m_discoveryPort;
+  /**
+   * Period to send discovery beacons.
+   */
+  int m_discoveryPeriod;
+  /**
+   * Time to expire a not detected neighbour.
+   */
+  int m_neighbourExpirationTime;
+  /**
+   * Time to call the cleaner thread.
+   */
+  int m_neighbourCleanerTime;
+  /**
+   * Filename of the log file.
+   */
+  std::string m_filename;
+  /**
+   * Log level.
+   */
+  int m_level;
+  /**
+   * Default values
+   */
+  static const std::string NODEID;
+  static const std::string NODEADDRESS;
+  static const int NODEPORT;
+  static const std::string DISCOVERYADDRESS;
+  static const int DISCOVERYPORT;
+  static const int DISCOVERYPERIOD;
+  static const int NEIGHBOUREXPIRATIONTIME;
+  static const int NEIGHBOURCLEANERTIME;
+  static const std::string FILENAME;
+  static const int LEVEL;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIGLOADER_H_
