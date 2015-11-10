@@ -29,7 +29,7 @@
 #include "gtest/gtest.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
-#include "Node/ConfigLoader.h"
+#include "Utils/ConfigLoader.h"
 #include "Utils/globals.h"
 
 /**

@@ -25,7 +25,7 @@
 #define BUNDLEAGENT_NODE_NODE_H_
 
 #include <string>
-#include "Node/ConfigLoader.h"
+#include "Utils/ConfigLoader.h"
 #include "Node/Neighbour/NeighbourDiscovery.h"
 
 /**

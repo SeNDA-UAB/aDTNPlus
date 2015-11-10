@@ -22,7 +22,7 @@
  * This file contains the test of the ConfigLoader class.
  */
 
-#include "Node/ConfigLoader.h"
+#include "Utils/ConfigLoader.h"
 #include "gtest/gtest.h"
 
 /**

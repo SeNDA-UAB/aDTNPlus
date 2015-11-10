@@ -33,7 +33,7 @@
 #include <string>
 #include <mutex>
 #include "Utils/Logstream.h"
-#include "Node/ConfigLoader.h"
+#include "Utils/ConfigLoader.h"
 
 /**
  * CLASS Logger
