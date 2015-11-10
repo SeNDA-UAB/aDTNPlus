@@ -1,0 +1,23 @@
+
+@startuml
+title Bundle Processing Activity Diagram
+start
+
+:restoreBundles;
+while (active?)
+	:select next bundle;
+	:check destination;
+	:check lifetime;
+	:check forkard;
+	if(isDestination?)then
+		:dispatch;
+	endif
+	if(canForward?)then
+		:forward;
+	endif
+	if(mustDiscard?) then
+		:discard;
+	endif
+endwhile
+end
+@enduml
