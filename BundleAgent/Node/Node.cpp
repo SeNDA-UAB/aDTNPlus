@@ -31,9 +31,9 @@
 Node::Node(std::string filename) {
   bool m_configError = m_configLoader.load(filename);
   Logger::getInstance()->setLoggerConfigAndStart(
-      m_configLoader.m_reader.Get("Logger", "filename", "/tmp/adtn.log"));
+      m_configLoader.getFilename());
   Logger::getInstance()->setLogLevel(
-      m_configLoader.m_reader.GetInteger("Logger", "level", 21));
+      m_configLoader.getLevel());
   LOG(6) << "Starting Node...";
   if (!m_configError) {
     LOG(1) << "Configuration File has not been found or contains errors."

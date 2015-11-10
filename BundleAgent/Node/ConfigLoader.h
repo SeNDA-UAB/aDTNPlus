@@ -113,10 +113,6 @@ class ConfigLoader {
    * @return The log level.
    */
   int getLevel();
-  /**
-   * INIReader containing all the information.
-   */
-  INIReader m_reader;
 
  private:
   /**
@@ -159,6 +155,10 @@ class ConfigLoader {
    * Log level.
    */
   int m_level;
+  /**
+   * INIReader containing all the information.
+   */
+  INIReader m_reader;
   /**
    * Default values
    */
