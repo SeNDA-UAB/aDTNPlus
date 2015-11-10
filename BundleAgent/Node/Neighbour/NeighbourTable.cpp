@@ -85,13 +85,12 @@ void NeighbourTable::cleanNeighbours(int expirationTime) {
 std::vector<std::string> NeighbourTable::getNeighbours() {
   LOG(61) << "Returning current neighbours";
   std::vector<std::string> keys;
-  keys.reserve(m_neighbours.size());
   mutex.lock();
+  keys.reserve(m_neighbours.size());
   std::transform(
-      m_neighbours.begin(),
-      m_neighbours.end(),
-      std::back_inserter(keys),
-      [](const std::map<std::string, std::shared_ptr<Neighbour>>::value_type &pair) {return pair.first;});
+      m_neighbours.begin(), m_neighbours.end(), std::back_inserter(keys),
+      [](const std::map<std::string,
+          std::shared_ptr<Neighbour>>::value_type &pair) {return pair.first;});
   mutex.unlock();
   return keys;
 }

@@ -25,6 +25,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <atomic>
+#include <thread>
+#include <chrono>
 #include <cstdint>
 #include "Utils/globals.h"
 #include "Node/Node.h"
@@ -47,6 +49,7 @@ int main(int argc, char **argv) {
   Node n = Node("../BundleAgent/Config/adtn.ini");
   g_stop = false;
   while (!g_stop || (g_stopped.load() < maxThread)) {
+    std::this_thread::sleep_for(std::chrono::seconds(5));
   }
 }
 
