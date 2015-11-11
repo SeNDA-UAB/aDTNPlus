@@ -16,6 +16,7 @@ class Bundle {
 	+getPayloadBlock() : PayloadBlock*
 	+getBlocks() : std::vector<Block *>
 	+addBlock(newBlock : CanonicalBlock*) : void
+	+getId() : std::string
 }
 
 abstract class Block {

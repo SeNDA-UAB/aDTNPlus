@@ -120,12 +120,19 @@ class Bundle {
   /**
    * @brief Function to add a canonical block to the bundle.
    *
-   * This functions takes the canonical block passed by parameter, and adds it to the
+   * This function takes the canonical block passed by parameter, and adds it to the
    * blocks vector.
    *
    * @param A pointer to the block.
    */
   void addBlock(std::shared_ptr<CanonicalBlock> newBlock);
+  /**
+   * @brief Gets the bundle id
+   *
+   * This function returns the id of a bundle generated as the concatenation of source, creationTimestamp and creationTimestampSeqNumber.
+   *
+   */
+  std::string getId();
 
  private:
   /**
