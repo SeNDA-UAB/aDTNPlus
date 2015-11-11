@@ -75,8 +75,10 @@ Config::Config(const std::string &configFilename) {
         NEIGHBOUREXPIRATIONTIME);
     m_neighbourCleanerTime = m_configLoader.m_reader.GetInteger(
         "NeighbourDiscovery", "neighbourCleanerTime", NEIGHBOURCLEANERTIME);
-    m_logFileName = m_configLoader.m_reader.Get("Logger", "filename", LOGFILENAME);
-    m_logLevel = m_configLoader.m_reader.GetInteger("Logger", "level", LOGLEVEL);
+    m_logFileName = m_configLoader.m_reader.Get("Logger", "filename",
+                                                LOGFILENAME);
+    m_logLevel = m_configLoader.m_reader.GetInteger("Logger", "level",
+                                                    LOGLEVEL);
   }
 }
 
