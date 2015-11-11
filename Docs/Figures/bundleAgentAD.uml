@@ -1,17 +1,18 @@
 @startuml
 title Bundle Agent Activity Diagram
 start
-:load configuration file;
+:Load configuration file;
+:Restore bundles;
 fork
-	:sendBeacons;
+	:Process bundles;
 fork again
-	:receiveBeacons;
+	:Receive bundles;
 fork again
-	:neighbourCleaner;
+	:Clean neighbours;
 fork again
-	:receiveBundles;
+	:Receive beacons;
 fork again
-	:processBundles;
+	:Send beacons;
 end fork
 end
 @enduml

@@ -3,21 +3,41 @@
 title Bundle Processing Activity Diagram
 start
 
-:restoreBundles;
-while (active?)
-	:select next bundle;
-	:check destination;
-	:check lifetime;
-	:check forkard;
-	if(isDestination?)then
-		:dispatch;
+while (g_stop ?) is (false)
+	:Dequeue a bundle;
+	:Check bundle destination;
+note right
+		Updates m_dispatch : bool
+end note
+	:Check bundle lifetime;
+note right
+		Updates m_discard : bool
+end note
+	:Check bundle forward;
+note right
+		Updates m_nextHop : std::vector<std::string>
+		with nodeIds of neighbours to forward
+		the bundle to.
+end note
+	if(m_dispatch ?)then (true)
+		:Dispatch bundle;
 	endif
-	if(canForward?)then
-		:forward;
+	if(m_nextHop.length() > 0 ?)then (true)
+		:Forward bundle;
 	endif
-	if(mustDiscard?) then
-		:discard;
+	if( m_discard ?) then (true)
+		:Discard bundle;
+	else (false)
+		:Enqueue bundle;
 	endif
-endwhile
+endwhile (true)
 end
+
+header
+
+	g_stop: bool is the variable that
+	represents the termination
+	of the node execution.
+end header
+
 @enduml

@@ -63,13 +63,15 @@ class ConfigLoader {
 	+~ConfigLoader()
 }
 
-class Neighbour {
-}
-
-class NeighbourTable << (S,#FF7700) Singleton >>{
-}
-
 class NeighbourDiscovery {
+	-m_testMode : atomic<bool>
+	-m_config : ConfigLoader
+	+NeighbourDiscovery(config : ConfigLoader)
+	+~NeighbourDiscovery()
+	+sendBeacons() : void
+	+receiveBeacons() : void
+	+cleanNeighbours() : void
+	+setTestMode(mode : bool) : void
 }
 
 class BundleQueue {
@@ -79,15 +81,14 @@ class BundleQueue {
 }
 note top: Perhaps vector is \nnot the best option \nfor m_bundles
 
-class Bundle {
-}
 
-BundleQueue "1" *-- "0..n" Bundle
 Node *-- BundleQueue
 Node ..> Config : <i>uses</i>
 Config --> ConfigLoader 
 Node ..> NeighbourDiscovery : <i>launches</i>
-NeighbourTable "1" *-- "n" Neighbour
-NeighbourDiscovery ..> NeighbourTable : <i>updates</i>
+
+footer
+	This diagram could be completed with the content of Neighbour Discovery Class Diagram and Bundle Class Diagram.
+end footer
 
 @enduml

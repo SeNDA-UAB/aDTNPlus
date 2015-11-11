@@ -77,7 +77,7 @@ class NeighbourDiscovery {
   /**
    * Function to clean neighbours.
    */
-  void neighbourCleaner();
+  void cleanNeighbours();
   /**
    * @brief Function to set the test mode.
    *

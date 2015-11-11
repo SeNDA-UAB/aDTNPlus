@@ -40,7 +40,7 @@
 NeighbourDiscovery::NeighbourDiscovery(Config config)
     : m_testMode(false),
       m_config(config) {
-  std::thread t = std::thread(&NeighbourDiscovery::neighbourCleaner, this);
+  std::thread t = std::thread(&NeighbourDiscovery::cleanNeighbours, this);
   t.detach();
   t = std::thread(&NeighbourDiscovery::sendBeacons, this);
   t.detach();
@@ -200,7 +200,7 @@ void NeighbourDiscovery::receiveBeacons() {
   g_stopped++;
 }
 
-void NeighbourDiscovery::neighbourCleaner() {
+void NeighbourDiscovery::cleanNeighbours() {
   int sleepTime = m_config.getNeighbourCleanerTime();
   int expirationTime = m_config.getNeighbourExpirationTime();
   LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime

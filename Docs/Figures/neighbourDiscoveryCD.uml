@@ -2,6 +2,8 @@
 
 title Neighbour Discovery Class Diagram
 
+
+
 class Neighbour {
 	-m_nodeId : std::string
 	-m_nodeAddress : std::string
@@ -31,18 +33,6 @@ class NeighbourTable << (S,#FF7700) Singleton >> {
 }
 
 class NeighbourDiscovery {
-	-m_stop : atomic<bool>
-	-m_testMode : atomic<bool>
-	-m_config : ConfigLoader
-	-m_neighbourCleanerThread : thread
-	-m_sendBeaconsThread : thread
-	-m_receiveBeaconsThread : thread
-	+NeighbourDiscovery(config : ConfigLoader)
-	+~NeighbourDiscovery()
-	+sendBeacons() : void
-	+receiveBeacons() : void
-	+neighbourCleaner() : void
-	+setTestMode(mode : bool) : void
 }
 
 class Beacon {
@@ -63,5 +53,9 @@ class Beacon {
 NeighbourDiscovery ..> Beacon : <i>uses</i>
 NeighbourTable "1" *-- "n" Neighbour
 NeighbourDiscovery ..> NeighbourTable : <i>updates</i>
+
+footer
+	The whole definition of NeighbourDiscovery class is available in Bundle Agent Class Diagram.
+end footer
 
 @enduml
