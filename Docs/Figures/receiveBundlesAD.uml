@@ -1,0 +1,27 @@
+
+@startuml
+title Bundle Reception Activity Diagram
+start
+
+while (g_stop ?) is (false)
+	:Receive rawData;
+	:Create bundle;
+	:Save bundle to disk;
+note right
+		Creates a file with
+		the bundle object
+		content using the
+		bundle id as filename.
+end note
+	:Enqueue bundle;
+endwhile (true)
+end
+
+header
+
+	g_stop: bool is the variable that
+	represents the termination
+	of the node execution.
+end header
+
+@enduml
