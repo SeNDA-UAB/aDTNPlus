@@ -3,6 +3,7 @@
 title Bundle Agent Class Diagram
 
 class Node {
+	-m_bundleQueue: BundleQueue
 	-m_dispatch: bool
 	-m_nextHop: std::vector<std:string>
 	-m_discard: bool
@@ -15,8 +16,9 @@ class Node {
 	-checkDestination(bundle : Bundle):void
 	-checkLifetime(bundle : Bundle):void
 	-checkForward(bundle : Bundle):void
+	-dispatch(bundle : Bundle) : void
 	-forward(bundle : Bundle) : void
-	-dispatch(bundle : Bundle) : void	
+	-discard(bundle : Bundle) : void
 }
 
 class Config {
