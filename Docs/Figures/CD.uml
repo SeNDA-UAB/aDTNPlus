@@ -3,8 +3,6 @@
 title Bundle Agent Class Diagram
 
 class Node {
-	-m_processor : BundleProcessor
-	-m_config : Config
 	+Node(configFileName : std::string)
 	+~Node()
 	+restoreBundles(): void
@@ -18,25 +16,53 @@ class Node {
 }
 
 class BundleProcessor {
-	-m_config : Config
-	-m_bundle : Bundle
-	-m_from : std::string
-	-m_dispatch: bool
-	-m_nextHop: std::vector<std:string>
-	-m_discard: bool
-	+BundleProcessor(config : Config)
+	#m_bundle : Bundle
+	#m_from : std::string
+	#m_dispatch: bool
+	#m_nextHop: std::vector<std:string>
+	#m_discard: bool
+	+BundleProcessor()
 	+~BundleProcessor()
-	+process(bundleContainer : BundleContainer)
-	-checkDestination(bundle : Bundle):void
-	-checkLifetime(bundle : Bundle):void
-	-checkForward(bundle : Bundle):void
-	-dispatch(bundle : Bundle) : void
-	-forward(bundle : Bundle) : void
-	-discard(bundle : Bundle) : void
+	#process(bundleContainer : BundleContainer)
+	#checkDestination():void
+	#checkLifetime():void
+	#checkForward():void
+	-dispatch() : void
+	-forward() : void
+	-discard() : void
 }
 
-class Config {
-	-m_configLoader : ConfigLoader
+class BundleContainer {
+	- m_bundle : Bundle
+	- m_from : std::string
+	+ BundleContainer(bundle : Bundle, from : std::string)
+	+ getBundle() : Bundle
+	+ getFrom() : std::string
+}
+
+class BundleQueue << (S,#FF7700) Singleton >>{
+	- {static} m_instance : BundleQueue*
+	- m_bundles : std::vector<BundleContainer>
+	- BundleQueue()
+	+ ~BundleQueue()
+	+getInstance() : {static} BundleQueue*
+	+ dequeue(): BundleContainer
+	+ enqueue(bundle : BundleContainer) : void
+}
+
+class ListeningAppsTable << (S,#FF7700) Singleton >> {
+	- {static} m_instance : ListeningAppsTable*
+	- m_listeningApps : std::map<std::string,Socket>
+	- ListeningAppsTable()
+	+ ~ListeningAppsTable()
+	+ getInstance() : {static} ListeningAppsTable*
+	+ start(std::string,Socket): void
+	+ stop(std::string) : void
+	+ getInfo(std::string) : Socket
+}
+
+class Config << (S,#FF7700) Singleton >> {
+	- {static} m_instance : Config*
 	-m_nodeId : std::string
 	-m_nodeAddress : std::string
 	-m_nodePort : int
@@ -57,9 +83,10 @@ class Config {
 	-{static} NEIGHBOURCLEANERTIME : int
 	-{static} LOGFILENAME : std::string
 	-{static} LOGLEVEL : int
-	+Config(configFileName : std::string)
-	+Config()
+	-Config()
 	+~Config()
+	+getInstance() : {static} Config*
+	+load(configFileName : std::string) : void
 	+getNodeId() : std::string
 	+getNodeAddress() : std::string
 	+getNodePort() : int
@@ -74,53 +101,19 @@ class Config {
 
 class ConfigLoader {
 	-m_reader : INIReader
-	+load(ConfigFile : std::string ) : void
+	+load(configFileName : std::string ) : void
 	+ConfigLoader()
 	+~ConfigLoader()
 }
 
-class BundleContainer {
-	- m_bundle : Bundle
-	- m_from : std::string
-	+ BundleContainer(bundle : Bundle, from : std::string)
-	+ getBundle() : Bundle
-	+ getFrom() : std::string
-}
-
-class BundleQueue << (S,#FF7700) Singleton >>{
-	- {static} m_instance : BundleQueue*
-	- m_bundles : std::vector<BundleContainer>
-	- BundleQueue()
-	+ ~BundleQueue()
-	+ dequeue(): BundleContainer
-	+ enqueue(bundle : BundleContainer) : void
-}
-note top: Perhaps vector is \nnot the best option \nfor m_bundles
-
-class ListeningAppsTable << (S,#FF7700) Singleton >> {
-	- {static} m_instance : ListeningAppsTable*
-	- m_listeningApps : std::map<std::string,Socket>
-	- ListeningAppsTable()
-	+ ~ListeningAppsTable()
-	+ start(std::string,Socket): void
-	+ stop(std::string) : void
-	+ getInfo(std::string) : Socket
-}
-note left: Review value type for the m_listeningApps map.
-
-Node --> "<i>m_config</i>" Config
-BundleProcessor --> "<i>m_config</i>" Config
-BundleProcessor ..> BundleQueue : <i>uses</i>
-Config --> "<i>m_configLoader</i>" ConfigLoader 
+Config ..> ConfigLoader : <i>uses</i> 
 BundleQueue --> "0..n\n<i>m_bundles</i>" BundleContainer
-Node ..> BundleQueue : <i>uses</i>
-Node --> "<i>m_processor</i>" BundleProcessor
-Node ..> ListeningAppsTable : <i>uses</i>
-BundleProcessor ..> ListeningAppsTable : <i>uses</i>
+Node ..> BundleProcessor : <i>uses</i>
 
 footer
 	This diagram could be completed with the content of Neighbour Discovery Class Diagram and Bundle Class Diagram.
 end footer
+
 
 
 
@@ -312,9 +305,6 @@ class NeighbourTable << (S,#FF7700) Singleton >> {
 	+getNeighbour(nodeId : std::string ) : Neighbour
 }
 
-class NeighbourDiscovery {
-}
-
 class Beacon {
 	-m_nodeId : std::string
 	-m_nodeAddress : std::string
@@ -330,9 +320,7 @@ class Beacon {
 	+getNodePort() : uint16_t
 }
 
-Node ..> Beacon : <i>uses</i>
 NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
-Node ..> NeighbourTable : <i>uses</i>
 
 footer
 	The whole definition of NeighbourDiscovery class is available in Bundle Agent Class Diagram.
