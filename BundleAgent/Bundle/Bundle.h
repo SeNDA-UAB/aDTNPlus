@@ -80,7 +80,8 @@ class Bundle {
   /**
    * @brief Function to get the bundle in raw format.
    *
-   * This function will provide the last raw version of the bundle. Notice that it may not be up to date.
+   * This function will provide the last raw version of the bundle.
+   * Notice that it may not be up to date.
    *
    * @return the bundle in raw format.
    */
@@ -129,7 +130,8 @@ class Bundle {
   /**
    * @brief Gets the bundle id
    *
-   * This function returns the id of a bundle generated as the concatenation of source, creationTimestamp and creationTimestampSeqNumber.
+   * This function returns the id of a bundle generated as the concatenation of source,
+   * creationTimestamp and creationTimestampSeqNumber.
    *
    */
   std::string getId();

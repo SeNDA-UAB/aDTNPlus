@@ -170,5 +170,6 @@ void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
 }
 
 std::string Bundle::getId() {
-	return m_primaryBlock->getSource()+m_primaryBlock->getCreationTimestamp()+m_primaryBlock->getCreationTimestampSeqNumber();
+  return m_primaryBlock->getSource() + m_primaryBlock->getCreationTimestamp()
+      + m_primaryBlock->getCreationTimestampSeqNumber();
 }
