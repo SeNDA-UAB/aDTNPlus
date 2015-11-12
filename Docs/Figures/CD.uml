@@ -1,6 +1,6 @@
 @startuml
 
-title Bundle Agent Class Diagram
+title ADTNPlus Node Class Diagram
 
 class Node {
 	+Node(configFileName : std::string)
@@ -52,13 +52,13 @@ class BundleQueue << (S,#FF7700) Singleton >>{
 
 class ListeningAppsTable << (S,#FF7700) Singleton >> {
 	- {static} m_instance : ListeningAppsTable*
-	- m_listeningApps : std::map<std::string,Socket>
+	- m_listeningApps : std::map<std::string,std::string>
 	- ListeningAppsTable()
 	+ ~ListeningAppsTable()
 	+ getInstance() : {static} ListeningAppsTable*
-	+ start(std::string,Socket): void
-	+ stop(std::string) : void
-	+ getInfo(std::string) : Socket
+	+ start(appId : std::string, info : std::string): void
+	+ stop(appId : std::string) : void
+	+ getInfo(appId : std::string) : std::string
 }
 
 class Config << (S,#FF7700) Singleton >> {
@@ -110,9 +110,6 @@ Config ..> ConfigLoader : <i>uses</i>
 BundleQueue --> "0..n\n<i>m_bundles</i>" BundleContainer
 Node ..> BundleProcessor : <i>uses</i>
 
-footer
-	This diagram could be completed with the content of Neighbour Discovery Class Diagram and Bundle Class Diagram.
-end footer
 
 
 
@@ -120,7 +117,7 @@ end footer
 
 
 
-title Bundle Class Diagram
+
 
 class Bundle {
 	-m_raw : std::string
@@ -273,7 +270,7 @@ Bundle --> "1..n\n<i>m_blocks</i>" Block
 
 
 
-title Neighbour Discovery Class Diagram
+
 
 
 
@@ -322,10 +319,8 @@ class Beacon {
 
 NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
 
-footer
-	The whole definition of NeighbourDiscovery class is available in Bundle Agent Class Diagram.
-end footer
 
 
 BundleContainer --> "m_bundle" Bundle
+BundleProcessor --> "m_bundle" Bundle
 @enduml
