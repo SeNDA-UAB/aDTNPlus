@@ -164,22 +164,33 @@ void NeighbourDiscovery::receiveBeacons() {
                  << strerror(errno);
           g_stop = true;
         } else {
+          // Add a timeout to the recv socket
+          struct timeval tv;
+          tv.tv_sec = m_config.getSocketTimeout();
+          setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
+                     sizeof(struct timeval));
           while (!g_stop.load()) {
             char* buffer = reinterpret_cast<char*>(malloc(
                 Beacon::MAX_BEACON_SIZE * sizeof(char)));
-            size_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
+            ssize_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
             // Create a thread to add the new neighbour and let this
             // receiving more beacons
-            Beacon b = Beacon(std::string(buffer, recvLength));
-            if (b.getNodeId() != nodeId
-                || (b.getNodeId() == nodeId && m_testMode.load())) {
-              LOG(15) << "Received beacon from " << b.getNodeId() << " "
-                      << b.getNodeAddress() << ":" << b.getNodePort();
-              std::thread([b]() {
-                NeighbourTable::getInstance()->update(b.getNodeId(),
-                    b.getNodeAddress(),
-                    b.getNodePort());
-              }).detach();
+            if (recvLength > 0) {
+              Beacon b = Beacon(std::string(buffer, recvLength));
+              if (b.getNodeId() != nodeId
+                  || (b.getNodeId() == nodeId && m_testMode.load())) {
+                LOG(15) << "Received beacon from " << b.getNodeId() << " "
+                        << b.getNodeAddress() << ":" << b.getNodePort();
+                std::thread([b]() {
+                  NeighbourTable::getInstance()->update(b.getNodeId(),
+                      b.getNodeAddress(),
+                      b.getNodePort());
+                }).detach();
+              }
+            } else if (recvLength == -1) {
+              if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                LOG(1) << "Error receiving beacon " << strerror(errno);
+              }
             }
             free(buffer);
           }

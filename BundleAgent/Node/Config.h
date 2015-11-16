@@ -114,6 +114,12 @@ class Config {
    * @return The log level.
    */
   int getLogLevel();
+  /**
+   * Get the timeout seconds.
+   *
+   * @return The timeout seconds.
+   */
+  int getSocketTimeout();
 
  private:
   /**
@@ -157,6 +163,10 @@ class Config {
    */
   int m_logLevel;
   /**
+   * Socket timeout, to end threads.
+   */
+  int m_socketTimeout;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -173,6 +183,7 @@ class Config {
   static const int NEIGHBOURCLEANERTIME;
   static const std::string LOGFILENAME;
   static const int LOGLEVEL;
+  static const int SOCKETTIMEOUT;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

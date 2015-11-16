@@ -39,6 +39,7 @@ const int Config::NEIGHBOUREXPIRATIONTIME = 4;
 const int Config::NEIGHBOURCLEANERTIME = 2;
 const std::string Config::LOGFILENAME = "/tmp/adtn.log";
 const int Config::LOGLEVEL = 1;
+const int Config::SOCKETTIMEOUT = 20;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -50,7 +51,8 @@ Config::Config()
       m_neighbourExpirationTime(NEIGHBOUREXPIRATIONTIME),
       m_neighbourCleanerTime(NEIGHBOURCLEANERTIME),
       m_logFileName(LOGFILENAME),
-      m_logLevel(LOGLEVEL) {
+      m_logLevel(LOGLEVEL),
+      m_socketTimeout(SOCKETTIMEOUT) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -79,6 +81,8 @@ Config::Config(const std::string &configFilename) {
                                                 LOGFILENAME);
     m_logLevel = m_configLoader.m_reader.GetInteger("Logger", "level",
                                                     LOGLEVEL);
+    m_socketTimeout = m_configLoader.m_reader.GetInteger("Constants", "timeout",
+                                                         SOCKETTIMEOUT);
   }
 }
 
@@ -123,4 +127,8 @@ std::string Config::getLogFileName() {
 
 int Config::getLogLevel() {
   return m_logLevel;
+}
+
+int Config::getSocketTimeout() {
+  return m_socketTimeout;
 }
