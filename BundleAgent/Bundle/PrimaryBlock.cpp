@@ -178,7 +178,7 @@ void PrimaryBlock::setPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
       && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
-    m_procFlags.set(static_cast<ulong>(procFlag));
+    m_procFlags.set(static_cast<uint32_t>(procFlag));
   } else {
     // Priority is represented with values into bytes 7 and 8,
     // BULK = 00, NORMAL = 01, EXPEDITED = 10
@@ -206,7 +206,7 @@ void PrimaryBlock::unsetPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
       && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
-    m_procFlags.reset(static_cast<ulong>(procFlag));
+    m_procFlags.reset(static_cast<uint32_t>(procFlag));
   } else {
     // Priority is represented with values into bytes 7 and 8,
     // BULK = 00, NORMAL = 01, EXPEDITED = 10
@@ -221,7 +221,7 @@ bool PrimaryBlock::checkPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
       && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
-    flagActive = m_procFlags.test(static_cast<ulong>(procFlag));
+    flagActive = m_procFlags.test(static_cast<uint32_t>(procFlag));
   } else {
     // Priority is represented with values into bytes 7 and 8,
     // BULK = 00, NORMAL = 01, EXPEDITED = 10
