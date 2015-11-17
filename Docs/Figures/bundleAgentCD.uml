@@ -1,28 +1,63 @@
 @startuml
 
-title Bundle Agent Class Diagram
+title ADTNPlus Node Class Diagram
 
 class Node {
-	-m_bundleQueue: BundleQueue
-	-m_dispatch: bool
-	-m_nextHop: std::vector<std:string>
-	-m_discard: bool
-	+Node()
+	-m_config : Config
+	+Node(configFileName : std::string)
 	+~Node()
-	+processBundles(): void
-	+receiveBundles(): void
-	+restoreBundles(): void
+	+restoreBundles(bundleQueue : BundleQueue): void
 	+reset() : void
-	-checkDestination(bundle : Bundle):void
-	-checkLifetime(bundle : Bundle):void
-	-checkForward(bundle : Bundle):void
-	-dispatch(bundle : Bundle) : void
-	-forward(bundle : Bundle) : void
-	-discard(bundle : Bundle) : void
+	+start() : void
+	+stop() : void
+}
+
+abstract class BundleProcessor {
+	#m_config : Config
+	#m_bundleQueue : BundleQueue
+	#m_listeningAppsTable : ListeningAppsTable
+	#m_neighbourTable : NeighbourTable
+	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BundleProcessor()
+	-processBundles() : void
+	-receiveBundles(): void
+	-{abstract}processBundle(bundleContainer : BundleContainer): void
+	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
+	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
+	#discard(bundle : Bundle) : void
+	#restore(bundle : Bundle) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle)
+}
+
+class BasicBundleProcessor {
+	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BasicBundleProcessor()
+	-processBundle(bundleContainer : BundleContainer) : void
+	-checkDestination(): std::vector<std::string>
+	-checkLifetime(): bool
+	-checkForward(): std::vector<std::string>
+	-createBundleContainer(from : Neighbour, bundle : Bundle)
+}
+
+class BundleContainer {
+	- m_bundle : Bundle
+	- m_from : Neighbour
+	+ BundleContainer(from : Neighbour, bundle : Bundle)
+	+ getBundle() : Bundle
+	+ getFrom() : Neighbour
+	+ serialise() : std::string
+	+{static}deserialise(data : std::string) : BundleContainer
+}
+
+class BundleQueue {
+	- m_bundles : std::vector<BundleContainer>
+	+ BundleQueue()
+	+ ~BundleQueue()
+	+ dequeue(): BundleContainer
+	+ enqueue(bundleContainer : BundleContainer) : void
 }
 
 class Config {
-	-m_configLoader : ConfigLoader
 	-m_nodeId : std::string
 	-m_nodeAddress : std::string
 	-m_nodePort : int
@@ -43,8 +78,8 @@ class Config {
 	-{static} NEIGHBOURCLEANERTIME : int
 	-{static} LOGFILENAME : std::string
 	-{static} LOGLEVEL : int
-	+Config(configFileName : std::string)
 	+Config()
+	+Config(configFileName : std::string)
 	+~Config()
 	+getNodeId() : std::string
 	+getNodeAddress() : std::string
@@ -60,37 +95,17 @@ class Config {
 
 class ConfigLoader {
 	-m_reader : INIReader
-	+load(ConfigFile : std::string ) : void
+	+load(configFileName : std::string ) : void
 	+ConfigLoader()
 	+~ConfigLoader()
 }
 
-class NeighbourDiscovery {
-	-m_testMode : atomic<bool>
-	-m_config : ConfigLoader
-	+NeighbourDiscovery(config : ConfigLoader)
-	+~NeighbourDiscovery()
-	+sendBeacons() : void
-	+receiveBeacons() : void
-	+cleanNeighbours() : void
-	+setTestMode(mode : bool) : void
-}
-
-class BundleQueue {
-	- m_bundles : std::vector<Bundle>
-	+ dequeue(): Bundle
-	+ enqueue(bundle : Bundle) : void
-}
-note top: Perhaps vector is \nnot the best option \nfor m_bundles
+Config ..> ConfigLoader : <i>uses</i> 
+BundleQueue --> "0..n\n<i>m_bundles</i>" BundleContainer
+Node ..> BundleProcessor : <i>uses</i>
 
 
-Node *-- BundleQueue
-Node ..> Config : <i>uses</i>
-Config --> ConfigLoader 
-Node ..> NeighbourDiscovery : <i>launches</i>
-
-footer
-	This diagram could be completed with the content of Neighbour Discovery Class Diagram and Bundle Class Diagram.
-end footer
-
+Node --> "<i>m_config</i>" Config
+BundleProcessor --> "<i>m_bundleQueue</i>" BundleQueue
+BundleProcessor <|-- BasicBundleProcessor
 @enduml

@@ -1,0 +1,25 @@
+@startuml
+
+title ADTNPlus App Listener Class Diagram
+
+class AppListener {
+	+{static}listenApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
+	+{static}cleanApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
+}
+
+class ListeningAppsTable {
+	- m_listeningApps : std::map<std::string,std::string>
+	+ ListeningAppsTable()
+	+ ~ListeningAppsTable()
+	+ start(appId : std::string, info : std::string): void
+	+ stop(appId : std::string) : void
+	+ getInfo(appId : std::string) : std::string
+}
+note right
+	TODO <i>check whether
+	info must be a TCP/IP
+	socket, an address and
+	port structure or
+	something else.</i>
+end note
+@enduml

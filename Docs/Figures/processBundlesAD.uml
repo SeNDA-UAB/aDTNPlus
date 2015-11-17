@@ -3,39 +3,17 @@
 title Bundle Processing Activity Diagram
 start
 
-while (g_stop ?) is (false)
+while (config.stop() ?) is (false)
 	:Dequeue a bundle;
-	:Check bundle destination;
+	:Process bundle;
 note right
-		Updates m_dispatch : bool
+		See processBundleAD.uml
 end note
-	:Check bundle lifetime;
-note right
-		Updates m_discard : bool
-end note
-	:Check bundle forward;
-note right
-		Updates m_nextHop : std::vector<std::string>
-		with nodeIds of neighbours to forward
-		the bundle to.
-end note
-	if(m_dispatch ?)then (true)
-		:Dispatch bundle;
-	endif
-	if(m_nextHop.length() > 0 ?)then (true)
-		:Forward bundle;
-	endif
-	if( m_discard ?) then (true)
-		:Discard bundle;
-	else (false)
-		:Enqueue bundle;
-	endif
 endwhile (true)
 end
 
 header
-
-	g_stop: bool is the variable that
+	config.stop(): bool
 	represents the termination
 	of the node execution.
 end header

@@ -2,17 +2,25 @@
 title Bundle Agent Activity Diagram
 start
 :Load configuration file;
-:Restore bundles;
+if (config.clean()) then (no)
+	:Restore bundles;
+else (yes)
+	:Clean Stored folder;
+endif
 fork
-	:Process bundles;
-fork again
 	:Receive bundles;
 fork again
-	:Clean neighbours;
+	:Process bundles;
+fork again
+	:Send beacons;
 fork again
 	:Receive beacons;
 fork again
-	:Send beacons;
+	:Clean neighbours;
+fork again
+	:Listen apps;
+fork again
+	:Clean apps;
 end fork
 end
 @enduml

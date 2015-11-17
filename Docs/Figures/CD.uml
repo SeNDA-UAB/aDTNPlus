@@ -4,70 +4,49 @@ title ADTNPlus Node Class Diagram
 
 class Node {
 	-m_config : Config
-	-m_neighbourTable : NeighbourTable
-	-m_listeningAppsTable : ListeningAppsTable
-	-m_bundleQueue : BundleQueue
 	+Node(configFileName : std::string)
 	+~Node()
-	+restoreBundles(): void
+	+restoreBundles(bundleQueue : BundleQueue): void
 	+reset() : void
 	+start() : void
 	+stop() : void
 }
 
-abstract class NeighbourDiscovery {
-	+{static}sendBeacons(config : Config) : void
-	+{static}receiveBeacons(config : Config, neighbourTable : NeighbourTable) : void
-	+{static}cleanNeighbours(config : Config, neighbourTable : NeighbourTable) : void
-}
-
-abstract class AppListener {
-	+{static}listenApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
-	+{static}cleanApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
-}
-
 abstract class BundleProcessor {
-	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
-	+~BundleProcessor()
-	+processBundles() : void
-	+{abstract}receiveBundles(config : Config, bundleQueue : BundleQueue): void
-	-{abstract}processBundle(bundleContainer : BundleContainer): void
-}
-
-class BasicFramework {
 	#m_config : Config
 	#m_bundleQueue : BundleQueue
-	#m_listeningAppsTable : ListeningAppsTable
+	#m_appTable : AppTable
 	#m_neighbourTable : NeighbourTable
-	
-	#m_bundleContainer : BundleContainerWithFrom
-	#m_dispatch: bool
-	#m_nextHop: std::vector<std:string>
-	#m_discard: bool
-	
-	+BasicFramework(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
-	+~BasicFramework()
-	+receiveBundles(config : Config, bundleQueue : BundleQueue): void
-	-processBundle(bundleContainer : BundleContainer)
-	
-	#checkDestination():void
-	#checkLifetime():void
-	#checkForward():void
-	-dispatch() : void
-	-forward() : void
-	-discard() : void
+	+BundleProcessor(config : Config, bundleQueue : BundleQueue, appTable : AppTable, neighbourTable : NeighbourTable)
+	+~BundleProcessor()
+	-processBundles() : void
+	-receiveBundles(): void
+	-{abstract}processBundle(bundleContainer : BundleContainer): void
+	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
+	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
+	#discard(bundle : Bundle) : void
+	#restore(bundle : Bundle) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle)
+}
+
+class BasicBundleProcessor {
+	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, AppTable : AppTable, neighbourTable : NeighbourTable)
+	+~BasicBundleProcessor()
+	-processBundle(bundleContainer : BundleContainer) : void
+	-checkDestination(): std::vector<std::string>
+	-checkLifetime(): bool
+	-checkForward(): std::vector<std::string>
+	-createBundleContainer(from : Neighbour, bundle : Bundle)
 }
 
 class BundleContainer {
 	- m_bundle : Bundle
-	+ BundleContainer(bundle : Bundle)
+	- m_from : Neighbour
+	+ BundleContainer(from : Neighbour, bundle : Bundle)
 	+ getBundle() : Bundle
-}
-
-class BundleContainerWithFrom {
-	- m_from : std::string
-	+ BundleContainerWithFrom(bundle : Bundle, from : std::string)
-	+ getFrom() : std::string
+	+ getFrom() : Neighbour
+	+ serialise() : std::string
+	+{static}deserialise(data : std::string) : BundleContainer
 }
 
 class BundleQueue {
@@ -75,16 +54,7 @@ class BundleQueue {
 	+ BundleQueue()
 	+ ~BundleQueue()
 	+ dequeue(): BundleContainer
-	+ enqueue(bundle : BundleContainer) : void
-}
-
-class ListeningAppsTable {
-	- m_listeningApps : std::map<std::string,std::string>
-	+ ListeningAppsTable()
-	+ ~ListeningAppsTable()
-	+ start(appId : std::string, info : std::string): void
-	+ stop(appId : std::string) : void
-	+ getInfo(appId : std::string) : std::string
+	+ enqueue(bundleContainer : BundleContainer) : void
 }
 
 class Config {
@@ -132,16 +102,132 @@ class ConfigLoader {
 
 Config ..> ConfigLoader : <i>uses</i> 
 BundleQueue --> "0..n\n<i>m_bundles</i>" BundleContainer
-Node ..> BundleProcessor : <i>uses</i>
 
 
+Node --> "<i>m_config</i>" Config
+BundleProcessor --> "<i>m_bundleQueue</i>" BundleQueue
+BundleProcessor <|-- BasicBundleProcessor
 
 
+class Bundle {
+	-m_raw : std::string
+	-m_primaryBlock : PrimaryBlock*
+	-m_payloadBlock : PayloadBlock*
+	-m_blocks : std::vector<Block *>
+	+Bundle(rawData : std::string)
+	+Bundle(source : std::string, destination : std::string, payload : std::string)
+	+~Bundle()
+	+getRaw() : std::string
+	+toRaw() : std::string
+	+getPrimaryBlock() : PrimaryBlock*
+	+getPayloadBlock() : PayloadBlock*
+	+getBlocks() : std::vector<Block *>
+	+addBlock(newBlock : CanonicalBlock*) : void
+	+getId() : std::string
+}
+
+abstract class Block {
+	#m_raw : std::string
+	+Block()
+	+~Block()
+	+{abstract}toRaw() : std::string
+	+getRaw() : std::string
+	+getLength() : size_t
+}
+
+class CanonicalBlock {
+	#m_blockType : uint8_t
+	-m_procFlags : bitset<7>
+	#m_bodyDataIndex : int
+	+CanonicalBlock(rawData:std::string)
+	+~CanonicalBlock()
+	+toRaw() : std::string
+	+getBlockType() : uint8_t
+	+setProcFlags(procFlag : BlockControlFlags) : void
+	+unsetProcFlags(procFlag : BlockControlFlags) : void
+	+checkProcFlags(procFlag : BlockControlFlags) : bool
+	#initFromRaw(rawData : std::string) : void
+}
+
+class MetadataExtensionBlock {
+	#m_metadataType : uint8_t
+	#m_metadata : std::string
+	+MetadataExtensionBlock(rawData : std::string)
+	+MetadataExtensionBlock(metadataType : uint8_t, metadata : std::string)
+	+~MetadataExtensionBlock()
+	+toRaw() : std::string
+	+getMetadataType() : uint8_t
+	+getMetadata() : std::string
+}
+
+class PayloadBlock {
+	-m_payload : std::string
+	+PayloadBlock(data : std::string, isRaw : bool)
+	+~PayloadBlock()
+	+toRaw() : std::string
+	+getPayload() : std::string
+}
 
 
+class PrimaryBlock {
+	-m_procFlags : bitset<21>
+	-m_destination : std::string
+	-m_source : std::string
+	-m_reportTo : std::string
+	-m_custodian : std::string
+	-m_creationTimestamp : uint64_t
+	-m_creationTimestampSeqNumber : uint64_t
+	-m_lifetime : uint64_t
+	+PrimaryBlock(rawData : std::string)
+	+PrimaryBlock(source : std::string, destination : std::string, timestamp : uint64_t, seqNumber : uint64_t)
+	+~PrimaryBlock()
+	+setPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+unsetPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : void
+	+checkPrimaryProcFlag(procFlag : PrimaryBlockControlFlags) : bool
+	+toRaw() : std::string
+	+getDestination() : std::string
+	+getSource() : std::string
+	+getReportTo() : std::string
+	+getCustodian() : std::string
+	+getCreationTimestamp() : uint64_t
+	+getCreationTimestampSeqNumber() : uint64_t
+	+getLifetime() : uint64_t
+	+setReportTo(reportTo : std::string) : void
+	+setCustodian(custodian : std::string) : void
+	+setLifetime(lifetime : uint64_t) : void
+}
 
+enum BlockControlFlags {
+	REPLICATE_FRAGMENT : 0
+	TRANSMIT_STATUS_REPORT : 1
+	DELETE_BUNDLE : 2
+	LAST_BLOCK : 3
+	DISCARD_BLOCK : 4
+	BLOCK_NOT_PROCESSED : 5
+	EID_FIELD : 6
+}
 
+enum PrimaryBlockControlFlags {
+	IS_FRAGMENT : 0
+	IS_ADMINISTRATIVE_RECORD : 1
+	NOT_FRAGMENTED : 2
+	CUSTODY_TRANSFER : 3
+	DESTINATION_SINGLETON : 4
+	ACKNOWLEDGEMENT_REQUESTED : 5
+	PRIORITY_BULK : 21
+	PRIORITY_NORMAL : 22
+	PRIOTIRY_EXPEDITED : 23
+	REQUEST_RECEPTION : 14
+	REQUEST_CUSTODY_ACCEPT : 15
+	REQUEST_FORWARDING : 16
+	REQUEST_DELIVERY : 17
+	REQUEST_DELETION : 18
+}
 
+enum BlockTypes {
+	PAYLOAD_BLOCK : 1
+	METADATA_EXTENSION_BLOCK : 8
+}
 
 class TimestampManager << (S,#FF7700) Singleton >> {
 	-{static}m_instance : TimestampManager*
@@ -153,14 +239,41 @@ class TimestampManager << (S,#FF7700) Singleton >> {
 	+getTimestamp() : std::pair<uint64_t, uint64_t>
 }
 
+class SDNV {
+	SDNV::encode(value : uint64_t) : std::string
+	SDNV::decode(encodedValue : std::string) : uint64_t
+	SDNV::getLength(value : uint64_t) : size_t
+	SDNV::getLenght(encodedValue : std::string) : size_t
+}
+hide SDNV circle
+
+Block <|-- PrimaryBlock
+Block <|-- CanonicalBlock
+CanonicalBlock <|-- MetadataExtensionBlock
+CanonicalBlock <|-- PayloadBlock
+Bundle --> "1..n\n<i>m_blocks</i>" Block
 
 
+class AppListener {
+	+{static}listenApps(config : Config, appTable : AppsTable) : void
+	+{static}cleanApps(config : Config, appTable : AppsTable) : void
+}
 
-
-
-
-
-
+class AppTable {
+	- m_apps : std::map<std::string,std::string>
+	+ AppsTable()
+	+ ~AppsTable()
+	+ start(appId : std::string, info : std::string): void
+	+ stop(appId : std::string) : void
+	+ getInfo(appId : std::string) : std::string
+}
+note right
+	TODO <i>check whether
+	info must be a TCP/IP
+	socket, an address and
+	port structure or
+	something else.</i>
+end note
 
 class Neighbour {
 	-m_nodeId : std::string
@@ -183,9 +296,15 @@ class NeighbourTable {
 	+NeighbourTable()
 	+~NeighbourTable()
 	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
-	+cleanNeighbours(expirationTime: int) : void
-	+getNeighbours() : std::vector<std::string*>
+	+clean(expirationTime: int) : void
+	+getNeighbourIds() : std::vector<std::string*>
 	+getNeighbour(nodeId : std::string ) : Neighbour
+}
+
+class NeighbourDiscovery {
+	+{static}sendBeacons(config : Config) : void
+	+{static}receiveBeacons(config : Config, neighbourTable : NeighbourTable) : void
+	+{static}cleanNeighbours(config : Config, neighbourTable : NeighbourTable) : void
 }
 
 class Beacon {
@@ -203,16 +322,20 @@ class Beacon {
 	+getNodePort() : uint16_t
 }
 
+
 NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
 
-Node --> "<i>m_config</i>" Config
-Node --> "<i>m_neighbourTable</i>" NeighbourTable
-Node --> "<i>m_listeningAppsTable</i>" ListeningAppsTable
-Node ..> NeighbourDiscovery : <i>uses</i>
-Node ..> AppListener : <i>uses</i>
+
+BundleProcessor --> "<i>m_neighbourTable</i>" NeighbourTable
+BundleProcessor --> "<i>m_appTable</i>" AppTable
+BundleContainer --> "<i>m_bundle</i>" Bundle
+BundleContainer --> "<i>m_neighbour</i>" Neighbour
+
+Node ..> BundleProcessor : <i>launches</i>
+Node ..> NeighbourDiscovery : <i>launches</i>
+Node ..> AppListener : <i>launches</i>
+
+NeighbourDiscovery ..> NeighbourTable : <i>updates</i>
+AppListener ..> AppTable : <i>updates</i>
 NeighbourDiscovery ..> Beacon : <i>uses</i>
-Node --> "<i>m_bundleQueue</i>" BundleQueue
-BundleContainer <|-- BundleContainerWithFrom
-BundleProcessor <|-- BasicFramework
-BasicFramework --> BundleContainerWithFrom
 @enduml

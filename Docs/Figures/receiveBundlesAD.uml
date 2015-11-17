@@ -3,46 +3,15 @@
 title Bundle Reception Activity Diagram
 start
 
-while (g_stop ?) is (false)
-	:Receive <i>message</i>;
-	:Extract <i>form</i> and <i>rawData</i>
-		from <i>message</i>;
+while (config.stop() ?) is (false)
+	:Receive <i>message</i> from a node;
+	:Parse <i>message</i> to get nodeId and bundle rawData;
 	:Create bundle with <i>rawData</i>;
-	:Save <i>message</i> to disk;
+	:Create neighbour with nodeId, address and port;
+	:Create bundle container with bundle and neighbour;
+	:Serialise and save bundle container to disk;
 note right
 		Creates a file with
-		<i>message</i> as content and
-		bundle id as filename.
-end note
-	:Create bundle container with
-	the bundle and the <i>from</i>;
-	:Enqueue bundle container;
-endwhile (true)
-end
-
-header
-
-	g_stop: bool is the variable that
-	represents the termination
-	of the node execution.
-end header
-
-@enduml
-
-@startuml
-title Bundle Reception Activity Diagram
-start
-
-while (g_stop ?) is (false)
-	:Receive rawData with from info;
-	:Create bundle form rowData;
-	:Create bundle container 
-	with bundle and from info;
-	:Save bundle container to disk;
-note right
-		Creates a file with
-		the bundle container object
-		content using the
 		bundle id as filename.
 end note
 	:Enqueue bundle container;
@@ -50,8 +19,7 @@ endwhile (true)
 end
 
 header
-
-	g_stop: bool is the variable that
+	config.stop(): bool
 	represents the termination
 	of the node execution.
 end header

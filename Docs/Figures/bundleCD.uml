@@ -144,8 +144,6 @@ Block <|-- PrimaryBlock
 Block <|-- CanonicalBlock
 CanonicalBlock <|-- MetadataExtensionBlock
 CanonicalBlock <|-- PayloadBlock
-Bundle "1" *-- "1" PrimaryBlock
-Bundle "1" *-- "1" PayloadBlock
-Bundle "1" *-- "1..n" Block
+Bundle --> "1..n\n<i>m_blocks</i>" Block
 
 @enduml

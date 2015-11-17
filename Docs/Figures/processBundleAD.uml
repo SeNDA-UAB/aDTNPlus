@@ -1,0 +1,35 @@
+
+@startuml
+title Processing A Bundle Activity Diagram
+start
+
+:Check bundle destination;
+note right
+	Updates destApps : std::vector<std::string>
+	with appIds of listeningApps to dispatch
+	the bundle to.
+end note
+:Check bundle lifetime;
+note right
+	Updates discard : bool
+end note
+:Check bundle forward;
+note right
+	Updates nextHop : std::vector<std::string>
+	with nodeIds of neighbours to forward
+	the bundle to.
+end note
+if(destApps.length() > 0 ?)then (true)
+	:Dispatch bundle to the destApps;
+endif
+if(nextHop.length() > 0 ?)then (true)
+	:Forward bundle;
+endif
+if( discard ?) then (true)
+	:Discard bundle;
+else (false)
+	:Restore bundle;
+endif
+end
+
+@enduml

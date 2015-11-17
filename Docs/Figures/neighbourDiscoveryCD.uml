@@ -19,20 +19,21 @@ class Neighbour {
 	+operator==(neighbour : Neighbour) : bool
 }
 
-class NeighbourTable << (S,#FF7700) Singleton >> {
- 	-{static} m_instance : NeighbourTable*
+class NeighbourTable {
  	-m_neighbours : std::map<std::string, shared_ptr<Neighbour>>
  	-mutex : std::mutex
-	-NeighbourTable()
+	+NeighbourTable()
 	+~NeighbourTable()
 	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
-	+cleanNeighbours(expirationTime: int) : void
-	+getInstance() : {static} NeighbourTable*
-	+getNeighbours() : std::vector<std::string*>
+	+clean(expirationTime: int) : void
+	+getNeighbourIds() : std::vector<std::string*>
 	+getNeighbour(nodeId : std::string ) : Neighbour
 }
 
 class NeighbourDiscovery {
+	+{static}sendBeacons(config : Config) : void
+	+{static}receiveBeacons(config : Config, neighbourTable : NeighbourTable) : void
+	+{static}cleanNeighbours(config : Config, neighbourTable : NeighbourTable) : void
 }
 
 class Beacon {
@@ -50,9 +51,9 @@ class Beacon {
 	+getNodePort() : uint16_t
 }
 
-NeighbourDiscovery ..> Beacon : <i>uses</i>
-NeighbourTable "1" *-- "n" Neighbour
-NeighbourDiscovery ..> NeighbourTable : <i>updates</i>
+
+NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
+
 
 footer
 	The whole definition of NeighbourDiscovery class is available in Bundle Agent Class Diagram.
