@@ -38,8 +38,7 @@
 #include "Utils/globals.h"
 
 NeighbourDiscovery::NeighbourDiscovery(Config config)
-    : m_testMode(false),
-      m_config(config) {
+    : m_config(config) {
   std::thread t = std::thread(&NeighbourDiscovery::cleanNeighbours, this);
   t.detach();
   t = std::thread(&NeighbourDiscovery::sendBeacons, this);
@@ -122,6 +121,7 @@ void NeighbourDiscovery::receiveBeacons() {
   std::string nodeAddress = m_config.getNodeAddress();
   uint16_t discoveryPort = m_config.getDiscoveryPort();
   std::string discoveryAddress = m_config.getDiscoveryAddress();
+  bool testMode = m_config.getNeighbourTestMode();
 // Generate this node address information.
   sockaddr_in discoveryAddr = { 0 };
   discoveryAddr.sin_family = AF_INET;
@@ -178,7 +178,7 @@ void NeighbourDiscovery::receiveBeacons() {
             if (recvLength > 0) {
               Beacon b = Beacon(std::string(buffer, recvLength));
               if (b.getNodeId() != nodeId
-                  || (b.getNodeId() == nodeId && m_testMode.load())) {
+                  || (b.getNodeId() == nodeId && testMode)) {
                 LOG(15) << "Received beacon from " << b.getNodeId() << " "
                         << b.getNodeAddress() << ":" << b.getNodePort();
                 std::thread([b]() {
@@ -224,11 +224,5 @@ void NeighbourDiscovery::cleanNeighbours() {
   }
   LOG(16) << "Exit Neighbour cleaner thread";
   g_stopped++;
-}
-
-void NeighbourDiscovery::setTestMode(bool mode) {
-  LOG(4) << "Setting neighbour discovery test mode to " << mode
-         << " If true this will make this node a neighbour also.";
-  m_testMode = mode;
 }
 

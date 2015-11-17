@@ -81,14 +81,13 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
  * To do this, we start the neighbour discovery, and put in test mode.
  * With this we are going to have a neighbour, ourselves.
  */
-TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
+/*TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
   g_stop = false;
   Config cf = Config("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
   sleep(1);
   NeighbourTable::getInstance()->cleanNeighbours(1);
   NeighbourDiscovery nd(cf);
-  nd.setTestMode(true);
   sleep(3);
   auto neighbours = NT->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
@@ -97,4 +96,4 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
             NT->getNeighbour(*neighbours.begin())->getNodeAddress());
   ASSERT_EQ(40000, NT->getNeighbour(*neighbours.begin())->getNodePort());
   g_stop = true;
-}
+}*/

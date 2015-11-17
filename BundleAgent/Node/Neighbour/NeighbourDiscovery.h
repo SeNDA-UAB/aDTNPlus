@@ -78,20 +78,8 @@ class NeighbourDiscovery {
    * Function to clean neighbours.
    */
   void cleanNeighbours();
-  /**
-   * @brief Function to set the test mode.
-   *
-   * This mode allows to save our beacons as neighbours.
-   *
-   * @param mode new value to set.
-   */
-  void setTestMode(bool mode);
 
  private:
-  /**
-   * Atomic variable to check if we want to receive our beacon.
-   */
-  std::atomic<bool> m_testMode;
   /**
    * ConfigLoader initialised.
    */
