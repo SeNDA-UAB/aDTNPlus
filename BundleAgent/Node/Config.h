@@ -120,6 +120,12 @@ class Config {
    * @return The timeout seconds.
    */
   int getSocketTimeout();
+  /**
+   * Get the neighbour test mode value.
+   *
+   * @return If test mode is enabled.
+   */
+  bool getNeighbourTestMode();
 
  private:
   /**
@@ -167,6 +173,10 @@ class Config {
    */
   int m_socketTimeout;
   /**
+   * Neighbour test mode, allows to receive beacons and add ourselves as neighbour.
+   */
+  bool m_neighbourTestMode;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -184,6 +194,7 @@ class Config {
   static const std::string LOGFILENAME;
   static const int LOGLEVEL;
   static const int SOCKETTIMEOUT;
+  static const bool NEIGHBOURTESTMODE;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

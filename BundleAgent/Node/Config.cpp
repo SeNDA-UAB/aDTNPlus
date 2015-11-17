@@ -40,6 +40,7 @@ const int Config::NEIGHBOURCLEANERTIME = 2;
 const std::string Config::LOGFILENAME = "/tmp/adtn.log";
 const int Config::LOGLEVEL = 1;
 const int Config::SOCKETTIMEOUT = 20;
+const bool Config::NEIGHBOURTESTMODE = false;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -52,7 +53,8 @@ Config::Config()
       m_neighbourCleanerTime(NEIGHBOURCLEANERTIME),
       m_logFileName(LOGFILENAME),
       m_logLevel(LOGLEVEL),
-      m_socketTimeout(SOCKETTIMEOUT) {
+      m_socketTimeout(SOCKETTIMEOUT),
+      m_neighbourTestMode(NEIGHBOURTESTMODE) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -83,6 +85,8 @@ Config::Config(const std::string &configFilename) {
                                                     LOGLEVEL);
     m_socketTimeout = m_configLoader.m_reader.GetInteger("Constants", "timeout",
                                                          SOCKETTIMEOUT);
+    m_neighbourTestMode = m_configLoader.m_reader.GetBoolean(
+        "NeighbourDiscovery", "testMode", NEIGHBOURTESTMODE);
   }
 }
 
@@ -131,4 +135,8 @@ int Config::getLogLevel() {
 
 int Config::getSocketTimeout() {
   return m_socketTimeout;
+}
+
+bool Config::getNeighbourTestMode() {
+  return m_neighbourTestMode;
 }
