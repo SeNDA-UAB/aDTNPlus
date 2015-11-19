@@ -1,6 +1,6 @@
 @startuml
 
-title ADTNPlus Node Class Diagram
+title Bundle Agent Class Diagram
 
 class Node {
 	-m_config : Config

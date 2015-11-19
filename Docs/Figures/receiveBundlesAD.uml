@@ -1,15 +1,15 @@
 
 @startuml
-title Bundle Reception Activity Diagram
+title Receive Bundles Activity Diagram
 start
 
 while (config.stop() ?) is (false)
 	:Receive <i>message</i> from a node;
 	:Parse <i>message</i> to get nodeId and bundle rawData;
 	:Create bundle with <i>rawData</i>;
-	:Create neighbour with nodeId, address and port;
-	:Create bundle container with bundle and neighbour;
-	:Serialise and save bundle container to disk;
+	:Update Neighbour Table with transmitter nodeId, address and port;
+	:Create bundle container with bundle and transmitter node;
+	:Save the bundle container raw to disk;
 note right
 		Creates a file with
 		bundle id as filename.

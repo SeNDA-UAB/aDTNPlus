@@ -1,6 +1,6 @@
 
 @startuml
-title Bundle Processing Activity Diagram
+title Process Bundles Activity Diagram
 start
 
 while (config.stop() ?) is (false)

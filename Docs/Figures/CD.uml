@@ -6,8 +6,8 @@ class Node {
 	-m_config : Config
 	+Node(configFileName : std::string)
 	+~Node()
-	+restoreBundles(bundleQueue : BundleQueue): void
-	+reset() : void
+	-restoreBundles(bundleQueue : BundleQueue): void
+	-reset() : void
 	+start() : void
 	+stop() : void
 }
@@ -24,9 +24,8 @@ abstract class BundleProcessor {
 	-{abstract}processBundle(bundleContainer : BundleContainer): void
 	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
 	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
-	#discard(bundle : Bundle) : void
-	#restore(bundle : Bundle) : void
-	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle)
+	#discard(bundleContainer : BundleContainer) : void
+	#restore(bundleContainer : BundleContainer) : void
 }
 
 class BasicBundleProcessor {
@@ -36,17 +35,18 @@ class BasicBundleProcessor {
 	-checkDestination(): std::vector<std::string>
 	-checkLifetime(): bool
 	-checkForward(): std::vector<std::string>
-	-createBundleContainer(from : Neighbour, bundle : Bundle)
+	-createBundleContainer(transmitter : Neighbour, bundle : Bundle)
 }
 
 class BundleContainer {
 	- m_bundle : Bundle
-	- m_from : Neighbour
-	+ BundleContainer(from : Neighbour, bundle : Bundle)
+	- m_transmitter : Neighbour
+	+ BundleContainer(transmitter : Neighbour, bundle : Bundle)
+	+ BundleContainer(rawData : std::string)
 	+ getBundle() : Bundle
-	+ getFrom() : Neighbour
-	+ serialise() : std::string
-	+{static}deserialise(data : std::string) : BundleContainer
+	+ getTransmitter() : Neighbour
+	+ toRaw() : std::string
+	+ getRaw() : std::string
 }
 
 class BundleQueue {
@@ -295,7 +295,7 @@ class NeighbourTable {
  	-mutex : std::mutex
 	+NeighbourTable()
 	+~NeighbourTable()
-	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
+	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : Neighbour
 	+clean(expirationTime: int) : void
 	+getNeighbourIds() : std::vector<std::string*>
 	+getNeighbour(nodeId : std::string ) : Neighbour

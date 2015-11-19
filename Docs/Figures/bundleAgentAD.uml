@@ -2,7 +2,7 @@
 title Bundle Agent Activity Diagram
 start
 :Load configuration file;
-if (config.clean()) then (no)
+if (config.getClean()) then (no)
 	:Restore bundles;
 else (yes)
 	:Clean Stored folder;
