@@ -24,7 +24,7 @@ class NeighbourTable {
  	-mutex : std::mutex
 	+NeighbourTable()
 	+~NeighbourTable()
-	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : void
+	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : Neighbour
 	+clean(expirationTime: int) : void
 	+getNeighbourIds() : std::vector<std::string*>
 	+getNeighbour(nodeId : std::string ) : Neighbour
@@ -53,10 +53,5 @@ class Beacon {
 
 
 NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
-
-
-footer
-	The whole definition of NeighbourDiscovery class is available in Bundle Agent Class Diagram.
-end footer
 
 @enduml

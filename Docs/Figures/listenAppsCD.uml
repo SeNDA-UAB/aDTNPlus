@@ -8,18 +8,31 @@ class AppListener {
 }
 
 class ListeningAppsTable {
-	- m_listeningApps : std::map<std::string,std::string>
+	- m_listeningApps : std::map<std::string,App>
 	+ ListeningAppsTable()
 	+ ~ListeningAppsTable()
-	+ start(appId : std::string, info : std::string): void
+	+ update(appId : std::string, appAddress : std::string, appPort : int): App
+	+ clean(expirationTime: int) : void
 	+ stop(appId : std::string) : void
-	+ getInfo(appId : std::string) : std::string
+	+ getAppIds() : std::vector<std::string>
+	+ getApp(appId : std::string) : App
 }
-note right
-	TODO <i>check whether
-	info must be a TCP/IP
-	socket, an address and
-	port structure or
-	something else.</i>
-end note
+
+class App {
+	- m_appId : std::string
+	- m_appAddress : std::string
+	- m_appPort : int
+	- m_lastActivity : time_point
+	+ App(appId : std::string, appAddress : std::string, appPort : int)
+	+~App()
+	+getAppId() : std::string
+	+getAppAddress() : std::string
+	+getAppPort() : uint16_t
+	+getElapsedActivityTime() : int
+	+update(appAddress : std::string, appPort : int) : void
+	+operator==(app : App) : bool
+}
+
+ListeningAppsTable --> "0..n\n<i>m_listeningApps</i>" App
+
 @enduml
