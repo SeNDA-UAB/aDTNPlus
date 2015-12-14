@@ -36,7 +36,7 @@ PayloadBlock::PayloadBlock(const std::string &payload, bool isRaw)
   if (isRaw) {
     try {
       initFromRaw(payload);
-      m_payload = payload.substr(m_bodyDataIndex);
+      m_payload = m_raw.substr(m_bodyDataIndex);
     } catch (const std::exception& e) {
       throw BlockConstructionException("[PayloadBlock] Bad raw format");
     }
