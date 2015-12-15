@@ -47,7 +47,7 @@ TEST(NeighbourTableTest, AddAndRemove) {
   sleep(2);
   // Clean the neighbour
   auto node = nt->getNeighbour("node100");
-  NeighbourTable::getInstance()->cleanNeighbours(1);
+  NeighbourTable::getInstance()->clean(1);
   // Check that we still hold the pointer
   ASSERT_EQ("node100", node->getNodeId());
   neighbours.clear();
@@ -71,13 +71,13 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   ASSERT_EQ(40100, nt->getNeighbour("node100")->getNodePort());
   ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
-  NeighbourTable::getInstance()->cleanNeighbours(2);
+  NeighbourTable::getInstance()->clean(2);
   neighbours.clear();
   neighbours = nt->getNeighbours();
   ASSERT_EQ(2, neighbours.size());
   ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
-  NeighbourTable::getInstance()->cleanNeighbours(1);
+  NeighbourTable::getInstance()->clean(1);
   neighbours.clear();
   nt->update("node102", "192.168.1.1", 40105);
   neighbours = nt->getNeighbours();
