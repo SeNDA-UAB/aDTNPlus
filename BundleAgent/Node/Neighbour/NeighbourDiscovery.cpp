@@ -220,7 +220,7 @@ void NeighbourDiscovery::cleanNeighbours() {
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(67) << "Calling to clean neighbours";
-    NeighbourTable::getInstance()->cleanNeighbours(expirationTime);
+    NeighbourTable::getInstance()->clean(expirationTime);
   }
   LOG(16) << "Exit Neighbour cleaner thread";
   g_stopped++;

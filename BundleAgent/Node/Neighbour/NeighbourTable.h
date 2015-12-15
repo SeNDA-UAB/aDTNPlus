@@ -83,7 +83,7 @@ class NeighbourTable {
    *
    * @param expirationTime Minimum time to expire a neighbour.
    */
-  void cleanNeighbours(int expirationTime);
+  void clean(int expirationTime);
   /**
    * Function to get a copy of the current neighbours list id's.
    *

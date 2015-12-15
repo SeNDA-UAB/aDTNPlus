@@ -67,7 +67,7 @@ void NeighbourTable::update(const std::string &nodeId,
   mutex.unlock();
 }
 
-void NeighbourTable::cleanNeighbours(int expirationTime) {
+void NeighbourTable::clean(int expirationTime) {
   LOG(62) << "Cleaning neighbours that have been out for more than "
           << expirationTime;
   mutex.lock();
