@@ -43,7 +43,7 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   Config cf = Config("../BundleAgent/Config/adtn.ini");
   // clear the Nighbour table to ensure test values.
   sleep(1);
-  NeighbourTable::getInstance()->cleanNeighbours(1);
+  NeighbourTable::getInstance()->clean(1);
   NeighbourDiscovery nd(cf);
   NT->update("node100", "192.168.1.1", 4000);
   auto neighbours = NT->getNeighbours();
