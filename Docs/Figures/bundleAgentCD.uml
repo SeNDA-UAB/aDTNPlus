@@ -41,10 +41,10 @@ class BasicBundleProcessor {
 
 class BundleContainer {
 	- m_bundle : Bundle
-	- m_from : Neighbour
-	+ BundleContainer(from : Neighbour, bundle : Bundle)
+	- m_from : std::string
+	+ BundleContainer(from : std::string, bundle : Bundle)
 	+ getBundle() : Bundle
-	+ getFrom() : Neighbour
+	+ getFrom() : std::string
 	+ serialise() : std::string
 	+{static}deserialise(data : std::string) : BundleContainer
 }
@@ -68,6 +68,8 @@ class Config {
 	-m_neighbourCleanerTime : int
 	-m_logFileName : std::string
 	-m_logLevel : int
+	-m_socketTimeout : int
+	-m_neighbourTestMode : bool
 	-{static} NODEID : std::string
 	-{static} NODEADDRESS : std::string
 	-{static} NODEPORT : int
@@ -78,6 +80,8 @@ class Config {
 	-{static} NEIGHBOURCLEANERTIME : int
 	-{static} LOGFILENAME : std::string
 	-{static} LOGLEVEL : int
+	-{static} SOCKETTIMEOUT : int
+	-{static} NEIGHBOURTESTMODE : bool
 	+Config()
 	+Config(configFileName : std::string)
 	+~Config()
@@ -86,11 +90,13 @@ class Config {
 	+getNodePort() : int
 	+getDiscoveryAddress() : std::string
 	+getDiscoveryPort() : int
-	+getDiscoveryPeriod(): int
-	+getNeighbourExpirationTime():int
-	+getNeighbourCLeanerTime():int
+	+getDiscoveryPeriod() : int
+	+getNeighbourExpirationTime() : int
+	+getNeighbourCLeanerTime() : int
 	+getLogFileName() : std::string
-	+getLogLevel():int
+	+getLogLevel() : int
+	+getSocketTimeout() : int
+	+getNeighbourTestMode() : bool
 }
 
 class ConfigLoader {

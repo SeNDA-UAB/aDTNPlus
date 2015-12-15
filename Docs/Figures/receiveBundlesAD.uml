@@ -8,7 +8,7 @@ while (config.stop() ?) is (false)
 	:Parse <i>message</i> to get nodeId and bundle rawData;
 	:Create bundle with <i>rawData</i>;
 	:Update Neighbour Table with transmitter nodeId, address and port;
-	:Create bundle container with bundle and transmitter node;
+	:Create bundle container with bundle and transmitter nodeId;
 	:Save the bundle container raw to disk;
 note right
 		Creates a file with
