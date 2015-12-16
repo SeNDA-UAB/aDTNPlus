@@ -22,7 +22,7 @@
  * This file contains the implementation of the NeighbourDiscovery class.
  */
 
-#include "NeighbourDiscovery.h"
+#include "Node/Neighbour/NeighbourDiscovery.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

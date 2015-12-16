@@ -22,7 +22,7 @@
  * This file contains the definition of the class.
  */
 
-#include "BundleContainer.h"
+#include "Node/BundleQueue/BundleContainer.h"
 #include <string>
 #include <sstream>
 #include <memory>
