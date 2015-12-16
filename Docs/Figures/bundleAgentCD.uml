@@ -45,8 +45,8 @@ class BundleContainer {
 	+ BundleContainer(from : std::string, bundle : Bundle)
 	+ getBundle() : Bundle
 	+ getFrom() : std::string
-	+ serialise() : std::string
-	+{static}deserialise(data : std::string) : BundleContainer
+	+ serialize() : std::string
+	+{static}deserialize(data : std::string) : BundleContainer
 }
 
 class BundleQueue {
