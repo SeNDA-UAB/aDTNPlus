@@ -10,7 +10,11 @@ else (false)
 		:Discard the bundle;
 	else (false)
 		if (Is there any neighbour\napart from transmitter ?) then (true)
-			:Forward the bundle\nto all neighbours\nexcept the transmitter;
+			if (Is destination a neighbour ?) then (true)
+				:Forward the bundle\nto destination;
+			else (false)
+				:Forward the bundle\nto a neighbour other\nthan transmitter;
+			endif
 		else (false)
 			:Enqueue bundle for\nlater processing;
 		endif
