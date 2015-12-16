@@ -15,26 +15,36 @@
  *
  */
 /**
- * FILE ConfigLoader.cpp
+ * FILE BundleQueue.cpp
  * AUTHOR Blackcatn13
- * DATE Jun 29, 2015
+ * DATE Dec 16, 2015
  * VERSION 1
- * This file contains the implementation of the ConfigLoader class.
+ *
  */
 
-#include "Utils/ConfigLoader.h"
-#include <string>
-#include <sstream>
-#include "Utils/Logger.h"
+#include "Node/BundleQueue/BundleQueue.h"
+#include "Node/BundleQueue/BundleContainer.h"
 
-ConfigLoader::ConfigLoader() {
+BundleQueue::BundleQueue()
+    : m_bundles() {
 }
 
-ConfigLoader::~ConfigLoader() {
+BundleQueue::~BundleQueue() {
+  m_bundles.clear();
 }
 
-bool ConfigLoader::load(std::string file) {
-  LOG(18) << "Loading configuration file " << file;
-  m_reader.ParseINI(file);
-  return (m_reader.ParseError() == 0);
+void BundleQueue::enqueue(std::shared_ptr<BundleContainer> bundleContainer) {
+  m_bundles.push_back(bundleContainer);
 }
+
+std::shared_ptr<BundleContainer> BundleQueue::dequeue() {
+  if (m_bundles.size() > 0) {
+    std::shared_ptr<BundleContainer> bc = m_bundles.front();
+    m_bundles.pop_front();
+    return bc;
+  } else {
+    throw EmptyBundleQueueException(
+        "[BundleQueue] The queue is empty");
+  }
+}
+
