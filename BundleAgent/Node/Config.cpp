@@ -22,7 +22,7 @@
  *
  */
 
-#include "Config.h"
+#include "Node/Config.h"
 #include <string>
 #include "Utils/ConfigLoader.h"
 
