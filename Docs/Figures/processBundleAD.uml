@@ -4,19 +4,25 @@ title Process Bundle Activity Diagram
 
 start
 if (Is destination node ?) then (true)
-	:Dispatch the bundle\nto the destination app;
+	if (Is destination app listening ?) then (true)
+		:Dispatch the bundle\nto the destination app;
+		:Discard the bundle;
+	else (false)
+		:Restore the bundle;
+	endif
 else (false)
 	if (lifetime < (NOW - creationTimestamp) ? ) then (true)
 		:Discard the bundle;
 	else (false)
 		if (Is there any neighbour\napart from transmitter ?) then (true)
-			if (Is destination a neighbour ?) then (true)
+			if (Is destination node a neighbour ?) then (true)
 				:Forward the bundle\nto destination;
 			else (false)
 				:Forward the bundle\nto a neighbour other\nthan transmitter;
 			endif
+			:Discard the bundle;
 		else (false)
-			:Enqueue bundle for\nlater processing;
+			:Restore the bundle;
 		endif
 	endif
 endif
