@@ -41,8 +41,6 @@ class NeighbourTableException : public std::runtime_error {
   }
 };
 
-#define NT NeighbourTable::getInstance()
-
 /**
  * CLASS NeighbourTable
  * This class is singleton that contains all the neighbours.
@@ -50,13 +48,9 @@ class NeighbourTableException : public std::runtime_error {
 class NeighbourTable {
  public:
   /**
-   * @brief Singleton instance.
-   *
-   * Function to get a reference to the singleton class.
-   *
-   * @return A pointer to the singleton.
+   * Constructor of the NeighbourTable.
    */
-  static NeighbourTable* getInstance();
+  NeighbourTable();
   /**
    * Destructor of the class.
    */
@@ -100,14 +94,6 @@ class NeighbourTable {
   std::shared_ptr<Neighbour> getNeighbour(const std::string &nodeId);
 
  private:
-  /**
-   * Constructor of the NeighbourTable.
-   */
-  NeighbourTable();
-  /**
-   * Instance of the singleton.
-   */
-  static NeighbourTable *m_instance;
   /**
    * Map with the neighbours.
    */
