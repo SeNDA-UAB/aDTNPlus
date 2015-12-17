@@ -31,9 +31,12 @@ class NeighbourTable {
 }
 
 class NeighbourDiscovery {
-	+{static}sendBeacons(config : Config) : void
-	+{static}receiveBeacons(config : Config, neighbourTable : NeighbourTable) : void
-	+{static}cleanNeighbours(config : Config, neighbourTable : NeighbourTable) : void
+	#m_config : Config
+	#m_neighbourTable : NeighbourTable
+	+NeighbourDiscovery(config : Config, neighbourTable : NeighbourTable)
+	-sendBeacons() : void
+	#receiveBeacons() : void
+	-cleanNeighbours() : void
 }
 
 class Beacon {

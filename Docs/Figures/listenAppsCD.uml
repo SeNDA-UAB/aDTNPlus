@@ -3,8 +3,11 @@
 title ADTNPlus App Listener Class Diagram
 
 class AppListener {
-	+{static}listenApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
-	+{static}cleanApps(config : Config, listeningAppsTable : ListeningAppsTable) : void
+	-m_config : Config
+	-m_listeningAppsTable : ListeningAppsTable
+	+AppListener(config : Config, listeningAppsTable : ListeningAppsTable)
+	-listenApps() : void
+	-cleanApps() : void
 }
 
 class ListeningAppsTable {
