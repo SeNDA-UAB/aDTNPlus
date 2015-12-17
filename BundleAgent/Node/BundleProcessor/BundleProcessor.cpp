@@ -26,11 +26,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <thread>
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Utils/globals.h"
 
 BundleProcessor::BundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
@@ -39,26 +41,38 @@ BundleProcessor::BundleProcessor(
     : m_config(config),
       m_bundleQueue(bundleQueue),
       m_neighbourTable(neighbourTable) {
+  std::thread t = std::thread(&BundleProcessor::processBundles, this);
+  t.detach();
+  t = std::thread(&BundleProcessor::receiveBundles, this);
+  t.detach();
 }
 
 BundleProcessor::~BundleProcessor() {
 }
 
 void BundleProcessor::processBundles() {
+  while (!g_stop.load()) {
+    try {
+      std::shared_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
+      processBundle(bc);
+    } catch (const std::exception &e) {
+    }
+  }
 }
 
 void BundleProcessor::receiveBundles() {
 }
 
-void dispatch(std::shared_ptr<Bundle> bundle,
-              std::vector<std::string> destinations) {
+void BundleProcessor::dispatch(std::shared_ptr<Bundle> bundle,
+                               std::vector<std::string> destinations) {
 }
 
-void forward(std::shared_ptr<Bundle> bundle, std::vector<std::string> nextHop) {
+void BundleProcessor::forward(std::shared_ptr<Bundle> bundle,
+                              std::vector<std::string> nextHop) {
 }
 
-void discard(std::shared_ptr<Bundle> bundle) {
+void BundleProcessor::discard(std::shared_ptr<Bundle> bundle) {
 }
 
-void restore(std::shared_ptr<Bundle> bundle) {
+void BundleProcessor::restore(std::shared_ptr<Bundle> bundle) {
 }
