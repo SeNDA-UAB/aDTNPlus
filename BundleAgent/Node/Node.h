@@ -25,6 +25,7 @@
 #define BUNDLEAGENT_NODE_NODE_H_
 
 #include <string>
+#include <memory>
 #include "Node/Config.h"
 #include "Node/Neighbour/NeighbourDiscovery.h"
 
@@ -59,7 +60,11 @@ class Node {
   /**
    * Variable that holds the neighbour discovery.
    */
-  NeighbourDiscovery *m_neighbourDiscovery;
+  std::shared_ptr<NeighbourDiscovery> m_neighbourDiscovery;
+  /**
+   * Variable that holds the neighbour table.
+   */
+  std::shared_ptr<NeighbourTable> m_neighbourTable;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

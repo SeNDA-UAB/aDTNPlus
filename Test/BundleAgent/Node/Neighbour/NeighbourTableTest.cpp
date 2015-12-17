@@ -38,7 +38,7 @@
  * Get the neighbours again, and check that now the neighbour is out.
  */
 TEST(NeighbourTableTest, AddAndRemove) {
-  NeighbourTable* nt = NeighbourTable::getInstance();
+  NeighbourTable* nt = new NeighbourTable();
   nt->update("node100", "192.168.1.1", 40000);
   // Get the neighbours
   auto neighbours = nt->getNeighbours();
@@ -47,12 +47,13 @@ TEST(NeighbourTableTest, AddAndRemove) {
   sleep(2);
   // Clean the neighbour
   auto node = nt->getNeighbour("node100");
-  NeighbourTable::getInstance()->clean(1);
+  nt->clean(1);
   // Check that we still hold the pointer
   ASSERT_EQ("node100", node->getNodeId());
   neighbours.clear();
   neighbours = nt->getNeighbours();
   ASSERT_THROW(nt->getNeighbour("node100"), NeighbourTableException);
+  delete nt;
 }
 
 /**
@@ -60,7 +61,7 @@ TEST(NeighbourTableTest, AddAndRemove) {
  * Make the same as the previous test, but with more neighbours.
  */
 TEST(NeighbourTableTest, AddAndRemoveMore) {
-  NeighbourTable* nt = NeighbourTable::getInstance();
+  NeighbourTable* nt = new NeighbourTable();
   nt->update("node100", "192.168.1.1", 40100);
   sleep(1);
   nt->update("node101", "192.168.1.1", 40101);
@@ -71,13 +72,13 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   ASSERT_EQ(40100, nt->getNeighbour("node100")->getNodePort());
   ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
-  NeighbourTable::getInstance()->clean(2);
+  nt->clean(2);
   neighbours.clear();
   neighbours = nt->getNeighbours();
   ASSERT_EQ(2, neighbours.size());
   ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
-  NeighbourTable::getInstance()->clean(1);
+  nt->clean(1);
   neighbours.clear();
   nt->update("node102", "192.168.1.1", 40105);
   neighbours = nt->getNeighbours();
@@ -88,4 +89,5 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
   ASSERT_EQ("192.168.1.102", nt->getNeighbour("node102")->getNodeAddress());
+  delete nt;
 }

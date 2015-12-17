@@ -41,38 +41,37 @@
 TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   g_stop = false;
   Config cf = Config("../BundleAgent/Config/adtn.ini");
-  // clear the Nighbour table to ensure test values.
-  sleep(1);
-  NeighbourTable::getInstance()->clean(1);
-  NeighbourDiscovery nd(cf);
-  NT->update("node100", "192.168.1.1", 4000);
-  auto neighbours = NT->getNeighbours();
+  std::shared_ptr<NeighbourTable> nt = std::shared_ptr<NeighbourTable>(
+      new NeighbourTable());
+  NeighbourDiscovery nd(cf, nt);
+  nt->update("node100", "192.168.1.1", 4000);
+  auto neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
-  NT->update("node101", "192.168.1.1", 4000);
+  nt->update("node101", "192.168.1.1", 4000);
   neighbours.clear();
-  neighbours = NT->getNeighbours();
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(2, neighbours.size());
   sleep(3);
   neighbours.clear();
-  neighbours = NT->getNeighbours();
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(2, neighbours.size());
-  NeighbourTable::getInstance()->update("node101", "192.168.1.1", 4000);
+  nt->update("node101", "192.168.1.1", 4000);
   sleep(2);
   neighbours.clear();
-  neighbours = NT->getNeighbours();
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node101", NT->getNeighbour("node101")->getNodeId());
+  ASSERT_EQ("node101", nt->getNeighbour("node101")->getNodeId());
   sleep(5);
   neighbours.clear();
-  neighbours = NT->getNeighbours();
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(0, neighbours.size());
   g_stop = true;
   // The neighbour cleaner thread has been stopped, so the new neighbours
   // must not be cleaned.
-  NeighbourTable::getInstance()->update("node101", "192.168.1.1", 4000);
+  nt->update("node101", "192.168.1.1", 4000);
   sleep(5);
   neighbours.clear();
-  neighbours = NT->getNeighbours();
+  neighbours = nt->getNeighbours();
   ASSERT_EQ(1, neighbours.size());
 }
 
@@ -82,18 +81,18 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
  * With this we are going to have a neighbour, ourselves.
  */
 /*TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
-  g_stop = false;
-  Config cf = Config("../BundleAgent/Config/adtn.ini");
-  // clear the Nighbour table to ensure test values.
-  sleep(1);
-  NeighbourTable::getInstance()->cleanNeighbours(1);
-  NeighbourDiscovery nd(cf);
-  sleep(3);
-  auto neighbours = NT->getNeighbours();
-  ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node1", NT->getNeighbour(*neighbours.begin())->getNodeId());
-  ASSERT_EQ("127.0.0.1",
-            NT->getNeighbour(*neighbours.begin())->getNodeAddress());
-  ASSERT_EQ(40000, NT->getNeighbour(*neighbours.begin())->getNodePort());
-  g_stop = true;
-}*/
+ g_stop = false;
+ Config cf = Config("../BundleAgent/Config/adtn.ini");
+ // clear the Nighbour table to ensure test values.
+ sleep(1);
+ NeighbourTable::getInstance()->cleanNeighbours(1);
+ NeighbourDiscovery nd(cf);
+ sleep(3);
+ auto neighbours = NT->getNeighbours();
+ ASSERT_EQ(1, neighbours.size());
+ ASSERT_EQ("node1", NT->getNeighbour(*neighbours.begin())->getNodeId());
+ ASSERT_EQ("127.0.0.1",
+ NT->getNeighbour(*neighbours.begin())->getNodeAddress());
+ ASSERT_EQ(40000, NT->getNeighbour(*neighbours.begin())->getNodePort());
+ g_stop = true;
+ }*/
