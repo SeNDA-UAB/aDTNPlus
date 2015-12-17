@@ -15,50 +15,50 @@
  *
  */
 /**
- * FILE BundleProcessor.cpp
+ * FILE BasicBundleProcessor.cpp
  * AUTHOR Blackcatn13
  * DATE Dec 17, 2015
  * VERSION 1
  *
  */
 
-#include "Node/BundleProcessor/BundleProcessor.h"
+#include "Node/BundleProcessor/BasicBundleProcessor.h"
 #include <memory>
-#include <string>
 #include <vector>
+#include <string>
+#include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
 
-BundleProcessor::BundleProcessor(
+BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable
     /*, std::shared_ptr<ListeningAppsTable> listeningAppsTable*/)
-    : m_config(config),
-      m_bundleQueue(bundleQueue),
-      m_neighbourTable(neighbourTable) {
+    : BundleProcessor(config, bundleQueue, neighbourTable) {
 }
 
-BundleProcessor::~BundleProcessor() {
+BasicBundleProcessor::~BasicBundleProcessor() {
 }
 
-void BundleProcessor::processBundles() {
+void BasicBundleProcessor::processBundle(
+    std::shared_ptr<BundleContainer> BundleContainer) {
 }
 
-void BundleProcessor::receiveBundles() {
+void BasicBundleProcessor::createBundleContainer(
+    std::shared_ptr<Neighbour> from, std::shared_ptr<Bundle> bundle) {
 }
 
-void dispatch(std::shared_ptr<Bundle> bundle,
-              std::vector<std::string> destinations) {
+std::vector<std::string> BasicBundleProcessor::checkDestination() {
+  return std::vector<std::string>();
 }
 
-void forward(std::shared_ptr<Bundle> bundle, std::vector<std::string> nextHop) {
+std::vector<std::string> BasicBundleProcessor::checkForward() {
+  return std::vector<std::string>();
 }
 
-void discard(std::shared_ptr<Bundle> bundle) {
-}
-
-void restore(std::shared_ptr<Bundle> bundle) {
+bool BasicBundleProcessor::checkLifetime() {
+  return false;
 }
