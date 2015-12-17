@@ -34,13 +34,13 @@ Node::Node(std::string filename) {
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
-  m_neighbourDiscovery = new NeighbourDiscovery(m_config);
+  m_neighbourTable = std::shared_ptr<NeighbourTable>(new NeighbourTable());
+  m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
+      new NeighbourDiscovery(m_config, m_neighbourTable));
 }
 
 Node::~Node() {
   LOG(6) << "Closing Node...";
-  delete m_neighbourDiscovery;
-  delete NeighbourTable::getInstance();
   delete Logger::getInstance();
 }
 

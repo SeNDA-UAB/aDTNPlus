@@ -32,20 +32,10 @@
 #include "Node/Neighbour/Neighbour.h"
 #include "Utils/Logger.h"
 
-NeighbourTable *NeighbourTable::m_instance = 0;
-
 NeighbourTable::NeighbourTable() {
 }
 
 NeighbourTable::~NeighbourTable() {
-}
-
-NeighbourTable* NeighbourTable::getInstance() {
-  LOG(70) << "Getting instance";
-  if (m_instance == 0) {
-    m_instance = new NeighbourTable();
-  }
-  return m_instance;
 }
 
 void NeighbourTable::update(const std::string &nodeId,

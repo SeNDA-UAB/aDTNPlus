@@ -28,7 +28,9 @@
 #include <cstdint>
 #include <thread>
 #include <atomic>
+#include <memory>
 #include "Node/Config.h"
+#include "Node/Neighbour/NeighbourTable.h"
 
 /**
  * CLASS NeighbourDiscovery
@@ -61,29 +63,37 @@ class NeighbourDiscovery {
    *
    * @param config ConfigLoader with the paramenters.
    */
-  explicit NeighbourDiscovery(Config config);
+  explicit NeighbourDiscovery(Config config,
+                              std::shared_ptr<NeighbourTable> neighbourTable);
   /**
    * Destructor of the class.
    */
   virtual ~NeighbourDiscovery();
-  /**
-   * Function to send beacons.
-   */
-  void sendBeacons();
+
+ protected:
   /**
    * Function to receive beacons.
    */
-  void receiveBeacons();
-  /**
-   * Function to clean neighbours.
-   */
-  void cleanNeighbours();
-
- private:
+  virtual void receiveBeacons();
   /**
    * ConfigLoader initialised.
    */
   Config m_config;
+  /**
+   * The neighbour table reference.
+   */
+  std::shared_ptr<NeighbourTable> m_neighbourTable;
+
+ private:
+  /**
+   * Function to send beacons.
+   */
+  void sendBeacons();
+
+  /**
+   * Function to clean neighbours.
+   */
+  void cleanNeighbours();
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_NEIGHBOURDISCOVERY_H_

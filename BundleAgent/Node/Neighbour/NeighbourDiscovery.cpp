@@ -37,8 +37,10 @@
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
-NeighbourDiscovery::NeighbourDiscovery(Config config)
-    : m_config(config) {
+NeighbourDiscovery::NeighbourDiscovery(
+    Config config, std::shared_ptr<NeighbourTable> neighbourTable)
+    : m_config(config),
+      m_neighbourTable(neighbourTable) {
   std::thread t = std::thread(&NeighbourDiscovery::cleanNeighbours, this);
   t.detach();
   t = std::thread(&NeighbourDiscovery::sendBeacons, this);
@@ -181,8 +183,8 @@ void NeighbourDiscovery::receiveBeacons() {
                   || (b.getNodeId() == nodeId && testMode)) {
                 LOG(15) << "Received beacon from " << b.getNodeId() << " "
                         << b.getNodeAddress() << ":" << b.getNodePort();
-                std::thread([b]() {
-                  NeighbourTable::getInstance()->update(b.getNodeId(),
+                std::thread([b, this]() {
+                  m_neighbourTable->update(b.getNodeId(),
                       b.getNodeAddress(),
                       b.getNodePort());
                 }).detach();
@@ -220,7 +222,7 @@ void NeighbourDiscovery::cleanNeighbours() {
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(67) << "Calling to clean neighbours";
-    NeighbourTable::getInstance()->clean(expirationTime);
+    m_neighbourTable->clean(expirationTime);
   }
   LOG(16) << "Exit Neighbour cleaner thread";
   g_stopped++;
