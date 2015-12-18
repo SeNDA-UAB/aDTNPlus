@@ -74,5 +74,7 @@ void BundleProcessor::forward(std::shared_ptr<Bundle> bundle,
 void BundleProcessor::discard(std::shared_ptr<Bundle> bundle) {
 }
 
-void BundleProcessor::restore(std::shared_ptr<Bundle> bundle) {
+void BundleProcessor::restore(
+    std::shared_ptr<BundleContainer> bundleContainer) {
+  m_bundleQueue->enqueue(bundleContainer);
 }

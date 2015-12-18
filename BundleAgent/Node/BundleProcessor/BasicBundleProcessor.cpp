@@ -54,7 +54,7 @@ void BasicBundleProcessor::processBundle(
       dispatch(bundleContainer->getBundle(), destinations);
       discard(bundleContainer->getBundle());
     } else {
-      restore(bundleContainer->getBundle());
+      restore(bundleContainer);
     }
   } else {
     if (checkLifetime()) {
@@ -79,7 +79,7 @@ void BasicBundleProcessor::processBundle(
         }
         discard(bundleContainer->getBundle());
       } else {
-        restore(bundleContainer->getBundle());
+        restore(bundleContainer);
       }
     }
   }

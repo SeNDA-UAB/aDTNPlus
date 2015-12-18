@@ -98,7 +98,7 @@ class BundleProcessor {
    *
    * @param bundle The bundle to restore.
    */
-  void restore(std::shared_ptr<Bundle> bundle);
+  void restore(std::shared_ptr<BundleContainer> bundleContainer);
   /**
    * Variable that holds the configuration.
    */
