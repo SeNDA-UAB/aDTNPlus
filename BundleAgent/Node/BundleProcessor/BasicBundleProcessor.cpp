@@ -26,12 +26,14 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Bundle/PrimaryBlock.h"
 
 BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
@@ -44,7 +46,43 @@ BasicBundleProcessor::~BasicBundleProcessor() {
 }
 
 void BasicBundleProcessor::processBundle(
-    std::shared_ptr<BundleContainer> BundleContainer) {
+    std::shared_ptr<BundleContainer> bundleContainer) {
+  if (bundleContainer->getBundle()->getPrimaryBlock()->getDestination()
+      == m_config.getNodeId()) {
+    std::vector<std::string> destinations = checkDestination();
+    if (destinations.size() > 0) {
+      dispatch(bundleContainer->getBundle(), destinations);
+      discard(bundleContainer->getBundle());
+    } else {
+      restore(bundleContainer->getBundle());
+    }
+  } else {
+    if (checkLifetime()) {
+      discard(bundleContainer->getBundle());
+    } else {
+      std::vector<std::string> neighbours = checkForward();
+      auto it = std::find(neighbours.begin(), neighbours.end(),
+                          bundleContainer->getFrom());
+      if (it != neighbours.end()) {
+        neighbours.erase(it);
+      }
+      if (neighbours.size() > 0) {
+        it = std::find(
+            neighbours.begin(), neighbours.end(),
+            bundleContainer->getBundle()->getPrimaryBlock()->getDestination());
+        if (it != neighbours.end()) {
+          std::vector<std::string> nextHop = std::vector<std::string>();
+          nextHop.push_back(*it);
+          forward(bundleContainer->getBundle(), nextHop);
+        } else {
+          forward(bundleContainer->getBundle(), neighbours);
+        }
+        discard(bundleContainer->getBundle());
+      } else {
+        restore(bundleContainer->getBundle());
+      }
+    }
+  }
 }
 
 void BasicBundleProcessor::createBundleContainer(
