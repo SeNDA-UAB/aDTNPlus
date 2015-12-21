@@ -126,6 +126,12 @@ class Config {
    * @return If test mode is enabled.
    */
   bool getNeighbourTestMode();
+  /**
+   * Get the path to save the bundles.
+   *
+   * @return The path.
+   */
+  std::string getDataPath();
 
  private:
   /**
@@ -177,6 +183,10 @@ class Config {
    */
   bool m_neighbourTestMode;
   /**
+   * Path to save the bundles.
+   */
+  std::string m_dataPath;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -195,6 +205,7 @@ class Config {
   static const int LOGLEVEL;
   static const int SOCKETTIMEOUT;
   static const bool NEIGHBOURTESTMODE;
+  static const std::string DATAPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_
