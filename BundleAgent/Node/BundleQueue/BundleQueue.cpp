@@ -33,18 +33,21 @@ BundleQueue::~BundleQueue() {
   m_bundles.clear();
 }
 
-void BundleQueue::enqueue(std::shared_ptr<BundleContainer> bundleContainer) {
-  m_bundles.push_back(bundleContainer);
+BundleQueue::BundleQueue(BundleQueue&& bc)
+    : m_bundles(std::move(bc.m_bundles)) {
 }
 
-std::shared_ptr<BundleContainer> BundleQueue::dequeue() {
+void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
+  m_bundles.push_back(std::move(bundleContainer));
+}
+
+std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
   if (m_bundles.size() > 0) {
-    std::shared_ptr<BundleContainer> bc = m_bundles.front();
+    std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
     m_bundles.pop_front();
     return bc;
   } else {
-    throw EmptyBundleQueueException(
-        "[BundleQueue] The queue is empty");
+    throw EmptyBundleQueueException("[BundleQueue] The queue is empty");
   }
 }
 

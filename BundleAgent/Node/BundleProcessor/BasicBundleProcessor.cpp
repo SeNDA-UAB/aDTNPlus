@@ -46,19 +46,19 @@ BasicBundleProcessor::~BasicBundleProcessor() {
 }
 
 void BasicBundleProcessor::processBundle(
-    std::shared_ptr<BundleContainer> bundleContainer) {
-  if (bundleContainer->getBundle()->getPrimaryBlock()->getDestination()
+    std::unique_ptr<BundleContainer> bundleContainer) {
+  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination()
       == m_config.getNodeId()) {
     std::vector<std::string> destinations = checkDestination();
     if (destinations.size() > 0) {
       dispatch(bundleContainer->getBundle(), destinations);
-      discard(bundleContainer->getBundle());
+      discard(std::move(bundleContainer));
     } else {
-      restore(bundleContainer);
+      restore(std::move(bundleContainer));
     }
   } else {
     if (checkLifetime()) {
-      discard(bundleContainer->getBundle());
+      discard(std::move(bundleContainer));
     } else {
       std::vector<std::string> neighbours = checkForward();
       auto it = std::find(neighbours.begin(), neighbours.end(),
@@ -69,7 +69,7 @@ void BasicBundleProcessor::processBundle(
       if (neighbours.size() > 0) {
         it = std::find(
             neighbours.begin(), neighbours.end(),
-            bundleContainer->getBundle()->getPrimaryBlock()->getDestination());
+            bundleContainer->getBundle().getPrimaryBlock()->getDestination());
         if (it != neighbours.end()) {
           std::vector<std::string> nextHop = std::vector<std::string>();
           nextHop.push_back(*it);
@@ -77,16 +77,16 @@ void BasicBundleProcessor::processBundle(
         } else {
           forward(bundleContainer->getBundle(), neighbours);
         }
-        discard(bundleContainer->getBundle());
+        discard(std::move(bundleContainer));
       } else {
-        restore(bundleContainer);
+        restore(std::move(bundleContainer));
       }
     }
   }
 }
 
 void BasicBundleProcessor::createBundleContainer(
-    std::shared_ptr<Neighbour> from, std::shared_ptr<Bundle> bundle) {
+    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
 }
 
 std::vector<std::string> BasicBundleProcessor::checkDestination() {

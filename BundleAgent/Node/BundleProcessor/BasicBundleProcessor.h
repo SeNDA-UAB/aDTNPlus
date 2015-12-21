@@ -67,7 +67,7 @@ class BasicBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle container to process.
    */
-  void processBundle(std::shared_ptr<BundleContainer> bundleContainer);
+  void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    *
@@ -75,7 +75,7 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param Bundle The bundle received.
    */
   void createBundleContainer(std::shared_ptr<Neighbour> from,
-                             std::shared_ptr<Bundle> Bundle);
+                             std::unique_ptr<Bundle> Bundle);
   /**
    * Function that checks the possible destinations.
    *

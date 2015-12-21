@@ -71,7 +71,7 @@ class BundleProcessor {
    * @param bundle Bundle to dispatch.
    * @param destinations List of all the destinations to dispatch the bundle.
    */
-  void dispatch(std::shared_ptr<Bundle> bundle,
+  void dispatch(const Bundle& bundle,
                 std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
@@ -81,24 +81,24 @@ class BundleProcessor {
    * @param bundle Bundle to forward.
    * @param nextHop List of all the destinations to forward the bundle.
    */
-  void forward(std::shared_ptr<Bundle> bundle,
+  void forward(const Bundle& bundle,
                std::vector<std::string> nextHop);
   /**
-   * @brief Function that discards a bundle.
+   * @brief Function that discards a bundle container.
    *
    * This function discards an eliminates a bundle from the node.
    *
-   * @param bundle The bundle to discard.
+   * @param bundleContainer The bundle container to discard.
    */
-  void discard(std::shared_ptr<Bundle> bundle);
+  void discard(std::unique_ptr<BundleContainer> bundleContainer);
   /**
-   * @brief Function that restores a bundle.
+   * @brief Function that restores a bundle container.
    *
    * This function saves again the bundle into the queue.
    *
-   * @param bundle The bundle to restore.
+   * @param bundleContainer The bundle container to restore.
    */
-  void restore(std::shared_ptr<BundleContainer> bundleContainer);
+  void restore(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Variable that holds the configuration.
    */
@@ -132,7 +132,7 @@ class BundleProcessor {
    * @param bundleContainer The bundle container to process.
    */
   virtual void processBundle(
-      std::shared_ptr<BundleContainer> bundleContainer) = 0;
+      std::unique_ptr<BundleContainer> bundleContainer) = 0;
   /**
    * Function that creates a bundle container.
    * Virtual function, all the bundleProcessors must implement it.
@@ -141,7 +141,7 @@ class BundleProcessor {
    * @param Bundle The bundle received.
    */
   virtual void createBundleContainer(std::shared_ptr<Neighbour> from,
-                                     std::shared_ptr<Bundle> Bundle) = 0;
+                                     std::unique_ptr<Bundle> Bundle) = 0;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_

@@ -29,27 +29,28 @@
 #include "gtest/gtest.h"
 
 TEST(BundleContainerTest, GenerateContainer) {
-  std::shared_ptr<Bundle> b = std::shared_ptr<Bundle>(
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("Me", b);
+  Bundle b1 = *b.get();
+  BundleContainer bc = BundleContainer("Me", std::move(b));
   ASSERT_EQ("Me", bc.getFrom());
-  ASSERT_EQ(b, bc.getBundle());
+  ASSERT_EQ(b1.toRaw(), bc.getBundle().toRaw());
 }
 
 TEST(BundleContainerTest, SerializeAndDeserialize) {
-  std::shared_ptr<Bundle> b = std::shared_ptr<Bundle>(
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("You", b);
+  BundleContainer bc = BundleContainer("You", std::move(b));
   std::string data = bc.serialize();
-  std::shared_ptr<BundleContainer> sbc = BundleContainer::deserialize(data);
+  std::unique_ptr<BundleContainer> sbc = BundleContainer::deserialize(data);
   ASSERT_EQ(bc.getFrom(), sbc->getFrom());
-  ASSERT_EQ(bc.getBundle()->toRaw(), sbc->getBundle()->toRaw());
+  ASSERT_EQ(bc.getBundle().toRaw(), sbc->getBundle().toRaw());
 }
 
 TEST(BundleContainerTest, BadSerialized) {
-  std::shared_ptr<Bundle> b = std::shared_ptr<Bundle>(
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("You", b);
+  BundleContainer bc = BundleContainer("You", std::move(b));
   std::string data = bc.serialize();
   // Check a bad header
   data[0] = '0';

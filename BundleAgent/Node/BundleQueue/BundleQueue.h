@@ -52,24 +52,26 @@ class BundleQueue {
    * Destructor of the class.
    */
   virtual ~BundleQueue();
+
+  BundleQueue(BundleQueue&& bc);
   /**
    * Enqueues a bundle container to the queue.
    *
    * @param bundleContainer the bundle container to add to the queue.
    */
-  void enqueue(std::shared_ptr<BundleContainer> bundleContainer);
+  void enqueue(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Dequeues a bundle container from the queue.
    * The bundle dequeued is removed from the container.
    * @return The oldest bundle container.
    */
-  std::shared_ptr<BundleContainer> dequeue();
+  std::unique_ptr<BundleContainer> dequeue();
 
  private:
   /**
    * List that holds the container bundles.
    */
-  std::list<std::shared_ptr<BundleContainer>> m_bundles;
+  std::list<std::unique_ptr<BundleContainer>> m_bundles;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_

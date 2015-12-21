@@ -32,16 +32,21 @@
 #include "Bundle/Bundle.h"
 
 BundleContainer::BundleContainer(std::string from,
-                                 std::shared_ptr<Bundle> bundle)
-    : m_bundle(bundle),
+                                 std::unique_ptr<Bundle> bundle)
+    : m_bundle(std::move(bundle)),
       m_from(from) {
 }
 
 BundleContainer::~BundleContainer() {
 }
 
-std::shared_ptr<Bundle> BundleContainer::getBundle() {
-  return m_bundle;
+BundleContainer::BundleContainer(BundleContainer&& bc)
+    : m_bundle(std::move(bc.m_bundle)),
+      m_from(bc.m_from) {
+}
+
+Bundle& BundleContainer::getBundle() {
+  return *m_bundle;
 }
 
 std::string BundleContainer::getFrom() {
@@ -54,7 +59,7 @@ std::string BundleContainer::serialize() {
   return ss.str();
 }
 
-std::shared_ptr<BundleContainer> BundleContainer::deserialize(
+std::unique_ptr<BundleContainer> BundleContainer::deserialize(
     const std::string &data) {
   // Check header
   std::stringstream size;
@@ -76,11 +81,10 @@ std::shared_ptr<BundleContainer> BundleContainer::deserialize(
     size << m_footer;
     int footerSize = size.str().length();
     // The raw bundle is from the start to the size - footer size
-    std::string bundleData = newData.substr(
-        0, newData.length() - (footerSize));
-    std::shared_ptr<Bundle> b;
+    std::string bundleData = newData.substr(0, newData.length() - (footerSize));
+    std::unique_ptr<Bundle> b;
     try {
-      b = std::shared_ptr<Bundle>(new Bundle(bundleData));
+      b = std::unique_ptr<Bundle>(new Bundle(bundleData));
     } catch (const std::exception &e) {
       throw BundleContainerCreationException(
           "[BundleContainer] Bad bundle raw format");
@@ -91,8 +95,8 @@ std::shared_ptr<BundleContainer> BundleContainer::deserialize(
       throw BundleContainerCreationException(
           "[BundleContainer] Bad footer in bundle container");
     } else {
-      std::shared_ptr<BundleContainer> container = std::shared_ptr<
-          BundleContainer>(new BundleContainer(from, b));
+      std::unique_ptr<BundleContainer> container = std::unique_ptr<
+          BundleContainer>(new BundleContainer(from, std::move(b)));
       return container;
     }
   } else {

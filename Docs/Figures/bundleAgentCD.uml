@@ -24,7 +24,7 @@ abstract class BundleProcessor {
 	-{abstract}processBundle(bundleContainer : BundleContainer): void
 	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
 	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
-	#discard(bundle : Bundle) : void
+	#discard(bundleContainer : BundleContainer) : void
 	#restore(bundleContainer : BundleContainer) : void
 	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle)
 }
