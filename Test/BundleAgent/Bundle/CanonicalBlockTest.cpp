@@ -115,7 +115,7 @@ TEST(CanonicalBlockTest, GetMultipleLenght) {
  */
 TEST(CanonicalBlockTest, GetLenghtWithEID) {
   std::stringstream ss;
-  ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
+  ss << (uint8_t)CanonicalBlockTypes::METADATA_EXTENSION_BLOCK;
   std::bitset<7> flags = std::bitset<7>(0x48);
   ss << SDNV::encode(flags.to_ulong()) << SDNV::encode(2);
   // First EID pair of values
@@ -136,7 +136,7 @@ TEST(CanonicalBlockTest, GetLenghtWithEID) {
 TEST(CanonicalBlockTest, BadRawFormat) {
   ASSERT_THROW(CanonicalBlock(""), BlockConstructionException);
   std::stringstream ss;
-  ss << (uint8_t)BlockTypes::METADATA_EXTENSION_BLOCK;
+  ss << (uint8_t)CanonicalBlockTypes::METADATA_EXTENSION_BLOCK;
   ss << "Canonical Block without flags and length SDNV";
   ASSERT_THROW(CanonicalBlock(ss.str()), BlockConstructionException);
 }

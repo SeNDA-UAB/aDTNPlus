@@ -34,7 +34,7 @@
 TEST(PayloadBlockTest, DefaultConstructor) {
   PayloadBlock pb = PayloadBlock("");
   ASSERT_EQ("", pb.getPayload());
-  ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
+  ASSERT_EQ(static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK),
               pb.getBlockType());
 }
 
@@ -62,7 +62,7 @@ TEST(PayloadBlockTest, RawFunctions) {
   PayloadBlock pb = PayloadBlock("This is a test payload");
   std::string rawBlock = pb.toRaw();
   PayloadBlock pb1 = PayloadBlock(rawBlock, true);
-  ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
+  ASSERT_EQ(static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK),
                 pb1.getBlockType());
   ASSERT_EQ("This is a test payload", pb1.getPayload());
 }
@@ -72,12 +72,12 @@ TEST(PayloadBlockTest, RawFunctions) {
  */
 TEST(PayloadBlockTest, FlagTest) {
   PayloadBlock pb = PayloadBlock("");
-  pb.setProcFlag(BlockControlFlags::LAST_BLOCK);
-  pb.setProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
-  ASSERT_TRUE(pb.checkProcFlag(BlockControlFlags::LAST_BLOCK));
-  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::DELETE_BUNDLE));
-  ASSERT_TRUE(pb.checkProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
-  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::REPLICATE_FRAGMENT));
-  pb.unsetProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED);
-  ASSERT_FALSE(pb.checkProcFlag(BlockControlFlags::BLOCK_NOT_PROCESSED));
+  pb.setProcFlag(CanonicalBlockControlFlags::LAST_BLOCK);
+  pb.setProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED);
+  ASSERT_TRUE(pb.checkProcFlag(CanonicalBlockControlFlags::LAST_BLOCK));
+  ASSERT_FALSE(pb.checkProcFlag(CanonicalBlockControlFlags::DELETE_BUNDLE));
+  ASSERT_TRUE(pb.checkProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED));
+  ASSERT_FALSE(pb.checkProcFlag(CanonicalBlockControlFlags::REPLICATE_FRAGMENT));
+  pb.unsetProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED);
+  ASSERT_FALSE(pb.checkProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED));
 }

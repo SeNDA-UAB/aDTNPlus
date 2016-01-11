@@ -42,7 +42,7 @@ PayloadBlock::PayloadBlock(const std::string &payload, bool isRaw)
     }
   } else {
     m_payload = payload;
-    m_blockType = static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK);
+    m_blockType = static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK);
   }
 }
 

@@ -55,8 +55,8 @@ Bundle::Bundle(const std::string &rawData)
     // We now can start to generate the known blocks.
     std::shared_ptr<Block> b;
     while (data.size() != 0) {
-      switch (static_cast<BlockTypes>(data[0])) {
-        case BlockTypes::PAYLOAD_BLOCK: {
+      switch (static_cast<CanonicalBlockTypes>(data[0])) {
+        case CanonicalBlockTypes::PAYLOAD_BLOCK: {
           // Check if another payload block is present
           if (m_payloadBlock == nullptr) {
             LOG(35) << "Generating Payload Block";
@@ -68,7 +68,7 @@ Bundle::Bundle(const std::string &rawData)
           }
           break;
         }
-        case BlockTypes::METADATA_EXTENSION_BLOCK: {
+        case CanonicalBlockTypes::METADATA_EXTENSION_BLOCK: {
           // This is an abstraction of the metadata block, so we need to create
           // a derived block of it.
           LOG(35) << "Generating Metadata Extension Block";
@@ -91,7 +91,7 @@ Bundle::Bundle(const std::string &rawData)
     std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
         .rbegin();
     if (!std::static_pointer_cast<CanonicalBlock>(*finalBlock)->checkProcFlag(
-        BlockControlFlags::LAST_BLOCK)) {
+        CanonicalBlockControlFlags::LAST_BLOCK)) {
       throw BundleCreationException("[Bundle] Last block not marked as such");
     }
   } catch (const BlockConstructionException &e) {
@@ -133,7 +133,7 @@ std::string Bundle::toRaw() {
     std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
         .rbegin();
     std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
-        BlockControlFlags::LAST_BLOCK);
+        CanonicalBlockControlFlags::LAST_BLOCK);
     for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
         it != m_blocks.end(); ++it) {
       LOG(36) << "Getting the next block in raw";
@@ -161,7 +161,7 @@ void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
 // only one can be present into a bundle.
   LOG(37) << "Adding new Block to the bundle";
   if (newBlock->getBlockType()
-      != static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK)) {
+      != static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK)) {
     m_blocks.push_back(newBlock);
   } else {
     LOG(3) << "Some one is trying to add another Payload block";
