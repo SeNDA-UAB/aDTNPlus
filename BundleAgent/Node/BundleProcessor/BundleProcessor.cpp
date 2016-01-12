@@ -23,11 +23,16 @@
  */
 
 #include "Node/BundleProcessor/BundleProcessor.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include <memory>
 #include <string>
 #include <vector>
 #include <thread>
 #include <cstdio>
+#include <chrono>
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Config.h"
@@ -64,6 +69,51 @@ void BundleProcessor::processBundles() {
 }
 
 void BundleProcessor::receiveBundles() {
+  sockaddr_in receiveAddr = { 0 };
+  receiveAddr.sin_family = AF_INET;
+  receiveAddr.sin_port = htons(m_config.getNodePort());
+  receiveAddr.sin_addr.s_addr = inet_addr(m_config.getNodeAddress().c_str());
+  int sock = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock == -1) {
+    // Stop the application
+    LOG(1) << "Cannot create socket into receiveBundles thread, reason: "
+           << strerror(errno);
+    g_stop = true;
+  } else {
+    if (bind(sock, reinterpret_cast<sockaddr*>(&receiveAddr),
+             sizeof(receiveAddr)) == -1) {
+      // Stop the application
+      LOG(1) << "Cannot bind socket to " << m_config.getNodeAddress()
+             << ", reason: " << strerror(errno);
+      g_stop = true;
+    } else {
+      if (listen(sock, 50) != 0) {
+        // Stop the application
+        LOG(1) << "Cannot set the socket to listen, reason: "
+               << strerror(errno);
+        g_stop = true;
+      } else {
+        struct timeval tv;
+        tv.tv_sec = 10;
+        while (!g_stop.load()) {
+          sockaddr_in clientAddr = { 0 };
+          socklen_t clientLen = sizeof(clientAddr);
+          int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
+                               &clientLen);
+          if (newsock == -1) {
+            LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+            continue;
+          }
+          // Set timeout to socket
+          setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
+                     sizeof(struct timeval));
+          std::thread([newsock, this]() {
+
+          }).detach();
+        }
+      }
+    }
+  }
 }
 
 void BundleProcessor::dispatch(const Bundle& bundle,
