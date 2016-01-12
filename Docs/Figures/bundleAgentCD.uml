@@ -26,17 +26,17 @@ abstract class BundleProcessor {
 	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
 	#discard(bundle : Bundle) : void
 	#restore(bundle : Bundle) : void
-	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle)
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
 }
 
 class BasicBundleProcessor {
 	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
 	+~BasicBundleProcessor()
 	-processBundle(bundleContainer : BundleContainer) : void
-	-checkDestination(): std::vector<std::string>
-	-checkLifetime(): bool
-	-checkForward(): std::vector<std::string>
-	-createBundleContainer(from : Neighbour, bundle : Bundle)
+	-checkDestination(bundleContainer : BundleContainer): std::vector<std::string>
+	-checkLifetime(bundleContainer : BundleContainer): bool
+	-checkForward(bundleContainer : BundleContainer): std::vector<std::string>
+	-createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
 }
 
 class BundleContainer {
