@@ -71,8 +71,7 @@ class BundleProcessor {
    * @param bundle Bundle to dispatch.
    * @param destinations List of all the destinations to dispatch the bundle.
    */
-  void dispatch(const Bundle& bundle,
-                std::vector<std::string> destinations);
+  void dispatch(const Bundle& bundle, std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *
@@ -81,8 +80,7 @@ class BundleProcessor {
    * @param bundle Bundle to forward.
    * @param nextHop List of all the destinations to forward the bundle.
    */
-  void forward(Bundle bundle,
-               std::vector<std::string> nextHop);
+  void forward(Bundle bundle, std::vector<std::string> nextHop);
   /**
    * @brief Function that discards a bundle container.
    *
@@ -115,7 +113,6 @@ class BundleProcessor {
    * Variable that holds the listening apps table.
    */
   // std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
-
  private:
   /**
    * Function that processes the bundles.
@@ -125,6 +122,12 @@ class BundleProcessor {
    * Function that receives the bundles.
    */
   void receiveBundles();
+  /**
+   * Function that parses, creates and saves a receiving bundle.
+   *
+   * @param sock Socket to read the message.
+   */
+  void receiveMessage(int sock);
   /**
    * Function that processes one given bundle container.
    * Virtual function, all the bundleProcessors must implement it.
@@ -140,8 +143,8 @@ class BundleProcessor {
    * @param from The neighbour who has sent the bundle.
    * @param Bundle The bundle received.
    */
-  virtual void createBundleContainer(std::shared_ptr<Neighbour> from,
-                                     std::unique_ptr<Bundle> Bundle) = 0;
+  virtual std::unique_ptr<BundleContainer> createBundleContainer(
+      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle) = 0;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_

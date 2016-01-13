@@ -85,8 +85,9 @@ void BasicBundleProcessor::processBundle(
   }
 }
 
-void BasicBundleProcessor::createBundleContainer(
+std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
+  return 0;
 }
 
 std::vector<std::string> BasicBundleProcessor::checkDestination() {

@@ -109,9 +109,88 @@ void BundleProcessor::receiveBundles() {
           // Set timeout to socket
           setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                      sizeof(struct timeval));
-          std::thread([newsock, this]() {
+          std::thread(&BundleProcessor::receiveMessage, this, newsock).detach();
+        }
+      }
+    }
+  }
+}
 
-          }).detach();
+void BundleProcessor::receiveMessage(int sock) {
+  sockaddr_in bundleSrc = { 0 };
+  socklen_t bundleSrcLength = sizeof(bundleSrc);
+  if (getpeername(sock, reinterpret_cast<sockaddr*>(&bundleSrc),
+                  &bundleSrcLength) != 0) {
+    LOG(3) << "Cannot get peer name, reason: " << strerror(errno);
+  } else {
+    LOG(11) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
+            << ntohs(bundleSrc.sin_port);
+  }
+  // First read is the node identifier
+  char buff[1024];
+  int receivedSize = recv(sock, buff, sizeof(buff), 0);
+  if (receivedSize != sizeof(buff)) {
+    LOG(1) << "Error receiving origin's platform id from "
+           << inet_ntoa(bundleSrc.sin_addr);
+  } else {
+    std::string srcNodeId = std::string(buff, 1024);
+    uint32_t bundleLength;
+    receivedSize = recv(sock, &bundleLength, sizeof(bundleLength), 0);
+    if (receivedSize != sizeof(bundleLength)) {
+      if (receivedSize == 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Probably peer has disconnected.";
+      } else if (receivedSize < 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr);
+      } else {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Length not in the correct format.";
+      }
+    } else {
+      bundleLength = ntohs(bundleLength);
+      char* rawBundle = new char[bundleLength];
+      uint32_t receivedLength = 0;
+      while (receivedLength != bundleLength) {
+        receivedSize = recv(sock, rawBundle + receivedLength,
+                            bundleLength - receivedLength, 0);
+        if (receivedSize == -1) {
+          LOG(1) << "Error receiving bundle from "
+                 << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
+                 << strerror(errno);
+          break;
+        } else if (receivedSize == 0) {
+          LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
+                 << " closed the connection.";
+          break;
+        }
+        receivedLength += receivedSize;
+      }
+      if (receivedLength != bundleLength) {
+        LOG(1) << "Bundle not received correctly from "
+               << inet_ntoa(bundleSrc.sin_addr);
+      } else {
+        LOG(11) << "Received bundle from " << srcNodeId << "("
+                << inet_ntoa(bundleSrc.sin_addr) << ":"
+                << ntohs(bundleSrc.sin_port) << ") with length: "
+                << receivedLength;
+        close(sock);
+        std::string bundleStringRaw = std::string(rawBundle, bundleLength);
+        try {
+          // Create the bundle
+          std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+              new Bundle(bundleStringRaw));
+          // Create the bundleContainer
+          std::unique_ptr<BundleContainer> bc = createBundleContainer(
+              m_neighbourTable->getNeighbour(srcNodeId), std::move(b));
+          // Save the bundleContainer to disk
+
+          // Enqueue the bundleContainer
+          m_bundleQueue->enqueue(std::move(bc));
+        } catch (BundleCreationException &e) {
+          LOG(1) << "Error constructing received bundle, reason: " << e.what();
         }
       }
     }
@@ -168,7 +247,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     LOG(1) << "Cannot write to socket, reason: "
                     << strerror(errno);
                   } else {
-                    writed = send(sock, &bundleLength, sizeof(uint32_t), 0);
+                    uint32_t nBundleLength = htons(bundleLength);
+                    writed = send(sock, &nBundleLength, sizeof(uint32_t), 0);
                     if (writed < 0) {
                       LOG(1) << "Cannot write to socket, reason: "
                       << strerror(errno);
@@ -198,6 +278,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                 }
               }
             }
+            close(sock);
           }
         });
   }
