@@ -24,6 +24,7 @@
 
 #include <map>
 #include <string>
+#include <fstream>
 #include <memory>
 #include "Node/Neighbour/NeighbourDiscovery.h"
 #include "gtest/gtest.h"
@@ -80,19 +81,36 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
  * To do this, we start the neighbour discovery, and put in test mode.
  * With this we are going to have a neighbour, ourselves.
  */
-/*TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
- g_stop = false;
- Config cf = Config("../BundleAgent/Config/adtn.ini");
- // clear the Nighbour table to ensure test values.
- sleep(1);
- NeighbourTable::getInstance()->cleanNeighbours(1);
- NeighbourDiscovery nd(cf);
- sleep(3);
- auto neighbours = NT->getNeighbours();
- ASSERT_EQ(1, neighbours.size());
- ASSERT_EQ("node1", NT->getNeighbour(*neighbours.begin())->getNodeId());
- ASSERT_EQ("127.0.0.1",
- NT->getNeighbour(*neighbours.begin())->getNodeAddress());
- ASSERT_EQ(40000, NT->getNeighbour(*neighbours.begin())->getNodePort());
- g_stop = true;
- }*/
+TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
+  g_stop = false;
+  std::ofstream ss;
+  ss.open("adtn1.ini");
+  ss << "[Node]" << std::endl << "nodeId : node1" << std::endl
+     << "nodeAddress : 127.0.0.1" << std::endl << "nodePort : 40000"
+     << std::endl << "[NeighbourDiscovery]" << std::endl
+     << "discoveryAddress : 239.100.100.100" << std::endl
+     << "discoveryPort : 40001" << std::endl << "discoveryPeriod : 2"
+     << std::endl << "neighbourExpirationTime : 4" << std::endl
+     << "neighbourCleanerTime : 2" << std::endl << "testMode : true"
+     << std::endl << "[Logger]" << std::endl << "filename : /tmp/adtn.log"
+     << std::endl << "level : 100" << std::endl << "[Constants]" << std::endl
+     << "timeout : 10" << std::endl << "[BundleProcess]" << std::endl
+     << "dataPath : /home/marc/.adtn/" << std::endl;
+  ss.close();
+
+  Config cf = Config("adtn1.ini");
+  // clear the Nighbour table to ensure test values.
+  sleep(1);
+  std::shared_ptr<NeighbourTable> nt = std::shared_ptr<NeighbourTable>(
+      new NeighbourTable());
+  NeighbourDiscovery nd(cf, nt);
+  sleep(3);
+  auto neighbours = nt->getNeighbours();
+  ASSERT_EQ(1, neighbours.size());
+  ASSERT_EQ("node1", nt->getNeighbour(*neighbours.begin())->getNodeId());
+  ASSERT_EQ("127.0.0.1",
+            nt->getNeighbour(*neighbours.begin())->getNodeAddress());
+  ASSERT_EQ(40000, nt->getNeighbour(*neighbours.begin())->getNodePort());
+  g_stop = true;
+  sleep(5);
+}
