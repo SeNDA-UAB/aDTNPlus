@@ -81,7 +81,7 @@ class BundleProcessor {
    * @param bundle Bundle to forward.
    * @param nextHop List of all the destinations to forward the bundle.
    */
-  void forward(const Bundle& bundle,
+  void forward(Bundle bundle,
                std::vector<std::string> nextHop);
   /**
    * @brief Function that discards a bundle container.

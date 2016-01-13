@@ -33,8 +33,10 @@
 #include <thread>
 #include <cstdio>
 #include <chrono>
+#include <algorithm>
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
+#include "Node/Neighbour/Neighbour.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
@@ -120,8 +122,85 @@ void BundleProcessor::dispatch(const Bundle& bundle,
                                std::vector<std::string> destinations) {
 }
 
-void BundleProcessor::forward(const Bundle& bundle,
-                              std::vector<std::string> nextHop) {
+void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
+  std::string bundleRaw = bundle.toRaw();
+  // Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
+  uint32_t bundleLength = bundleRaw.length();
+  if (bundleLength <= 0) {
+    LOG(1) << "The bundle to forward has a length of 0, aborting forward.";
+  } else {
+    std::for_each(
+        nextHop.begin(),
+        nextHop.end(),
+        [this, bundleRaw, bundleLength](std::string &nh) {
+          sockaddr_in remoteAddr = {0};
+          std::shared_ptr<Neighbour> nb = m_neighbourTable->getNeighbour(nh);
+          remoteAddr.sin_family = AF_INET;
+          remoteAddr.sin_port = htons(nb->getNodePort());
+          remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
+          int sock = socket(AF_INET, SOCK_STREAM, 0);
+          if (sock == -1) {
+            LOG(1) << "Cannot create socket into forward thread, reason: "
+            << strerror(errno);
+          } else {
+            struct timeval tv;
+            tv.tv_sec = m_config.getNeighbourExpirationTime();
+            tv.tv_usec = 0;
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+                    (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
+              LOG(1) << "Cannot set receiving timeout to socket, reason: "
+              << strerror(errno);
+            } else {
+              if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
+                      (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
+                LOG(1) << "Cannot set sending timeout to socket, reason: "
+                << strerror(errno);
+              } else {
+                if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
+                        sizeof(remoteAddr)) < 0) {
+                  LOG(1) << "Cannot connect with neighbour " << nh
+                  << ", reason: " << strerror(errno);
+                } else {
+                  // 1023 is the max size of an id (RFC 5050)
+                  int writed = send(sock, m_config.getNodeId().c_str(), 1024,
+                      0);
+                  if (writed < 0) {
+                    LOG(1) << "Cannot write to socket, reason: "
+                    << strerror(errno);
+                  } else {
+                    writed = send(sock, &bundleLength, sizeof(uint32_t), 0);
+                    if (writed < 0) {
+                      LOG(1) << "Cannot write to socket, reason: "
+                      << strerror(errno);
+                    } else {
+                      writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
+                      if (writed < 0) {
+                        LOG(1) << "Cannot write to socket, reason: "
+                        << strerror(errno);
+                      } else {
+                        sockaddr_in bundleSrc = {0};
+                        socklen_t bundleSrcLength = sizeof(bundleSrc);
+                        if (getsockname(sock,
+                                reinterpret_cast<sockaddr*>(&bundleSrc),
+                                &bundleSrcLength) != 0) {
+                          LOG(3) << "Cannot get peer name, reason: "
+                          << strerror(errno);
+                        } else {
+                          LOG(10) << "A bundle of length " << bundleLength
+                          << "has been sent to " << nb->getNodeAddress()
+                          << ":" << nb->getNodePort() << " from "
+                          << inet_ntoa(bundleSrc.sin_addr) << ":"
+                          << ntohs(bundleSrc.sin_port);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+  }
 }
 
 void BundleProcessor::discard(
