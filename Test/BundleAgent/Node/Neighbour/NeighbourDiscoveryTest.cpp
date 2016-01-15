@@ -94,7 +94,7 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
      << "neighbourCleanerTime : 2" << std::endl << "testMode : true"
      << std::endl << "[Logger]" << std::endl << "filename : /tmp/adtn.log"
      << std::endl << "level : 100" << std::endl << "[Constants]" << std::endl
-     << "timeout : 10" << std::endl << "[BundleProcess]" << std::endl
+     << "timeout : 3" << std::endl << "[BundleProcess]" << std::endl
      << "dataPath : /home/marc/.adtn/" << std::endl;
   ss.close();
 

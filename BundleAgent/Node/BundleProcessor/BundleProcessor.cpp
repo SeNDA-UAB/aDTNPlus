@@ -51,6 +51,7 @@ BundleProcessor::BundleProcessor(
     : m_config(config),
       m_bundleQueue(bundleQueue),
       m_neighbourTable(neighbourTable) {
+  LOG(10) << "Starting BundleProcessor";
   std::thread t = std::thread(&BundleProcessor::processBundles, this);
   t.detach();
   t = std::thread(&BundleProcessor::receiveBundles, this);
@@ -63,14 +64,18 @@ BundleProcessor::~BundleProcessor() {
 void BundleProcessor::processBundles() {
   while (!g_stop.load()) {
     try {
+      LOG(60) << "Trying to dequeue a bundle";
       std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
       processBundle(std::move(bc));
     } catch (const std::exception &e) {
     }
   }
+  LOG(12) << "Exit Process bundles thread.";
+  g_stopped++;
 }
 
 void BundleProcessor::receiveBundles() {
+  LOG(10) << "Creating receive bundles thread";
   sockaddr_in receiveAddr = { 0 };
   receiveAddr.sin_family = AF_INET;
   receiveAddr.sin_port = htons(m_config.getNodePort());
@@ -97,6 +102,8 @@ void BundleProcessor::receiveBundles() {
       } else {
         struct timeval tv;
         tv.tv_sec = 10;
+        LOG(10) << "Listening petitions at (" << m_config.getNodeAddress()
+                << ":" << m_config.getNodePort() << ")";
         while (!g_stop.load()) {
           sockaddr_in clientAddr = { 0 };
           socklen_t clientLen = sizeof(clientAddr);
@@ -106,6 +113,7 @@ void BundleProcessor::receiveBundles() {
             LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
             continue;
           }
+          LOG(41) << "Conection received";
           // Set timeout to socket
           setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                      sizeof(struct timeval));
@@ -113,17 +121,21 @@ void BundleProcessor::receiveBundles() {
         }
       }
     }
+    close(sock);
   }
+  LOG(10) << "Exit Receive bundle thread.";
+  g_stopped++;
 }
 
 void BundleProcessor::receiveMessage(int sock) {
+  LOG(41) << "Processing new connection";
   sockaddr_in bundleSrc = { 0 };
   socklen_t bundleSrcLength = sizeof(bundleSrc);
   if (getpeername(sock, reinterpret_cast<sockaddr*>(&bundleSrc),
                   &bundleSrcLength) != 0) {
     LOG(3) << "Cannot get peer name, reason: " << strerror(errno);
   } else {
-    LOG(11) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
+    LOG(10) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
             << ntohs(bundleSrc.sin_port);
   }
   // First read is the node identifier
@@ -133,7 +145,8 @@ void BundleProcessor::receiveMessage(int sock) {
     LOG(1) << "Error receiving origin's platform id from "
            << inet_ntoa(bundleSrc.sin_addr);
   } else {
-    std::string srcNodeId = std::string(buff, 1024);
+    std::string srcNodeId = std::string(buff);
+    LOG(42) << "Received node id: " << srcNodeId;
     uint32_t bundleLength;
     receivedSize = recv(sock, &bundleLength, sizeof(bundleLength), 0);
     if (receivedSize != sizeof(bundleLength)) {
@@ -151,8 +164,10 @@ void BundleProcessor::receiveMessage(int sock) {
       }
     } else {
       bundleLength = ntohs(bundleLength);
+      LOG(42) << "Received bundle length: " << bundleLength;
       char* rawBundle = new char[bundleLength];
       uint32_t receivedLength = 0;
+      LOG(42) << "Receiving bundle...";
       while (receivedLength != bundleLength) {
         receivedSize = recv(sock, rawBundle + receivedLength,
                             bundleLength - receivedLength, 0);
@@ -172,7 +187,7 @@ void BundleProcessor::receiveMessage(int sock) {
         LOG(1) << "Bundle not received correctly from "
                << inet_ntoa(bundleSrc.sin_addr);
       } else {
-        LOG(11) << "Received bundle from " << srcNodeId << "("
+        LOG(10) << "Received bundle from " << srcNodeId << "("
                 << inet_ntoa(bundleSrc.sin_addr) << ":"
                 << ntohs(bundleSrc.sin_port) << ") with length: "
                 << receivedLength;
@@ -180,14 +195,17 @@ void BundleProcessor::receiveMessage(int sock) {
         std::string bundleStringRaw = std::string(rawBundle, bundleLength);
         try {
           // Create the bundle
+          LOG(42) << "Creating bundle from received raw";
           std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
               new Bundle(bundleStringRaw));
+          LOG(42) << "Creating bundle container";
           // Create the bundleContainer
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
               m_neighbourTable->getNeighbour(srcNodeId), std::move(b));
           // Save the bundleContainer to disk
-
+          LOG(42) << "Saving bundle " << " to disk";
           // Enqueue the bundleContainer
+          LOG(42) << "Saving bundle to queue";
           m_bundleQueue->enqueue(std::move(bc));
         } catch (BundleCreationException &e) {
           LOG(1) << "Error constructing received bundle, reason: " << e.what();
@@ -202,6 +220,7 @@ void BundleProcessor::dispatch(const Bundle& bundle,
 }
 
 void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
+  LOG(11) << "Forwarding bundle";
   std::string bundleRaw = bundle.toRaw();
   // Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
   uint32_t bundleLength = bundleRaw.length();
@@ -212,6 +231,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
         nextHop.begin(),
         nextHop.end(),
         [this, bundleRaw, bundleLength](std::string &nh) {
+          LOG(45) << "Forwarding bundle to " << nh;
+          LOG(50) << "Bundle to forward " << bundleRaw;
           sockaddr_in remoteAddr = {0};
           std::shared_ptr<Neighbour> nb = m_neighbourTable->getNeighbour(nh);
           remoteAddr.sin_family = AF_INET;
@@ -235,11 +256,13 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                 LOG(1) << "Cannot set sending timeout to socket, reason: "
                 << strerror(errno);
               } else {
+                LOG(46) << "Connecting to neighbour...";
                 if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
                         sizeof(remoteAddr)) < 0) {
                   LOG(1) << "Cannot connect with neighbour " << nh
                   << ", reason: " << strerror(errno);
                 } else {
+                  LOG(46) << "Sending node id: " << m_config.getNodeId();
                   // 1023 is the max size of an id (RFC 5050)
                   int writed = send(sock, m_config.getNodeId().c_str(), 1024,
                       0);
@@ -248,11 +271,13 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     << strerror(errno);
                   } else {
                     uint32_t nBundleLength = htons(bundleLength);
+                    LOG(46) << "Sending bundle length: " << bundleLength;
                     writed = send(sock, &nBundleLength, sizeof(uint32_t), 0);
                     if (writed < 0) {
                       LOG(1) << "Cannot write to socket, reason: "
                       << strerror(errno);
                     } else {
+                      LOG(46) << "Sending bundle...";
                       writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
                       if (writed < 0) {
                         LOG(1) << "Cannot write to socket, reason: "
@@ -266,8 +291,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                           LOG(3) << "Cannot get peer name, reason: "
                           << strerror(errno);
                         } else {
-                          LOG(10) << "A bundle of length " << bundleLength
-                          << "has been sent to " << nb->getNodeAddress()
+                          LOG(11) << "A bundle of length " << bundleLength
+                          << " has been sent to " << nb->getNodeAddress()
                           << ":" << nb->getNodePort() << " from "
                           << inet_ntoa(bundleSrc.sin_addr) << ":"
                           << ntohs(bundleSrc.sin_port);
@@ -297,7 +322,7 @@ void BundleProcessor::discard(
   if (success != 0) {
     LOG(3) << "Cannot delete bundle " << ss.str();
   }
-  LOG(41) << "Deleting bundleContainer.";
+  LOG(51) << "Deleting bundleContainer.";
   bundleContainer.reset();
 }
 
