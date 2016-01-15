@@ -28,6 +28,6 @@
 
 extern std::atomic<bool> g_stop;
 extern std::atomic<uint16_t> g_stopped;
-static const uint16_t maxThread = 3;
+static const uint16_t maxThread = 5;
 
 #endif  // BUNDLEAGENT_UTILS_GLOBALS_H_

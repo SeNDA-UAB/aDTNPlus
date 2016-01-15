@@ -28,6 +28,8 @@
 #include <memory>
 #include "Node/Config.h"
 #include "Node/Neighbour/NeighbourDiscovery.h"
+#include "Node/BundleProcessor/BundleProcessor.h"
+#include "Node/BundleQueue/BundleQueue.h"
 
 /**
  * CLASS Node
@@ -65,6 +67,14 @@ class Node {
    * Variable that holds the neighbour table.
    */
   std::shared_ptr<NeighbourTable> m_neighbourTable;
+  /**
+   * Variable that holds the bundle processor.
+   */
+  std::shared_ptr<BundleProcessor> m_bundleProcessor;
+  /**
+   * Variable that holds the bundle queue.
+   */
+  std::shared_ptr<BundleQueue> m_bundleQueue;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

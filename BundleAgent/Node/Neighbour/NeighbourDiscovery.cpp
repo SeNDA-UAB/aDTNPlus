@@ -70,7 +70,7 @@ void NeighbourDiscovery::sendBeacons() {
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (sock == -1) {
     // Stop the application
-    LOG(1) << "Cannot create socket into sendBeacons thread reason: "
+    LOG(1) << "Cannot create socket into sendBeacons thread, reason: "
            << strerror(errno);
     g_stop = true;
   } else {
@@ -78,7 +78,7 @@ void NeighbourDiscovery::sendBeacons() {
     if (bind(sock, reinterpret_cast<sockaddr*>(&discoveryAddr),
              sizeof(discoveryAddr)) == -1) {
       // Stop the application
-      LOG(1) << "Cannot bind socket to " << nodeAddress << " reason: "
+      LOG(1) << "Cannot bind socket to " << nodeAddress << ", reason: "
              << strerror(errno);
       g_stop = true;
     } else {

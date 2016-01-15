@@ -52,24 +52,25 @@ class BundleContainer {
    * @param from the neighbour id.
    * @param bundle the bundle to hold.
    */
-  BundleContainer(std::string from,
-                  std::shared_ptr<Bundle> bundle);
+  BundleContainer(std::string from, std::unique_ptr<Bundle> bundle);
   /**
    * Destructor of the class.
    */
   virtual ~BundleContainer();
+
+  BundleContainer(BundleContainer&& bc);
   /**
    * Get the held bundle.
    *
    * @return The held bundle.
    */
-  std::shared_ptr<Bundle> getBundle();
+  Bundle& getBundle();
   /**
    * Get the source neighbour name.
    *
    * @return the neighbour source.
    */
-  std::string getFrom();
+  std::string getFrom() const;
   /**
    * Convert the BundleContainer into a string to save it to disk.
    *
@@ -82,13 +83,13 @@ class BundleContainer {
    * @param data a serialized bundleContainer.
    * @return the BundleContainer.
    */
-  static std::shared_ptr<BundleContainer> deserialize(const std::string &data);
+  static std::unique_ptr<BundleContainer> deserialize(const std::string &data);
 
  private:
   /**
    * The bundle that the container holds.
    */
-  std::shared_ptr<Bundle> m_bundle;
+  std::unique_ptr<Bundle> m_bundle;
   /**
    * The source neighbour id.
    */

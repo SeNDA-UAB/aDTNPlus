@@ -30,14 +30,14 @@
 #include "gtest/gtest.h"
 
 TEST(BundleQueueTest, EnqueueAndDequeue) {
-  std::shared_ptr<Bundle> b = std::shared_ptr<Bundle>(
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  std::shared_ptr<BundleContainer> bc = std::shared_ptr<BundleContainer>(
-      new BundleContainer("Me", b));
+  std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
+      new BundleContainer("Me", std::move(b)));
   BundleQueue queue = BundleQueue();
-  queue.enqueue(bc);
-  std::shared_ptr<BundleContainer> bc1 = queue.dequeue();
-  ASSERT_EQ(bc->getBundle()->toRaw(), bc1->getBundle()->toRaw());
+  BundleContainer* bc2 = bc.get();
+  queue.enqueue(std::move(bc));
+  std::unique_ptr<BundleContainer> bc1 = queue.dequeue();
+  ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
   ASSERT_THROW(queue.dequeue(), EmptyBundleQueueException);
 }
-

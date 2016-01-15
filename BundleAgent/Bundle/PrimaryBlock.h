@@ -49,6 +49,7 @@ class PrimaryBlock : public Block {
    *
    * This function constructs a primary block taking the source, the destination,
    * the creation timestamp and the creation seqNumber.
+   * The primary block sets a lifetime of the bundle to 1h as default value.
    *
    * @param source of the generated primary block.
    * @param destination to send the bundle.
@@ -104,37 +105,37 @@ class PrimaryBlock : public Block {
    * Function to get the Destination set in the primary block.
    * @return the destination field.
    */
-  const std::string getDestination();
+  const std::string getDestination() const;
   /**
    * Function to get the Source set in the primary block.
    * @return the source field.
    */
-  const std::string getSource();
+  const std::string getSource() const;
   /**
    * Function to get the ReportTo set in the primary block.
    * @return the reportTo field.
    */
-  const std::string getReportTo();
+  const std::string getReportTo() const;
   /**
    * Function to get the Custodian set in the primary block.
    * @return the custodian field.
    */
-  const std::string getCustodian();
+  const std::string getCustodian() const;
   /**
    * Function to get the creation timestamp set in the primary block.
    * @return the timestamp field.
    */
-  const uint64_t getCreationTimestamp();
+  const uint64_t getCreationTimestamp() const;
   /**
    * Function to get the lifetime set in the primary block.
    * @return the lifetime field.
    */
-  const uint64_t getLifetime();
+  const uint64_t getLifetime() const;
   /**
    * Function to get the creation timestamp sequence number.
    * @return the timestamp sequence number field.
    */
-  const uint64_t getCreationTimestampSeqNumber();
+  const uint64_t getCreationTimestampSeqNumber() const;
   /**
    * Function to set a new reportTo into the primary block.
    * @param reportTo new reportTo to set.

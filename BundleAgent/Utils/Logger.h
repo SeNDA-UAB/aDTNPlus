@@ -54,8 +54,8 @@
  * Utils logs : WARNING 5, INFO 18-21, DEBUG 71-80
  * NeighbourDiscovery logs : WARNING 4, INFO 14-17, DEBUG 61-70
  * Bundle logs : WARNING 3, INFO 10-13, DEBUG 31-40
- * BundleSender logs : WARNING 3, INFO 10-13, DEBUG 41-50
- * BundleReceiver logs : WARNING 3, INFO 10-13, DEBUG 51-60
+ * BundleSenderReceiver logs : WARNING 3, INFO 10-11, DEBUG 41-50
+ * BundleProcessor logs : WARNING 3, INFO 12-13, DEBUG 51-60
  * Node logs : WARNING 2, INFO 6-9, DEBUG 22-30
  */
 class Logger {

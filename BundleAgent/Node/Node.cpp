@@ -25,6 +25,7 @@
 #include <string>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
+#include "Node/BundleProcessor/BasicBundleProcessor.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
@@ -34,9 +35,12 @@ Node::Node(std::string filename) {
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
-  m_neighbourTable = std::shared_ptr<NeighbourTable>(new NeighbourTable());
+  m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
+  m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
+  m_bundleProcessor = std::shared_ptr<BundleProcessor>(
+      new BasicBundleProcessor(m_config, m_bundleQueue, m_neighbourTable));
 }
 
 Node::~Node() {

@@ -24,9 +24,9 @@ abstract class BundleProcessor {
 	-{abstract}processBundle(bundleContainer : BundleContainer): void
 	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
 	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
-	#discard(bundle : Bundle) : void
-	#restore(bundle : Bundle) : void
-	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
+	#discard(bundleContainer : BundleContainer) : void
+	#restore(bundleContainer : BundleContainer) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer	
 }
 
 class BasicBundleProcessor {
@@ -70,6 +70,7 @@ class Config {
 	-m_logLevel : int
 	-m_socketTimeout : int
 	-m_neighbourTestMode : bool
+	-m_dataPath : std::string
 	-{static} NODEID : std::string
 	-{static} NODEADDRESS : std::string
 	-{static} NODEPORT : int
@@ -82,6 +83,7 @@ class Config {
 	-{static} LOGLEVEL : int
 	-{static} SOCKETTIMEOUT : int
 	-{static} NEIGHBOURTESTMODE : bool
+	-{static} DATAPATH : std::string
 	+Config()
 	+Config(configFileName : std::string)
 	+~Config()
@@ -97,6 +99,7 @@ class Config {
 	+getLogLevel() : int
 	+getSocketTimeout() : int
 	+getNeighbourTestMode() : bool
+	+getDataPath() : std::string
 }
 
 class ConfigLoader {

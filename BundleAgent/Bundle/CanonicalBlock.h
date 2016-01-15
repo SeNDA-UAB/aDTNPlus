@@ -79,7 +79,7 @@ class CanonicalBlock : public Block {
    *
    * @sa BlockControlFlags
    */
-  void setProcFlag(BlockControlFlags procFlag);
+  void setProcFlag(CanonicalBlockControlFlags procFlag);
   /**
    * @brief Unset the given flag.
    *
@@ -89,7 +89,7 @@ class CanonicalBlock : public Block {
    *
    * @sa BlockControlFlags
    */
-  void unsetProcFlag(BlockControlFlags procFlag);
+  void unsetProcFlag(CanonicalBlockControlFlags procFlag);
   /**
    * @brief Checks whether a flag is set.
    *
@@ -100,7 +100,7 @@ class CanonicalBlock : public Block {
    *
    * @sa BlockControlFlags
    */
-  bool checkProcFlag(BlockControlFlags procFlag);
+  bool checkProcFlag(CanonicalBlockControlFlags procFlag);
 
  protected:
   /**

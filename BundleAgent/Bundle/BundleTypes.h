@@ -43,7 +43,7 @@ enum class PrimaryBlockControlFlags
   REQUEST_DELETION = 18
 };
 
-enum class BlockControlFlags
+enum class CanonicalBlockControlFlags
   : uint8_t {REPLICATE_FRAGMENT = 0,
   TRANSMIT_STATUS_REPORT = 1,
   DELETE_BUNDLE = 2,
@@ -53,7 +53,7 @@ enum class BlockControlFlags
   EID_FIELD = 6
 };
 
-enum class BlockTypes
+enum class CanonicalBlockTypes
   : uint8_t {PAYLOAD_BLOCK = 1,
   METADATA_EXTENSION_BLOCK = 8
 };

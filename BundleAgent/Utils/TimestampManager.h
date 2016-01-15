@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <utility>
 
+const uint64_t g_timeFrom2000 = 946684800;
+
 /**
  * CLASS TimsetampManager
  * This class is a singleton that gives a timestamp, and a sequence number.

@@ -48,7 +48,7 @@ TEST(BundleTest, FilledConstructor) {
   ASSERT_EQ("source", b.getPrimaryBlock()->getSource());
   ASSERT_EQ("destination", b.getPrimaryBlock()->getDestination());
   ASSERT_EQ(2, b.getBlocks().size());
-  ASSERT_EQ(static_cast<uint8_t>(BlockTypes::PAYLOAD_BLOCK),
+  ASSERT_EQ(static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK),
             b.getPayloadBlock()->getBlockType());
 }
 
@@ -133,7 +133,7 @@ TEST(BundleTest, BadRawException) {
   ss << static_cast<uint8_t>(2) << SDNV::encode(std::bitset<7>().to_ulong())
      << SDNV::encode(data.size()) << data;
   CanonicalBlock cb = CanonicalBlock(ss.str());
-  cb.setProcFlag(BlockControlFlags::LAST_BLOCK);
+  cb.setProcFlag(CanonicalBlockControlFlags::LAST_BLOCK);
   ss.str(std::string());
   ss << pb.toRaw() << pb1.toRaw() << cb.toRaw();
   ASSERT_NO_THROW(Bundle(ss.str()));

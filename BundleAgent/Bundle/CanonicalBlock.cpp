@@ -65,7 +65,7 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
     uint64_t procFlags = SDNV::decode(data);
     m_procFlags = std::bitset<7>(procFlags);
     data = data.substr(dataSize);
-    if (m_procFlags.test(static_cast<uint32_t>(BlockControlFlags::EID_FIELD))) {
+    if (m_procFlags.test(static_cast<uint32_t>(CanonicalBlockControlFlags::EID_FIELD))) {
       dataSize = SDNV::getLength(data);
       blockLength += dataSize;
       int numberOfEID = SDNV::decode(data);
@@ -107,17 +107,17 @@ uint8_t CanonicalBlock::getBlockType() {
   return m_blockType;
 }
 
-void CanonicalBlock::setProcFlag(BlockControlFlags procFlag) {
+void CanonicalBlock::setProcFlag(CanonicalBlockControlFlags procFlag) {
   LOG(38) << "Setting Flag " << static_cast<int>(procFlag);
   m_procFlags.set(static_cast<uint32_t>(procFlag));
 }
 
-void CanonicalBlock::unsetProcFlag(BlockControlFlags procFlag) {
+void CanonicalBlock::unsetProcFlag(CanonicalBlockControlFlags procFlag) {
   LOG(38) << "Clearing Flag " << static_cast<int>(procFlag);
   m_procFlags.reset(static_cast<uint32_t>(procFlag));
 }
 
-bool CanonicalBlock::checkProcFlag(BlockControlFlags procFlag) {
+bool CanonicalBlock::checkProcFlag(CanonicalBlockControlFlags procFlag) {
   LOG(38) << "Testing Flag " << static_cast<int>(procFlag);
   return m_procFlags.test(static_cast<uint32_t>(procFlag));
 }
