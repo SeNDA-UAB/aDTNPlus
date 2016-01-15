@@ -164,7 +164,7 @@ PrimaryBlock::PrimaryBlock(const std::string &source,
       m_custodian(),
       m_creationTimestamp(timestamp),
       m_creationTimestampSeqNumber(seqNumber),
-      m_lifetime(0) {
+      m_lifetime(3600) {
   LOG(40) << "Generating primary block from parameters - [Source: " << source
           << "][Destination: " << destination << "][Timestamp: " << timestamp
           << "][Timestamp SeqNumber: " << seqNumber << "]";

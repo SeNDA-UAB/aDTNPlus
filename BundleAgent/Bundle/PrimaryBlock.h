@@ -49,6 +49,7 @@ class PrimaryBlock : public Block {
    *
    * This function constructs a primary block taking the source, the destination,
    * the creation timestamp and the creation seqNumber.
+   * The primary block sets a lifetime of the bundle to 1h as default value.
    *
    * @param source of the generated primary block.
    * @param destination to send the bundle.
