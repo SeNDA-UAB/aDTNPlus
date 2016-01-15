@@ -36,6 +36,7 @@
 #include "Bundle/Bundle.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
+#include "Utils/TimestampManager.h"
 
 BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
@@ -67,23 +68,17 @@ void BasicBundleProcessor::processBundle(
   } else {
     LOG(55) << "We are not the destination node.";
     LOG(55) << "Checking lifetime.";
-    if (checkLifetime()) {
+    if (checkLifetime(*bundleContainer)) {
       LOG(55) << "Bundle expired, discarding it.";
       discard(std::move(bundleContainer));
     } else {
       LOG(55) << "Bundle is not expired yet.";
-      LOG(55) << "Checking neighbours. "
-              << "(Removing bundle source if we have it as neighbour)";
-      std::vector<std::string> neighbours = checkForward();
-      auto it = std::find(neighbours.begin(), neighbours.end(),
-                          bundleContainer->getFrom());
-      if (it != neighbours.end()) {
-        neighbours.erase(it);
-      }
+      LOG(55) << "Checking neighbours. " << "";
+      std::vector<std::string> neighbours = checkForward(*bundleContainer);
       if (neighbours.size() > 0) {
         LOG(55) << "There are some neighbours.";
         LOG(55) << "Checking if one of them is the bundle destination.";
-        it = std::find(
+        auto it = std::find(
             neighbours.begin(), neighbours.end(),
             bundleContainer->getBundle().getPrimaryBlock()->getDestination());
         if (it != neighbours.end()) {
@@ -116,10 +111,24 @@ std::vector<std::string> BasicBundleProcessor::checkDestination() {
   return std::vector<std::string>();
 }
 
-std::vector<std::string> BasicBundleProcessor::checkForward() {
-  return std::vector<std::string>();
+std::vector<std::string> BasicBundleProcessor::checkForward(
+    const BundleContainer &bundleContainer) {
+  LOG(55) << "Removing bundle source if we have it as neighbour.";
+  std::vector<std::string> neighbours = m_neighbourTable->getNeighbours();
+  auto it = std::find(neighbours.begin(), neighbours.end(),
+                      bundleContainer.getFrom());
+  if (it != neighbours.end()) {
+    neighbours.erase(it);
+  }
+  return neighbours;
 }
 
-bool BasicBundleProcessor::checkLifetime() {
-  return false;
+bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
+  uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
+      ->getCreationTimestamp();
+  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
+      < (time(NULL) - g_timeFrom2000 - creationTimestamp))
+    return true;
+  else
+    return false;
 }

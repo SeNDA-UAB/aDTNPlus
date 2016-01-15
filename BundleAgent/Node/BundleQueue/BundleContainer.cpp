@@ -49,7 +49,7 @@ Bundle& BundleContainer::getBundle() {
   return *m_bundle;
 }
 
-std::string BundleContainer::getFrom() {
+std::string BundleContainer::getFrom() const {
   return m_from;
 }
 

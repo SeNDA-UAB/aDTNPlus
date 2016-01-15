@@ -28,8 +28,6 @@
 
 TimestampManager *TimestampManager::m_instance = 0;
 
-const uint64_t g_timeFrom2000 = 946684800;
-
 TimestampManager::TimestampManager()
     : m_lastTimestamp(0),
       m_lastSeqNum(0) {

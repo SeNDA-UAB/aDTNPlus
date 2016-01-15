@@ -336,31 +336,31 @@ std::string PrimaryBlock::toRaw() {
   return Block::m_raw;
 }
 
-const std::string PrimaryBlock::getDestination() {
+const std::string PrimaryBlock::getDestination() const {
   return m_destination;
 }
 
-const std::string PrimaryBlock::getSource() {
+const std::string PrimaryBlock::getSource() const {
   return m_source;
 }
 
-const std::string PrimaryBlock::getReportTo() {
+const std::string PrimaryBlock::getReportTo() const {
   return m_reportTo;
 }
 
-const std::string PrimaryBlock::getCustodian() {
+const std::string PrimaryBlock::getCustodian() const {
   return m_custodian;
 }
 
-const uint64_t PrimaryBlock::getCreationTimestamp() {
+const uint64_t PrimaryBlock::getCreationTimestamp() const {
   return m_creationTimestamp;
 }
 
-const uint64_t PrimaryBlock::getLifetime() {
+const uint64_t PrimaryBlock::getLifetime() const {
   return m_lifetime;
 }
 
-const uint64_t PrimaryBlock::getCreationTimestampSeqNumber() {
+const uint64_t PrimaryBlock::getCreationTimestampSeqNumber() const {
   return m_creationTimestampSeqNumber;
 }
 

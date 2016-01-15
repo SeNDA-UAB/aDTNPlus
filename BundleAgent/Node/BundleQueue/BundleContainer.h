@@ -70,7 +70,7 @@ class BundleContainer {
    *
    * @return the neighbour source.
    */
-  std::string getFrom();
+  std::string getFrom() const;
   /**
    * Convert the BundleContainer into a string to save it to disk.
    *

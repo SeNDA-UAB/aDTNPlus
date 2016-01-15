@@ -87,13 +87,13 @@ class BasicBundleProcessor : public BundleProcessor {
    *
    * @return True if the lifetime has expired, false otherwise.
    */
-  bool checkLifetime();
+  bool checkLifetime(BundleContainer &bundleContainer);
   /**
    * Function that checks the possible forwards.
    *
    * @return A list with the possible forwards.
    */
-  std::vector<std::string> checkForward();
+  std::vector<std::string> checkForward(const BundleContainer &bundleContainer);
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
