@@ -36,10 +36,10 @@ Node::Node(std::string filename) {
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
-  m_neighbourDiscovery = std::unique_ptr<NeighbourDiscovery>(
+  m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
-  m_bundleProcessor = std::unique_ptr<BundleProcessor>(
+  m_bundleProcessor = std::shared_ptr<BundleProcessor>(
       new BasicBundleProcessor(m_config, m_bundleQueue, m_neighbourTable));
 }
 

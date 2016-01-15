@@ -62,7 +62,7 @@ class Node {
   /**
    * Variable that holds the neighbour discovery.
    */
-  std::unique_ptr<NeighbourDiscovery> m_neighbourDiscovery;
+  std::shared_ptr<NeighbourDiscovery> m_neighbourDiscovery;
   /**
    * Variable that holds the neighbour table.
    */
@@ -70,7 +70,7 @@ class Node {
   /**
    * Variable that holds the bundle processor.
    */
-  std::unique_ptr<BundleProcessor> m_bundleProcessor;
+  std::shared_ptr<BundleProcessor> m_bundleProcessor;
   /**
    * Variable that holds the bundle queue.
    */
