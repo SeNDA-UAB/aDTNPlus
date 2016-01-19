@@ -61,6 +61,8 @@ class Neighbour {
    * @brief This functions updates the last activity.
    *
    * This function is called to update the last activity value.
+   * @param nodeAddress IP address of the neighbour.
+   * @param nodePort port of the neighbour.
    */
   void update(const std::string &nodeAddress, const uint16_t &nodePort);
   /**
@@ -69,11 +71,20 @@ class Neighbour {
    * @return True if the neighbours are equals.
    */
   bool operator==(const Neighbour &neighbour) const;
-
+  /**
+   * Gets the node address of the neighbour.
+   * @return The node address.
+   */
   std::string getNodeAddress();
-
+  /**
+   * Gets the node id of the neighbour.
+   * @return The node id.
+   */
   std::string getNodeId();
-
+  /**
+   * Gets the node port of the neighbour.
+   * @return The node port.
+   */
   uint16_t getNodePort();
 
  private:
