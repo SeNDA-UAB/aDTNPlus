@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jun 29, 2015
  * VERSION 1
- * This file contains the implementation of the Neighbour class.
+ * This file contains the implementation of the NeighbourTable class.
  */
 
 #include "Node/Neighbour/NeighbourTable.h"
@@ -94,4 +94,3 @@ std::shared_ptr<Neighbour> NeighbourTable::getNeighbour(
   else
     throw NeighbourTableException("Neighbour not found");
 }
-

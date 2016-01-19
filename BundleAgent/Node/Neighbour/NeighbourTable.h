@@ -43,7 +43,7 @@ class NeighbourTableException : public std::runtime_error {
 
 /**
  * CLASS NeighbourTable
- * This class is singleton that contains all the neighbours.
+ * This class contains all the neighbours.
  */
 class NeighbourTable {
  public:
