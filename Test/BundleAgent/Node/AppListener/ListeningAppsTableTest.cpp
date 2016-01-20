@@ -39,7 +39,7 @@
  */
 TEST(ListeningAppsTableTest, AddAndRemove) {
   ListeningAppsTable* lat = new ListeningAppsTable();
-  lat->update("100", "192.168.1.1", 40000);
+  lat->update("100", "192.168.1.1", 40000, 1);
   // Get the neighbours
   auto apps = lat->getAppIds();
   // Check neighbour
@@ -62,11 +62,11 @@ TEST(ListeningAppsTableTest, AddAndRemove) {
  */
 TEST(ListeningAppsTableTest, AddAndRemoveMore) {
   ListeningAppsTable* lat = new ListeningAppsTable();
-  lat->update("100", "192.168.1.1", 40100);
+  lat->update("100", "192.168.1.1", 40100, 1);
   sleep(1);
-  lat->update("101", "192.168.1.1", 40101);
+  lat->update("101", "192.168.1.1", 40101, 2);
   sleep(1);
-  lat->update("102", "192.168.1.1", 40102);
+  lat->update("102", "192.168.1.1", 40102, 3);
   auto apps = lat->getAppIds();
   ASSERT_EQ(3, apps.size());
   ASSERT_EQ(40100, lat->getApp("100")->getAppPort());
@@ -80,12 +80,12 @@ TEST(ListeningAppsTableTest, AddAndRemoveMore) {
   ASSERT_EQ(40102, lat->getApp("102")->getAppPort());
   lat->clean(1);
   apps.clear();
-  lat->update("102", "192.168.1.1", 40105);
+  lat->update("102", "192.168.1.1", 40105, 3);
   apps = lat->getAppIds();
   ASSERT_EQ(1, apps.size());
   ASSERT_EQ(40105, lat->getApp("102")->getAppPort());
   apps.clear();
-  lat->update("102", "192.168.1.102", 40105);
+  lat->update("102", "192.168.1.102", 40105, 3);
   apps = lat->getAppIds();
   ASSERT_EQ(1, apps.size());
   ASSERT_EQ("192.168.1.102", lat->getApp("102")->getAppAddress());

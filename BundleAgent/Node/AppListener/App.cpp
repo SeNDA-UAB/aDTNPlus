@@ -29,10 +29,11 @@
 #include "Utils/Logger.h"
 
 App::App(const std::string &appId, const std::string &appAddress,
-         const uint16_t &appPort)
+         const uint16_t &appPort, const int &socket)
     : m_appId(appId),
       m_appAddress(appAddress),
       m_appPort(appPort),
+      m_socket(socket),
       m_lastActivity(std::chrono::steady_clock::now()) {
   LOG(69) << "Creating new app from parameters [appId: " << appId
           << "][appAddress: " << appAddress << "][appPort: " << appPort << "]";
@@ -60,6 +61,7 @@ bool App::operator ==(const App &app) const {
   bool equals = m_appId == app.m_appId;
   equals &= m_appAddress == app.m_appAddress;
   equals &= m_appPort == app.m_appPort;
+  equals &= m_socket == app.m_socket;
   return equals;
 }
 
@@ -73,4 +75,8 @@ std::string App::getAppAddress() {
 
 uint16_t App::getAppPort() {
   return m_appPort;
+}
+
+int App::getSocket() {
+  return m_socket;
 }

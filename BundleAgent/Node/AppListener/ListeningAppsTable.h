@@ -66,7 +66,7 @@ class ListeningAppsTable {
    * @param port port of the app.
    */
   void update(const std::string &appId, const std::string &appAddress,
-              const uint16_t &port);
+              const uint16_t &port, const int &socket);
   /**
    * @brief Clean all the apps that have expired.
    *

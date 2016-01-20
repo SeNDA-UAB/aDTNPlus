@@ -44,7 +44,7 @@ class App {
    * @param appPort the port of the app.
    */
   App(const std::string &appId, const std::string &appAddress,
-      const uint16_t &appPort);
+      const uint16_t &appPort, const int &socket);
   /**
    * Destructor of the class.
    */
@@ -64,6 +64,11 @@ class App {
    * @return The app port.
    */
   uint16_t getAppPort();
+  /**
+   * Gets the socket used to communicate.
+   * @return The socket.
+   */
+  int getSocket();
   /**
    * Returns the elapsed time since the last activity.
    *
@@ -96,6 +101,10 @@ class App {
    * Port of the app.
    */
   uint16_t m_appPort;
+  /**
+   * Socket of communication.
+   */
+  int m_socket;
   /**
    * Time of the last activity of the app.
    */

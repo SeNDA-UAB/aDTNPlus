@@ -38,7 +38,7 @@ ListeningAppsTable::~ListeningAppsTable() {
 
 void ListeningAppsTable::update(const std::string &appId,
                                 const std::string &appAddress,
-                                const uint16_t &appPort) {
+                                const uint16_t &appPort, const int &socket) {
   LOG(61) << "Updating table with app [appId: " << appId << "][appAddress: "
           << appAddress << "][appPort: " << appPort << "]";
   mutex.lock();
@@ -48,7 +48,8 @@ void ListeningAppsTable::update(const std::string &appId,
     m_listeningApps[appId]->update(appAddress, appPort);
   } else {
     LOG(17) << "New app " << appId << "added";
-    m_listeningApps[appId] = std::make_shared<App>(appId, appAddress, appPort);
+    m_listeningApps[appId] = std::make_shared<App>(appId, appAddress, appPort,
+                                                   socket);
   }
   mutex.unlock();
 }
