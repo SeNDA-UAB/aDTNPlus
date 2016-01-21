@@ -40,8 +40,10 @@
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/AppListener/App.h"
 #include "Bundle/Bundle.h"
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
 
@@ -217,15 +219,31 @@ void BundleProcessor::receiveMessage(int sock) {
   }
 }
 
-void BundleProcessor::dispatch(const Bundle& bundle,
+void BundleProcessor::dispatch(Bundle bundle,
                                std::vector<std::string> destinations) {
   LOG(11) << "Dispatching bundle";
+  std::string payload = bundle.getPayloadBlock()->getPayload();
+  int payloadSize = payload.length();
+  std::for_each(
+      destinations.begin(),
+      destinations.end(),
+      [this, payload, payloadSize] (std::string &appId) {
+        try {
+          std::shared_ptr<App> app = m_listeningAppsTable->getApp(appId);
+          send(app->getSocket(), &payloadSize, sizeof(payloadSize), 0);
+          send(app->getSocket(), payload.c_str(), payloadSize, 0);
+          LOG(17) << "Send the payload: " << payload << " to the appId: "
+              << appId;
+        } catch (const ListeningAppsTableException &e) {
+          LOG(1) << "Error getting appId, reason: " << e.what();
+        }
+      });
 }
 
 void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
   LOG(11) << "Forwarding bundle";
   std::string bundleRaw = bundle.toRaw();
-  // Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
+// Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
   uint32_t bundleLength = bundleRaw.length();
   if (bundleLength <= 0) {
     LOG(1) << "The bundle to forward has a length of 0, aborting forward.";
@@ -275,7 +293,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                   } else {
                     uint32_t nBundleLength = htons(bundleLength);
                     LOG(46) << "Sending bundle length: " << bundleLength;
-                    writed = send(sock, &nBundleLength, sizeof(uint32_t), 0);
+                    writed = send(sock, &nBundleLength, sizeof(nBundleLength),
+                        0);
                     if (writed < 0) {
                       LOG(1) << "Cannot write to socket, reason: "
                       << strerror(errno);

@@ -71,7 +71,7 @@ class BundleProcessor {
    * @param bundle Bundle to dispatch.
    * @param destinations List of all the destinations to dispatch the bundle.
    */
-  void dispatch(const Bundle& bundle, std::vector<std::string> destinations);
+  void dispatch(Bundle bundle, std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *

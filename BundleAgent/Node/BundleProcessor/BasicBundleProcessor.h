@@ -80,7 +80,7 @@ class BasicBundleProcessor : public BundleProcessor {
    *
    * @return A list with the possible destinations.
    */
-  std::vector<std::string> checkDestination();
+  std::vector<std::string> checkDestination(BundleContainer &bundleContainer);
   /**
    * Function that checks the lifetime of a bundle.
    *
