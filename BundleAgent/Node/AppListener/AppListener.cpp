@@ -82,8 +82,48 @@ void AppListener::listenApps() {
             continue;
           }
           LOG(80) << "Connection received.";
+          std::thread(&AppListener::startListening, this, newsock).detach();
         }
       }
+    }
+    close(sock);
+  }
+  LOG(17) << "Exit App Listener thread.";
+  g_stopped++;
+}
+
+void AppListener::startListening(int sock) {
+  LOG(69) << "Processing new connection";
+  sockaddr_in bundleSrc = { 0 };
+  socklen_t bundleSrcLength = sizeof(bundleSrc);
+  if (getpeername(sock, reinterpret_cast<sockaddr*>(&bundleSrc),
+                  &bundleSrcLength) != 0) {
+    LOG(3) << "Cannot get peer name, reason: " << strerror(errno);
+  } else {
+    LOG(10) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
+            << ntohs(bundleSrc.sin_port);
+  }
+  uint8_t type = 100;
+  int receivedSize = recv(sock, &type, sizeof(type), 0);
+  if (type == 0) {
+    LOG(17) << "Someone asked to add an AppId";
+    int appId = 0;
+    receivedSize = recv(sock, &appId, sizeof(appId), 0);
+    if (receivedSize != sizeof(appId)) {
+      if (receivedSize == 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Probably peer has disconnected.";
+      } else if (receivedSize < 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr);
+      } else {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Length not in the correct format.";
+      }
+    } else {
+      m_listeningAppsTable->update(std::to_string(appId), "", 0, sock);
     }
   }
 }

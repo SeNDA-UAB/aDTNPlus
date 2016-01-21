@@ -31,28 +31,16 @@
 /**
  * CLASS AppListener
  * This class implements the App listener system.
- * A socket will be listening for incoming connections, this connections could
- * be to send a bundle or to subscribe for receiving them.
+ * A socket will be listening for incoming connections, this connections are
+ * used to subscribe for receiving them.
  *
  * When the external application connects to the socket, it will send a message.
  * This messages has the following format:
  *
- * If the user wants to send a bundle:
- *
- * an uint8_t with the value 1.
- * a 1024 byte string with the destination.
- * an uint32_t with the size of the payload to send.
- * The payload.
- *
- * In the case the user wants to subscribe:
- *
  * an uint8_t with the value 0.
  * an int with the App value.
  *
- * In the case of sending a bundle, after receiving the message, the connection
- * will close.
- *
- * In the case of subscribe, the connection will be maintained open, an used
+ * The connection will be maintained open, an used
  * when a bundle is received and dispatched to the application.
  *
  * This class use the following parameters (all of them are in the adtn.ini file
@@ -94,6 +82,10 @@ class AppListener {
    * Function to start the listening socket.
    */
   void listenApps();
+  /**
+   * Function that gets the app to listen.
+   */
+  void startListening(int sock);
 };
 
 #endif  // BUNDLEAGENT_NODE_APPLISTENER_APPLISTENER_H_
