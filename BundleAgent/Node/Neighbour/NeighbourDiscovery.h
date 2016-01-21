@@ -57,11 +57,12 @@ class NeighbourDiscovery {
    * @brief Constructor
    *
    * This will create a NeighbourDiscovery object using the values in the
-   * ConfigLoader.
+   * Config.
    * This NeighbourDiscovery will spawn the needed threads to run the discovery
    * process.
    *
-   * @param config ConfigLoader with the paramenters.
+   * @param config Config with the parameters.
+   * @param neighbourTable a neighbourTable.
    */
   explicit NeighbourDiscovery(Config config,
                               std::shared_ptr<NeighbourTable> neighbourTable);
@@ -76,7 +77,7 @@ class NeighbourDiscovery {
    */
   virtual void receiveBeacons();
   /**
-   * ConfigLoader initialised.
+   * Config initialised.
    */
   Config m_config;
   /**

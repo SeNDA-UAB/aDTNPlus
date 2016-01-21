@@ -113,7 +113,7 @@ void BundleProcessor::receiveBundles() {
             LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
             continue;
           }
-          LOG(41) << "Conection received";
+          LOG(41) << "Connection received.";
           // Set timeout to socket
           setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                      sizeof(struct timeval));
