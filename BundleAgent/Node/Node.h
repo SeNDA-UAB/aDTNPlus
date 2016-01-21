@@ -30,6 +30,8 @@
 #include "Node/Neighbour/NeighbourDiscovery.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
+#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/AppListener/AppListener.h"
 
 /**
  * CLASS Node
@@ -75,6 +77,14 @@ class Node {
    * Variable that holds the bundle queue.
    */
   std::shared_ptr<BundleQueue> m_bundleQueue;
+  /**
+   * Variable that holds the app listener.
+   */
+  std::shared_ptr<AppListener> m_appListener;
+  /**
+   * Variable that holds the listening apps table.
+   */
+  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

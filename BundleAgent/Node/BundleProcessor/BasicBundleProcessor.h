@@ -33,7 +33,7 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-// class ListeningAppsTable;
+class ListeningAppsTable;
 class Neighbour;
 
 /**
@@ -52,10 +52,9 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  BasicBundleProcessor(
-      Config config, std::shared_ptr<BundleQueue> bundleQueue,
-      std::shared_ptr<NeighbourTable> neighbourTable
-      /*, std::shared_ptr<ListeningAppsTable> listeningAppsTable*/);
+  BasicBundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+                       std::shared_ptr<NeighbourTable> neighbourTable,
+                       std::shared_ptr<ListeningAppsTable> listeningAppsTable);
   /**
    * Destructor of the class.
    */

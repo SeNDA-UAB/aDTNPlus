@@ -39,6 +39,7 @@
 #include "Node/Neighbour/Neighbour.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
+#include "Node/AppListener/ListeningAppsTable.h"
 #include "Bundle/Bundle.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/globals.h"
@@ -46,11 +47,12 @@
 
 BundleProcessor::BundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable
-    /*, std::shared_ptr<ListeningAppsTable> listeningAppsTable*/)
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
     : m_config(config),
       m_bundleQueue(bundleQueue),
-      m_neighbourTable(neighbourTable) {
+      m_neighbourTable(neighbourTable),
+      m_listeningAppsTable(listeningAppsTable) {
   LOG(10) << "Starting BundleProcessor";
   std::thread t = std::thread(&BundleProcessor::processBundles, this);
   t.detach();
@@ -217,6 +219,7 @@ void BundleProcessor::receiveMessage(int sock) {
 
 void BundleProcessor::dispatch(const Bundle& bundle,
                                std::vector<std::string> destinations) {
+  LOG(11) << "Dispatching bundle";
 }
 
 void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
