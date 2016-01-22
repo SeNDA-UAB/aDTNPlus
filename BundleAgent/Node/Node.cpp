@@ -22,12 +22,39 @@
  *
  */
 
+#include <dirent.h>
 #include <string>
+#include <vector>
+#include <sstream>
+#include <cstdio>
+#include <fstream>
+#include <memory>
+#include <algorithm>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/BundleProcessor/BasicBundleProcessor.h"
+#include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
+
+std::vector<std::string> getBundlesInFolder(std::string folder) {
+  DIR *dir = NULL;
+  struct dirent *ent = NULL;
+  std::vector<std::string> files;
+  if ((dir = opendir(folder.c_str())) == NULL) {
+    LOG(1) << "Cannot open bundles directory, reason: " << strerror(errno);
+  } else {
+    while ((ent = readdir(dir)) != NULL) {
+      if (ent->d_type != DT_REG)
+        continue;
+      std::stringstream ss;
+      ss << folder << ent->d_name;
+      files.push_back(ss.str());
+    }
+    closedir(dir);
+  }
+  return files;
+}
 
 Node::Node(std::string filename) {
   m_config = Config(filename);
@@ -39,6 +66,28 @@ Node::Node(std::string filename) {
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
+  std::vector<std::string> bundles = getBundlesInFolder(m_config.getDataPath());
+  if (m_config.getClean()) {
+    // Delete all the bundles in the folder.
+    std::for_each(bundles.begin(), bundles.end(), [this](std::string &bundle) {
+      int val = std::remove(bundle.c_str());
+      if (val != 0) {
+        LOG(1) << "The bundle: " << bundle << " cannot be deleted, reason: "
+        << strerror(errno);
+      }
+    });
+  } else {
+    // Restore all the bundles in the folder.
+    std::for_each(bundles.begin(), bundles.end(), [this](std::string &bundle) {
+      std::ifstream bundleF(bundle);
+      std::string rawBundleContainer((std::istreambuf_iterator<char>(bundleF))
+          , std::istreambuf_iterator<char>());
+      std::unique_ptr<BundleContainer> bundleContainer =
+      BundleContainer::deserialize(rawBundleContainer);
+      m_bundleQueue->enqueue(std::move(bundleContainer));
+      bundleF.close();
+    });
+  }
   m_listeningAppsTable = std::shared_ptr<ListeningAppsTable>(
       new ListeningAppsTable());
   m_appListener = std::shared_ptr<AppListener>(

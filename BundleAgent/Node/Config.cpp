@@ -44,6 +44,7 @@ const bool Config::NEIGHBOURTESTMODE = false;
 const std::string Config::DATAPATH = "/tmp/adtn/bundles/";
 const std::string Config::LISTENERADDRESS = "127.0.0.1";
 const int Config::LISTENERPORT = 50000;
+const bool Config::CLEAN = false;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -60,7 +61,8 @@ Config::Config()
       m_neighbourTestMode(NEIGHBOURTESTMODE),
       m_dataPath(DATAPATH),
       m_listenerAddress(LISTENERADDRESS),
-      m_listenerPort(LISTENERPORT) {
+      m_listenerPort(LISTENERPORT),
+      m_clean(CLEAN) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -101,6 +103,7 @@ Config::Config(const std::string &configFilename) {
     m_listenerPort = m_configLoader.m_reader.GetInteger("AppListener",
                                                         "listenerPort",
                                                         LISTENERPORT);
+    m_clean = m_configLoader.m_reader.GetBoolean("Node", "clean", CLEAN);
   }
 }
 
@@ -165,4 +168,8 @@ std::string Config::getListenerAddress() {
 
 int Config::getListenerPort() {
   return m_listenerPort;
+}
+
+bool Config::getClean() {
+  return m_clean;
 }

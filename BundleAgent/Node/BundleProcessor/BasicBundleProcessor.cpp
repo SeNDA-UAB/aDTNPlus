@@ -37,6 +37,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
+#include "Node/AppListener/ListeningAppsTable.h"
 
 BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
@@ -59,8 +60,13 @@ void BasicBundleProcessor::processBundle(
     std::vector<std::string> destinations = checkDestination(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
-      dispatch(bundleContainer->getBundle(), destinations);
-      discard(std::move(bundleContainer));
+      try {
+        dispatch(bundleContainer->getBundle(), destinations);
+        discard(std::move(bundleContainer));
+      } catch (const ListeningAppsTableException &e) {
+        LOG(55) << "Restoring not dispatched bundle.";
+        restore(std::move(bundleContainer));
+      }
     } else {
       LOG(55) << "No listening app, restoring the bundle.";
       restore(std::move(bundleContainer));

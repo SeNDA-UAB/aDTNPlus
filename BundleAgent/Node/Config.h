@@ -144,6 +144,12 @@ class Config {
    * @return the port.
    */
   int getListenerPort();
+  /**
+   * Get if at start the node has to clean or not the saved bundles.
+   *
+   * @return If clean is enabled.
+   */
+  bool getClean();
 
  private:
   /**
@@ -207,6 +213,10 @@ class Config {
    */
   int m_listenerPort;
   /**
+   * Clean saved bundles.
+   */
+  bool m_clean;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -228,6 +238,7 @@ class Config {
   static const std::string DATAPATH;
   static const std::string LISTENERADDRESS;
   static const int LISTENERPORT;
+  static const bool CLEAN;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_
