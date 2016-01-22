@@ -34,6 +34,7 @@
 #include <cstdio>
 #include <chrono>
 #include <algorithm>
+#include <fstream>
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
@@ -213,7 +214,13 @@ void BundleProcessor::receiveMessage(int sock) {
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
               neighbour, std::move(b));
           // Save the bundleContainer to disk
-          LOG(42) << "Saving bundle " << " to disk";
+          LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
+          std::ofstream bundleFile;
+          std::stringstream ss;
+          ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
+          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+          bundleFile << bc->serialize();
+          bundleFile.close();
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           m_bundleQueue->enqueue(std::move(bc));
@@ -241,6 +248,7 @@ void BundleProcessor::dispatch(Bundle bundle,
           << appId;
         } catch (const ListeningAppsTableException &e) {
           LOG(1) << "Error getting appId, reason: " << e.what();
+          throw;
         }
       });
 }
@@ -339,11 +347,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
 void BundleProcessor::discard(
     std::unique_ptr<BundleContainer> bundleContainer) {
   std::stringstream ss;
-  ss << m_config.getDataPath()
-     << bundleContainer->getBundle().getPrimaryBlock()->getCreationTimestamp()
-     << "_"
-     << bundleContainer->getBundle().getPrimaryBlock()
-         ->getCreationTimestampSeqNumber()
+  ss << m_config.getDataPath() << bundleContainer->getBundle().getId()
      << ".bundle";
   int success = std::remove(ss.str().c_str());
   if (success != 0) {

@@ -36,7 +36,7 @@
 
 int main(int argc, char **argv) {
   std::string bundleFileName = std::string(argv[1]);
-  std::ifstream file(bundleFileName, std::ifstream::in);
+  std::ifstream file(bundleFileName, std::ifstream::in | std::ifstream::binary);
   std::string rawBundle;
   if (file) {
     file.seekg(0, file.end);
@@ -129,26 +129,33 @@ int main(int argc, char **argv) {
           if (cb->getBlockType()
               == static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK)) {
             std::cout
-                << "Payload block:" << std::endl
-                << "\tBlock processing control flags" << std::endl
+                << "Payload block:"
+                << std::endl
+                << "\tBlock processing control flags"
+                << std::endl
                 << "\t\tBlock must be replicated in every fragment: "
-                << cb->checkProcFlag(CanonicalBlockControlFlags::REPLICATE_FRAGMENT)
+                << cb->checkProcFlag(
+                    CanonicalBlockControlFlags::REPLICATE_FRAGMENT)
                 << std::endl
                 << "\t\tTransmit status report if block can't be processed: "
-                << cb->checkProcFlag(CanonicalBlockControlFlags::TRANSMIT_STATUS_REPORT)
+                << cb->checkProcFlag(
+                    CanonicalBlockControlFlags::TRANSMIT_STATUS_REPORT)
                 << std::endl
                 << "\t\tDelete bundle if block can't be processed: "
                 << cb->checkProcFlag(CanonicalBlockControlFlags::DELETE_BUNDLE)
-                << std::endl << "\t\tLast block: "
-                << cb->checkProcFlag(CanonicalBlockControlFlags::LAST_BLOCK) << std::endl
+                << std::endl
+                << "\t\tLast block: "
+                << cb->checkProcFlag(CanonicalBlockControlFlags::LAST_BLOCK)
+                << std::endl
                 << "\t\tDiscard block if it can't be processed: "
                 << cb->checkProcFlag(CanonicalBlockControlFlags::DISCARD_BLOCK)
                 << std::endl
                 << "\t\tBlock was forwarded without being processed: "
-                << cb->checkProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED)
+                << cb->checkProcFlag(
+                    CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED)
                 << std::endl << "\t\tBlock contains an EID-reference field: "
-                << cb->checkProcFlag(CanonicalBlockControlFlags::EID_FIELD) << std::endl
-                << "\tPayload: "
+                << cb->checkProcFlag(CanonicalBlockControlFlags::EID_FIELD)
+                << std::endl << "\tPayload: "
                 << std::static_pointer_cast<PayloadBlock>(cb)->getPayload()
                 << std::endl;
           } else {
