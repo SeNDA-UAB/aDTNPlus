@@ -33,7 +33,7 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-// class ListeningAppsTable;
+class ListeningAppsTable;
 class Neighbour;
 
 /**
@@ -55,8 +55,8 @@ class BundleProcessor {
    * @param neighbourTable The neighbour table to check the neighbours.
    */
   BundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                  std::shared_ptr<NeighbourTable> neighbourTable
-                  /*, std::shared_ptr<ListeningAppsTable> listeningAppsTable*/);
+                  std::shared_ptr<NeighbourTable> neighbourTable,
+                  std::shared_ptr<ListeningAppsTable> listeningAppsTable);
   /**
    * Destructor of the class.
    */
@@ -71,7 +71,7 @@ class BundleProcessor {
    * @param bundle Bundle to dispatch.
    * @param destinations List of all the destinations to dispatch the bundle.
    */
-  void dispatch(const Bundle& bundle, std::vector<std::string> destinations);
+  void dispatch(Bundle bundle, std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *
@@ -112,7 +112,8 @@ class BundleProcessor {
   /**
    * Variable that holds the listening apps table.
    */
-  // std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+
  private:
   /**
    * Function that processes the bundles.

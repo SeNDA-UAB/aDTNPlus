@@ -14,7 +14,7 @@ class ListeningAppsTable {
 	- m_listeningApps : std::map<std::string,App>
 	+ ListeningAppsTable()
 	+ ~ListeningAppsTable()
-	+ update(appId : std::string, appAddress : std::string, appPort : int): App
+	+ update(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int): App
 	+ clean(expirationTime: int) : void
 	+ stop(appId : std::string) : void
 	+ getAppIds() : std::vector<std::string>
@@ -24,15 +24,17 @@ class ListeningAppsTable {
 class App {
 	- m_appId : std::string
 	- m_appAddress : std::string
-	- m_appPort : int
+	- m_appPort : uint16_t
 	- m_lastActivity : time_point
-	+ App(appId : std::string, appAddress : std::string, appPort : int)
+	- m_socket : int
+	+ App(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int)
 	+~App()
 	+getAppId() : std::string
 	+getAppAddress() : std::string
 	+getAppPort() : uint16_t
 	+getElapsedActivityTime() : int
-	+update(appAddress : std::string, appPort : int) : void
+	+getSocket() : int
+	+update(appAddress : std::string, appPort : uint16_t) : void
 	+operator==(app : App) : bool
 }
 

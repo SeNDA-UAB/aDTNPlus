@@ -132,6 +132,18 @@ class Config {
    * @return The path.
    */
   std::string getDataPath();
+  /**
+   * Get the listener IP address.
+   *
+   * @return The listener IP address.
+   */
+  std::string getListenerAddress();
+  /**
+   * Get the port for the App listener.
+   *
+   * @return the port.
+   */
+  int getListenerPort();
 
  private:
   /**
@@ -187,6 +199,14 @@ class Config {
    */
   std::string m_dataPath;
   /**
+   * IP address of the App listener.
+   */
+  std::string m_listenerAddress;
+  /**
+   * Port for register apps in the App listener.
+   */
+  int m_listenerPort;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -206,6 +226,8 @@ class Config {
   static const int SOCKETTIMEOUT;
   static const bool NEIGHBOURTESTMODE;
   static const std::string DATAPATH;
+  static const std::string LISTENERADDRESS;
+  static const int LISTENERPORT;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

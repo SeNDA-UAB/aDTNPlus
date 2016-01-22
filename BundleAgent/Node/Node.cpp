@@ -39,8 +39,13 @@ Node::Node(std::string filename) {
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
+  m_listeningAppsTable = std::shared_ptr<ListeningAppsTable>(
+      new ListeningAppsTable());
+  m_appListener = std::shared_ptr<AppListener>(
+      new AppListener(m_config, m_listeningAppsTable));
   m_bundleProcessor = std::shared_ptr<BundleProcessor>(
-      new BasicBundleProcessor(m_config, m_bundleQueue, m_neighbourTable));
+      new BasicBundleProcessor(m_config, m_bundleQueue, m_neighbourTable,
+                               m_listeningAppsTable));
 }
 
 Node::~Node() {

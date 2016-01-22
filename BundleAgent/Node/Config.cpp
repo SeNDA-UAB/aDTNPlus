@@ -42,6 +42,8 @@ const int Config::LOGLEVEL = 1;
 const int Config::SOCKETTIMEOUT = 20;
 const bool Config::NEIGHBOURTESTMODE = false;
 const std::string Config::DATAPATH = "/tmp/adtn/bundles/";
+const std::string Config::LISTENERADDRESS = "127.0.0.1";
+const int Config::LISTENERPORT = 50000;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -56,7 +58,9 @@ Config::Config()
       m_logLevel(LOGLEVEL),
       m_socketTimeout(SOCKETTIMEOUT),
       m_neighbourTestMode(NEIGHBOURTESTMODE),
-      m_dataPath(DATAPATH) {
+      m_dataPath(DATAPATH),
+      m_listenerAddress(LISTENERADDRESS),
+      m_listenerPort(LISTENERPORT) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -91,6 +95,12 @@ Config::Config(const std::string &configFilename) {
         "NeighbourDiscovery", "testMode", NEIGHBOURTESTMODE);
     m_dataPath = m_configLoader.m_reader.Get("BundleProcess", "dataPath",
                                              DATAPATH);
+    m_listenerAddress = m_configLoader.m_reader.Get("AppListener",
+                                                    "listenerAddress",
+                                                    LISTENERADDRESS);
+    m_listenerPort = m_configLoader.m_reader.GetInteger("AppListener",
+                                                        "listenerPort",
+                                                        LISTENERPORT);
   }
 }
 
@@ -147,4 +157,12 @@ bool Config::getNeighbourTestMode() {
 
 std::string Config::getDataPath() {
   return m_dataPath;
+}
+
+std::string Config::getListenerAddress() {
+  return m_listenerAddress;
+}
+
+int Config::getListenerPort() {
+  return m_listenerPort;
 }

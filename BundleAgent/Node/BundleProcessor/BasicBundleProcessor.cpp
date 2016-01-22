@@ -40,9 +40,9 @@
 
 BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable
-    /*, std::shared_ptr<ListeningAppsTable> listeningAppsTable*/)
-    : BundleProcessor(config, bundleQueue, neighbourTable) {
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
+    : BundleProcessor(config, bundleQueue, neighbourTable, listeningAppsTable) {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
@@ -52,11 +52,11 @@ void BasicBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination()
-      == m_config.getNodeId()) {
+  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
+      m_config.getNodeId()) != std::string::npos) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDestination();
+    std::vector<std::string> destinations = checkDestination(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       dispatch(bundleContainer->getBundle(), destinations);
@@ -79,8 +79,13 @@ void BasicBundleProcessor::processBundle(
         LOG(55) << "There are some neighbours.";
         LOG(55) << "Checking if one of them is the bundle destination.";
         auto it = std::find(
-            neighbours.begin(), neighbours.end(),
-            bundleContainer->getBundle().getPrimaryBlock()->getDestination());
+            neighbours.begin(),
+            neighbours.end(),
+            bundleContainer->getBundle().getPrimaryBlock()->getDestination()
+                .substr(
+                0,
+                bundleContainer->getBundle().getPrimaryBlock()->getDestination()
+                    .find(":")));
         if (it != neighbours.end()) {
           LOG(55) << "Destination found, sending the bundle to it.";
           std::vector<std::string> nextHop = std::vector<std::string>();
@@ -94,7 +99,8 @@ void BasicBundleProcessor::processBundle(
         LOG(55) << "Discarding the bundle.";
         discard(std::move(bundleContainer));
       } else {
-        LOG(55) << "No neighbours found, restoring the bundle.";
+        LOG(
+            55) << "No neighbours found, restoring the bundle.";
         restore(std::move(bundleContainer));
       }
     }
@@ -107,8 +113,14 @@ std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
       new BundleContainer(from->getNodeId(), std::move(bundle)));
 }
 
-std::vector<std::string> BasicBundleProcessor::checkDestination() {
-  return std::vector<std::string>();
+std::vector<std::string> BasicBundleProcessor::checkDestination(
+    BundleContainer &bundleContainer) {
+  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
+      ->getDestination();
+  std::string appId = destination.substr(destination.find(":") + 1);
+  std::vector<std::string> dispatch;
+  dispatch.push_back(appId);
+  return dispatch;
 }
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
