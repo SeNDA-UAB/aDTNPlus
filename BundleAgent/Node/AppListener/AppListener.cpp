@@ -59,7 +59,7 @@ void AppListener::listenApps() {
   } else {
     if (bind(sock, reinterpret_cast<sockaddr*>(&listenAddr), sizeof(listenAddr))
         == -1) {
-      // Stop the applicatin
+      // Stop the application
       LOG(1) << "Cannot bind socket to " << m_config.getListenerAddress()
              << ", reason: " << strerror(errno);
       g_stop = true;

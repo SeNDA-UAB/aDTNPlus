@@ -68,7 +68,7 @@ BundleProcessor::~BundleProcessor() {
 void BundleProcessor::processBundles() {
   while (!g_stop.load()) {
     try {
-      //LOG(60) << "Trying to dequeue a bundle";
+      // LOG(60) << "Trying to dequeue a bundle";
       std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
       processBundle(std::move(bc));
     } catch (const std::exception &e) {
