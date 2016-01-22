@@ -1,19 +1,22 @@
 @startuml
 
-title ADTNPlus App Listener Class Diagram
+title ADTNPlus App Listener Upgrade Class Diagram
 
 class AppListener {
 	-m_config : Config
 	-m_listeningAppsTable : ListeningAppsTable
 	+AppListener(config : Config, listeningAppsTable : ListeningAppsTable)
 	-listenApps() : void
+	-cleanApps() : void
 }
 
 class ListeningAppsTable {
 	- m_listeningApps : std::map<std::string,App>
 	+ ListeningAppsTable()
 	+ ~ListeningAppsTable()
-	+ add(appId : std::string, appAddress : std::string, appPort : uint16_t): App
+	+ update(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int): App
+	+ clean(expirationTime: int) : void
+	+ stop(appId : std::string) : void
 	+ getAppIds() : std::vector<std::string>
 	+ getApp(appId : std::string) : App
 }
@@ -22,11 +25,16 @@ class App {
 	- m_appId : std::string
 	- m_appAddress : std::string
 	- m_appPort : uint16_t
-	+ App(appId : std::string, appAddress : std::string, appPort : uint16_t)
+	- m_lastActivity : time_point
+	- m_socket : int
+	+ App(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int)
 	+~App()
 	+getAppId() : std::string
 	+getAppAddress() : std::string
 	+getAppPort() : uint16_t
+	+getElapsedActivityTime() : int
+	+getSocket() : int
+	+update(appAddress : std::string, appPort : uint16_t) : void
 	+operator==(app : App) : bool
 }
 
