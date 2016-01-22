@@ -47,7 +47,7 @@ void ListeningAppsTable::update(const std::string &appId,
   if (it != m_listeningApps.end()) {
     m_listeningApps[appId]->update(appAddress, appPort);
   } else {
-    LOG(17) << "New app " << appId << "added";
+    LOG(17) << "New app " << appId << " added";
     m_listeningApps[appId] = std::make_shared<App>(appId, appAddress, appPort,
                                                    socket);
   }

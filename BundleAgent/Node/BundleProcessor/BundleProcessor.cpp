@@ -68,7 +68,7 @@ BundleProcessor::~BundleProcessor() {
 void BundleProcessor::processBundles() {
   while (!g_stop.load()) {
     try {
-      LOG(60) << "Trying to dequeue a bundle";
+      //LOG(60) << "Trying to dequeue a bundle";
       std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
       processBundle(std::move(bc));
     } catch (const std::exception &e) {
@@ -167,7 +167,7 @@ void BundleProcessor::receiveMessage(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      bundleLength = ntohs(bundleLength);
+      bundleLength = ntohl(bundleLength);
       LOG(42) << "Received bundle length: " << bundleLength;
       char* rawBundle = new char[bundleLength];
       uint32_t receivedLength = 0;
@@ -204,14 +204,20 @@ void BundleProcessor::receiveMessage(int sock) {
               new Bundle(bundleStringRaw));
           LOG(42) << "Creating bundle container";
           // Create the bundleContainer
+          std::shared_ptr<Neighbour> neighbour;
+          try {
+            neighbour = m_neighbourTable->getNeighbour(srcNodeId);
+          } catch (const NeighbourTableException &nte) {
+            neighbour = std::make_shared<Neighbour>(srcNodeId, "", 0);
+          }
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
-              m_neighbourTable->getNeighbour(srcNodeId), std::move(b));
+              neighbour, std::move(b));
           // Save the bundleContainer to disk
           LOG(42) << "Saving bundle " << " to disk";
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           m_bundleQueue->enqueue(std::move(bc));
-        } catch (BundleCreationException &e) {
+        } catch (const BundleCreationException &e) {
           LOG(1) << "Error constructing received bundle, reason: " << e.what();
         }
       }
@@ -225,15 +231,14 @@ void BundleProcessor::dispatch(Bundle bundle,
   std::string payload = bundle.getPayloadBlock()->getPayload();
   int payloadSize = payload.length();
   std::for_each(
-      destinations.begin(),
-      destinations.end(),
+      destinations.begin(), destinations.end(),
       [this, payload, payloadSize] (std::string &appId) {
         try {
           std::shared_ptr<App> app = m_listeningAppsTable->getApp(appId);
           send(app->getSocket(), &payloadSize, sizeof(payloadSize), 0);
           send(app->getSocket(), payload.c_str(), payloadSize, 0);
           LOG(17) << "Send the payload: " << payload << " to the appId: "
-              << appId;
+          << appId;
         } catch (const ListeningAppsTableException &e) {
           LOG(1) << "Error getting appId, reason: " << e.what();
         }
@@ -291,7 +296,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     LOG(1) << "Cannot write to socket, reason: "
                     << strerror(errno);
                   } else {
-                    uint32_t nBundleLength = htons(bundleLength);
+                    uint32_t nBundleLength = htonl(bundleLength);
                     LOG(46) << "Sending bundle length: " << bundleLength;
                     writed = send(sock, &nBundleLength, sizeof(nBundleLength),
                         0);

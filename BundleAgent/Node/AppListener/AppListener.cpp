@@ -107,7 +107,7 @@ void AppListener::startListening(int sock) {
   int receivedSize = recv(sock, &type, sizeof(type), 0);
   if (type == 0) {
     LOG(17) << "Someone asked to add an AppId";
-    int appId = 0;
+    uint32_t appId = 0;
     receivedSize = recv(sock, &appId, sizeof(appId), 0);
     if (receivedSize != sizeof(appId)) {
       if (receivedSize == 0) {
@@ -123,7 +123,7 @@ void AppListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningAppsTable->update(std::to_string(appId), "", 0, sock);
+      m_listeningAppsTable->update(std::to_string(ntohl(appId)), "", 0, sock);
     }
   }
 }
