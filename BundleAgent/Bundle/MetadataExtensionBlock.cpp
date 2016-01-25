@@ -80,3 +80,9 @@ uint8_t MetadataExtensionBlock::getMetadataType() {
 std::string MetadataExtensionBlock::getMetadata() {
   return m_metadata;
 }
+
+std::string MetadataExtensionBlock::toString() {
+  std::stringstream ss;
+  ss << "Metadata Extension Block:" << std::endl;
+  return ss.str();
+}

@@ -46,7 +46,7 @@ TEST(AppTest, Activity) {
   ASSERT_EQ(0, a.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, a.getElapsedActivityTime());
-  a.update("192.168.1.2", 40000);
+  a.update("192.168.1.2", 40000, 2);
   ASSERT_EQ(0, a.getElapsedActivityTime());
 }
 

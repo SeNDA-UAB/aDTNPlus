@@ -105,3 +105,10 @@ std::unique_ptr<BundleContainer> BundleContainer::deserialize(
   }
   return 0;
 }
+
+std::string BundleContainer::toString() {
+  std::stringstream ss;
+  ss << "From: " << m_from << std::endl << "Bundle: " << std::endl
+     << m_bundle->toString();
+  return ss.str();
+}

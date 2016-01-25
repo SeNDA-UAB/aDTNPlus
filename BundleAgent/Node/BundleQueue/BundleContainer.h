@@ -84,6 +84,12 @@ class BundleContainer {
    * @return the BundleContainer.
    */
   static std::unique_ptr<BundleContainer> deserialize(const std::string &data);
+  /**
+   * @brief Returns an string with a nice view of the Bundle container information.
+   *
+   * @return The string with the bundle container information.
+   */
+  std::string toString();
 
  private:
   /**
