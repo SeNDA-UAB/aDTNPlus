@@ -19,8 +19,6 @@ fork again
 	:Clean neighbours;
 fork again
 	:Listen apps;
-fork again
-	:Clean apps;
 end fork
 end
 @enduml

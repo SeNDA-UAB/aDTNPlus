@@ -1,0 +1,48 @@
+@startuml
+
+title Process Bundle Class Diagram
+
+abstract class BundleProcessor {
+	#m_config : Config
+	#m_bundleQueue : BundleQueue
+	#m_listeningAppsTable : ListeningAppsTable
+	#m_neighbourTable : NeighbourTable
+	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BundleProcessor()
+	-processBundles() : void
+	-receiveBundles(): void
+	-{abstract}processBundle(bundleContainer : BundleContainer): void
+	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
+	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
+	#discard(bundleContainer : BundleContainer) : void
+	#restore(bundleContainer : BundleContainer) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer	
+}
+
+class BasicBundleProcessor {
+	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BasicBundleProcessor()
+	-processBundle(bundleContainer : BundleContainer) : void
+	-checkDestination(bundleContainer : BundleContainer): std::vector<std::string>
+	-checkLifetime(bundleContainer : BundleContainer): bool
+	#checkForward(bundleContainer : BundleContainer): std::vector<std::string>
+	-createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
+}
+
+class RoutingSelectionBundleProcessor {
+	+RoutingSelectionBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~RoutingSelectionBundleProcessor()
+	-checkForward(bundleContainer : BundleContainer): std::vector<std::string>
+}
+note right: executes the forwarding algorithm selected by the MEB
+
+class ForwardingAlgorithms {
+	+antiRebot(bundleContainer : BundleContainer, std::vector<std::string> neighbours) : std::vector<std::string>
+	+flood(bundleContainer : BundleContainer, std::vector<std::string> neighbours) : std::vector<std::string> 
+}
+hide ForwardingAlgorithms circle
+
+BundleProcessor <|-- BasicBundleProcessor
+BasicBundleProcessor <|-- RoutingSelectionBundleProcessor
+
+@enduml
