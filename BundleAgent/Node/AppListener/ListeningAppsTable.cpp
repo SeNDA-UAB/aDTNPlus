@@ -45,7 +45,7 @@ void ListeningAppsTable::update(const std::string &appId,
   std::map<std::string, std::shared_ptr<App>>::iterator it = m_listeningApps
       .find(appId);
   if (it != m_listeningApps.end()) {
-    m_listeningApps[appId]->update(appAddress, appPort);
+    m_listeningApps[appId]->update(appAddress, appPort, socket);
   } else {
     LOG(17) << "New app " << appId << " added";
     m_listeningApps[appId] = std::make_shared<App>(appId, appAddress, appPort,

@@ -80,7 +80,8 @@ class App {
    * @param appAddress IP address of the app.
    * @param appPort port of the app.
    */
-  void update(const std::string &appAddress, const uint16_t &appPort);
+  void update(const std::string &appAddress, const uint16_t &appPort,
+              const int &socket);
   /**
    * Equality operator overload.
    * @param app to compare
