@@ -76,6 +76,12 @@ class MetadataExtensionBlock : public CanonicalBlock {
    * @return The type of the block.
    */
   uint8_t getMetadataType();
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  protected:
   /**

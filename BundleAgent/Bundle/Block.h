@@ -87,6 +87,12 @@ class Block {
    * @return the size of the block.
    */
   size_t getLength();
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  virtual std::string toString() = 0;
 
  protected:
   /**

@@ -175,3 +175,11 @@ std::string Bundle::getId() {
      << m_primaryBlock->getCreationTimestampSeqNumber();
   return ss.str();
 }
+
+std::string Bundle::toString() {
+  std::stringstream ss;
+  for (size_t i = 0; i < m_blocks.size(); ++i) {
+    ss << m_blocks[i]->toString();
+  }
+  return ss.str();
+}

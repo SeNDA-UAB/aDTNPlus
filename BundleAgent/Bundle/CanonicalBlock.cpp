@@ -121,3 +121,9 @@ bool CanonicalBlock::checkProcFlag(CanonicalBlockControlFlags procFlag) {
   LOG(38) << "Testing Flag " << static_cast<int>(procFlag);
   return m_procFlags.test(static_cast<uint32_t>(procFlag));
 }
+
+std::string CanonicalBlock::toString() {
+  std::stringstream ss;
+  ss << "Not recognised block" << std::endl;
+  return ss.str();
+}

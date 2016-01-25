@@ -8,13 +8,14 @@ set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread --coverage")
 
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")
+set(TOOL_DIR "Tools")
 include_directories("${SRC_DIR}")
 file(GLOB_RECURSE SRC_FILES_CPP "${SRC_DIR}/Bundle/*.cpp" "${SRC_DIR}/ExternTools/*.cpp" "${SRC_DIR}/Node/*.cpp" "${SRC_DIR}/Utils/*.cpp")
 file(GLOB_RECURSE SRC_FILES_C "${SRC_DIR}/ExternTools/*.c")
 file(GLOB MAIN_FILE "${SRC_DIR}/*.cpp")
 set(EXEC_NAME "BundleAgent")
 #Create program executable
-SET(EXEC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}" "${MAIN_FILE}")
+set(EXEC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}" "${MAIN_FILE}")
 add_executable(${EXEC_NAME} ${EXEC_FILES})
 find_package(Threads)
 target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT})
@@ -44,3 +45,9 @@ target_link_libraries(${TEST_EXEC} ${LIB_NAME} gtest)
 
 #Add the executable as a test
 add_test(BundleTest "${TEST_EXEC}")
+
+file(GLOB_RECURSE SRC_FILES1_CPP "${SRC_DIR}/Node/BundleQueue/BundleContainer.cpp" "${SRC_DIR}/Bundle/*.cpp" "${SRC_DIR}/ExternTools/*.cpp" "${SRC_DIR}/Utils/*.cpp")
+file(GLOB MAIN1_FILE "${TOOL_DIR}/bundleContainerViewer.cpp")
+set(BV_NAME "BCViewer")
+set(BV_FILES "${SRC_FILES1_CPP}" "${SRC_FILES_C}" "${MAIN1_FILE}")
+add_executable(${BV_NAME} ${BV_FILES})

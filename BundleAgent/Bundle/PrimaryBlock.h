@@ -151,6 +151,12 @@ class PrimaryBlock : public Block {
    * @param lifetime new lifetime to set.
    */
   void setLifetime(const uint64_t &lifetime);
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  private:
   /**
