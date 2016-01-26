@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <sys/select.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -109,20 +110,31 @@ void BundleProcessor::receiveBundles() {
         tv.tv_sec = 10;
         LOG(10) << "Listening petitions at (" << m_config.getNodeAddress()
                 << ":" << m_config.getNodePort() << ")";
+        fd_set readfds;
         while (!g_stop.load()) {
-          sockaddr_in clientAddr = { 0 };
-          socklen_t clientLen = sizeof(clientAddr);
-          int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
-                               &clientLen);
-          if (newsock == -1) {
-            LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+          FD_ZERO(&readfds);
+          FD_SET(sock, &readfds);
+          struct timeval tv1;
+          tv1.tv_sec = m_config.getSocketTimeout();
+          int sel = select(sock + 1, &readfds, NULL, NULL, &tv1);
+          if (sel <= 0)
             continue;
+          if (FD_ISSET(sock, &readfds)) {
+            sockaddr_in clientAddr = { 0 };
+            socklen_t clientLen = sizeof(clientAddr);
+            int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
+                                 &clientLen);
+            if (newsock == -1) {
+              LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+              continue;
+            }
+            LOG(41) << "Connection received.";
+            // Set timeout to socket
+            setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
+                       sizeof(struct timeval));
+            std::thread(&BundleProcessor::receiveMessage, this,
+                        newsock).detach();
           }
-          LOG(41) << "Connection received.";
-          // Set timeout to socket
-          setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
-                     sizeof(struct timeval));
-          std::thread(&BundleProcessor::receiveMessage, this, newsock).detach();
         }
       }
     }
