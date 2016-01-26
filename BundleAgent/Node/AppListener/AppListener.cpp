@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include <memory>
 #include <thread>
@@ -72,17 +73,27 @@ void AppListener::listenApps() {
       } else {
         LOG(17) << "Listening petitions at (" << m_config.getListenerAddress()
                 << ":" << m_config.getListenerPort() << ")";
+        fd_set readfds;
         while (!g_stop.load()) {
-          sockaddr_in clientAddr = { 0 };
-          socklen_t clientLen = sizeof(clientAddr);
-          int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
-                               &clientLen);
-          if (newsock == -1) {
-            LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+          FD_ZERO(&readfds);
+          FD_SET(sock, &readfds);
+          struct timeval tv;
+          tv.tv_sec = m_config.getSocketTimeout();
+          int sel = select(sock + 1, &readfds, NULL, NULL, &tv);
+          if (sel <= 0)
             continue;
+          if (FD_ISSET(sock, &readfds)) {
+            sockaddr_in clientAddr = { 0 };
+            socklen_t clientLen = sizeof(clientAddr);
+            int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
+                                 &clientLen);
+            if (newsock == -1) {
+              LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+              continue;
+            }
+            LOG(80) << "Connection received.";
+            std::thread(&AppListener::startListening, this, newsock).detach();
           }
-          LOG(80) << "Connection received.";
-          std::thread(&AppListener::startListening, this, newsock).detach();
         }
       }
     }
