@@ -67,6 +67,12 @@ class PayloadBlock : public CanonicalBlock {
    * @return The payload value.
    */
   std::string getPayload();
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  private:
   /**

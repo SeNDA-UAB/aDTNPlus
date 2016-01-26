@@ -378,3 +378,54 @@ void PrimaryBlock::setLifetime(const uint64_t &lifetime) {
   LOG(40) << "Setting new lifetime [" << lifetime << "]";
   m_lifetime = lifetime;
 }
+
+std::string PrimaryBlock::toString() {
+  std::stringstream ss;
+  ss << "Primary Block:"
+     << std::endl
+     << "\tBundle processing control flags:"
+     << std::endl
+     << "\t\tBundle is fragment: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::IS_FRAGMENT)
+     << std::endl
+     << "\t\tApplication data unit is an administrative record: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::IS_ADMINISTRATIVE_RECORD)
+     << std::endl
+     << "\t\tBundle must not be framented: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::NOT_FRAGMENTED)
+     << std::endl
+     << "\t\tCustody transfer is requested: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::CUSTODY_TRANSFER)
+     << std::endl
+     << "\t\tDestination endpoint is a singleton: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::DESTINATION_SINGLETON)
+     << std::endl
+     << "\t\tAcknowledgement by application is requested: "
+     << checkPrimaryProcFlag(
+         PrimaryBlockControlFlags::ACKNOWLEDGEMENT_REQUESTED)
+     << std::endl << "\t\tProprity: ";
+  if (checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_BULK))
+    ss << "Bulk";
+  else if (checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_NORMAL))
+    ss << "Normal";
+  else if (checkPrimaryProcFlag(PrimaryBlockControlFlags::PRIORITY_EXPEDITED))
+    ss << "Expedited";
+  ss << std::endl << "\t\tRequest reporting of bundle reception: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_RECEPTION)
+     << std::endl << "\t\tRequest reporting of custody acceptance: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_CUSTODY_ACCEPT)
+     << std::endl << "\t\tRequest reporting of bundle forwarding: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_FORWARDING)
+     << std::endl << "\t\tRequest reporting of bundle delivery: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_DELIVERY)
+     << std::endl << "\t\tRequest reporting of bundle deletion: "
+     << checkPrimaryProcFlag(PrimaryBlockControlFlags::REQUEST_DELETION)
+     << std::endl << "\tDestination: " << getDestination() << std::endl
+     << "\tSource: " << getSource() << std::endl << "\tReport-to: "
+     << getReportTo() << std::endl << "\tCustodian: " << getCustodian()
+     << std::endl << "\tCreation timestamp: " << getCreationTimestamp()
+     << std::endl << "\tCreation timestamp sequence number: "
+     << getCreationTimestampSeqNumber() << std::endl << "\tLifetime: "
+     << getLifetime() << std::endl;
+  return ss.str();
+}

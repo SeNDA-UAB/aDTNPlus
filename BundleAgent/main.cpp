@@ -28,6 +28,8 @@
 #include <thread>
 #include <chrono>
 #include <cstdint>
+#include <string>
+#include <iostream>
 #include "Utils/globals.h"
 #include "Node/Node.h"
 
@@ -43,13 +45,18 @@ int main(int argc, char **argv) {
   sigIntHandler.sa_handler = stop;
   sigemptyset(&sigIntHandler.sa_mask);
   sigIntHandler.sa_flags = 0;
+  if (argc != 2) {
+    std::cout << "Usage: " << argv[0] << " ConfigFile" << std::endl;
+  } else {
+    std::string config = std::string(argv[1]);
 
-  sigaction(SIGINT, &sigIntHandler, NULL);
-  g_stopped = 0;
-  g_stop = false;
-  Node n = Node("../BundleAgent/Config/adtn.ini");
-  while (!g_stop || (g_stopped.load() < maxThread)) {
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    sigaction(SIGINT, &sigIntHandler, NULL);
+    g_stopped = 0;
+    g_stop = false;
+    Node n = Node(config);
+    while (!g_stop || (g_stopped.load() < maxThread)) {
+      std::this_thread::sleep_for(std::chrono::seconds(5));
+    }
   }
 }
 

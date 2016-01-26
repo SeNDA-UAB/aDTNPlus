@@ -50,11 +50,13 @@ int App::getElapsedActivityTime() {
       / std::chrono::nanoseconds::period::den;
 }
 
-void App::update(const std::string &appAddress, const uint16_t &appPort) {
+void App::update(const std::string &appAddress, const uint16_t &appPort,
+                 const int &socket) {
   LOG(69) << "Updating app last activity time to now";
   m_appAddress = appAddress;
   m_appPort = appPort;
   m_lastActivity = std::chrono::steady_clock::now();
+  m_socket = socket;
 }
 
 bool App::operator ==(const App &app) const {

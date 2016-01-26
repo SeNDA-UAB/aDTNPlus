@@ -101,6 +101,12 @@ class CanonicalBlock : public Block {
    * @sa BlockControlFlags
    */
   bool checkProcFlag(CanonicalBlockControlFlags procFlag);
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  virtual std::string toString();
 
  protected:
   /**
@@ -112,8 +118,8 @@ class CanonicalBlock : public Block {
    */
   int m_bodyDataIndex;
   /**
-     * Block processing control flags, as described into the RFC 5050.
-     */
+   * Block processing control flags, as described into the RFC 5050.
+   */
   std::bitset<7> m_procFlags;
   /**
    * @brief Parses a Canonical Block from raw.

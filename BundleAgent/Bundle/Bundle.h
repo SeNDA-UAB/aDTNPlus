@@ -135,6 +135,12 @@ class Bundle {
    *
    */
   std::string getId();
+  /**
+   * @brief Returns an string with a nice view of the bundle information.
+   *
+   * @return The string with the bundle information.
+   */
+  std::string toString();
 
  private:
   /**
