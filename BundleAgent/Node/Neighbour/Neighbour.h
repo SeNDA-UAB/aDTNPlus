@@ -27,6 +27,7 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
+#include <memory>
 
 /**
  * CLASS Neighbour
@@ -64,7 +65,7 @@ class Neighbour {
    * @param nodeAddress IP address of the neighbour.
    * @param nodePort port of the neighbour.
    */
-  void update(const std::string &nodeAddress, const uint16_t &nodePort);
+  void update(std::shared_ptr<Neighbour> neighbour);
   /**
    * Equality operator overload.
    * @param neighbour to compare.
@@ -80,7 +81,7 @@ class Neighbour {
    * Gets the node id of the neighbour.
    * @return The node id.
    */
-  std::string getNodeId();
+  std::string getId();
   /**
    * Gets the node port of the neighbour.
    * @return The node port.

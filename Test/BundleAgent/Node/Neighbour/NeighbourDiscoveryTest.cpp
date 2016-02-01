@@ -45,34 +45,34 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   std::shared_ptr<NeighbourTable> nt = std::shared_ptr<NeighbourTable>(
       new NeighbourTable());
   NeighbourDiscovery nd(cf, nt);
-  nt->update("node100", "192.168.1.1", 4000);
-  auto neighbours = nt->getNeighbours();
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 4000));
+  auto neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(2, neighbours.size());
   sleep(3);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(2, neighbours.size());
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   sleep(2);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node101", nt->getNeighbour("node101")->getNodeId());
+  ASSERT_EQ("node101", nt->getValue("node101")->getId());
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(0, neighbours.size());
   g_stop = true;
   // The neighbour cleaner thread has been stopped, so the new neighbours
   // must not be cleaned.
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
 }
 
@@ -105,12 +105,12 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
       new NeighbourTable());
   NeighbourDiscovery nd(cf, nt);
   sleep(3);
-  auto neighbours = nt->getNeighbours();
+  auto neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node1", nt->getNeighbour(*neighbours.begin())->getNodeId());
+  ASSERT_EQ("node1", nt->getValue(*neighbours.begin())->getId());
   ASSERT_EQ("127.0.0.1",
-            nt->getNeighbour(*neighbours.begin())->getNodeAddress());
-  ASSERT_EQ(40000, nt->getNeighbour(*neighbours.begin())->getNodePort());
+            nt->getValue(*neighbours.begin())->getNodeAddress());
+  ASSERT_EQ(40000, nt->getValue(*neighbours.begin())->getNodePort());
   g_stop = true;
   sleep(5);
 }

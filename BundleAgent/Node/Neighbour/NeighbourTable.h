@@ -31,21 +31,14 @@
 #include <memory>
 #include <vector>
 #include <stdexcept>
-
-class Neighbour;
-
-class NeighbourTableException : public std::runtime_error {
- public:
-  explicit NeighbourTableException(const std::string &what)
-      : runtime_error(what) {
-  }
-};
+#include "Utils/Table.h"
+#include "Node/Neighbour/Neighbour.h"
 
 /**
  * CLASS NeighbourTable
  * This class contains all the neighbours.
  */
-class NeighbourTable {
+class NeighbourTable : public Table<Neighbour> {
  public:
   /**
    * Constructor of the NeighbourTable.
@@ -56,19 +49,6 @@ class NeighbourTable {
    */
   virtual ~NeighbourTable();
   /**
-   * @brief Updates the neighbour.
-   *
-   * This function updates a neighbour.
-   * If the neighbour is not present in the table this function adds the new
-   * neighbour.
-   *
-   * @param nodeId identifier of the node.
-   * @param nodeAddress IP address of the node.
-   * @param nodePort port of the node.
-   */
-  void update(const std::string &nodeId, const std::string &nodeAddress,
-              const uint16_t &nodePort);
-  /**
    * @brief Clean all the neighbours that have expired.
    *
    * This function deletes all the neighbours that have been expired.
@@ -78,30 +58,6 @@ class NeighbourTable {
    * @param expirationTime Minimum time to expire a neighbour.
    */
   void clean(int expirationTime);
-  /**
-   * Function to get a copy of the current neighbours list id's.
-   *
-   * @return a vector with the current neighbours id's.
-   */
-  std::vector<std::string> getNeighbours();
-
-  /**
-   * Function to get the information of the given neighbour.
-   *
-   * @param nodeId the node id of the neighbour.
-   * @return a Neighbour pointer if exists, else throws a NeighbourTableException.
-   */
-  std::shared_ptr<Neighbour> getNeighbour(const std::string &nodeId);
-
- private:
-  /**
-   * Map with the neighbours.
-   */
-  std::map<std::string, std::shared_ptr<Neighbour>> m_neighbours;
-  /**
-   * Mutex for the map.
-   */
-  std::mutex mutex;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_NEIGHBOURTABLE_H_

@@ -219,8 +219,8 @@ void BundleProcessor::receiveMessage(int sock) {
           // Create the bundleContainer
           std::shared_ptr<Neighbour> neighbour;
           try {
-            neighbour = m_neighbourTable->getNeighbour(srcNodeId);
-          } catch (const NeighbourTableException &nte) {
+            neighbour = m_neighbourTable->getValue(srcNodeId);
+          } catch (const TableException &nte) {
             neighbour = std::make_shared<Neighbour>(srcNodeId, "", 0);
           }
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
@@ -253,12 +253,12 @@ void BundleProcessor::dispatch(Bundle bundle,
       destinations.begin(), destinations.end(),
       [this, payload, payloadSize] (std::string &appId) {
         try {
-          std::shared_ptr<App> app = m_listeningAppsTable->getApp(appId);
+          std::shared_ptr<App> app = m_listeningAppsTable->getValue(appId);
           send(app->getSocket(), &payloadSize, sizeof(payloadSize), 0);
           send(app->getSocket(), payload.c_str(), payloadSize, 0);
           LOG(17) << "Send the payload: " << payload << " to the appId: "
           << appId;
-        } catch (const ListeningAppsTableException &e) {
+        } catch (const TableException &e) {
           LOG(1) << "Error getting appId, reason: " << e.what();
           throw;
         }
@@ -280,7 +280,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
           LOG(45) << "Forwarding bundle to " << nh;
           LOG(50) << "Bundle to forward " << bundleRaw;
           sockaddr_in remoteAddr = {0};
-          std::shared_ptr<Neighbour> nb = m_neighbourTable->getNeighbour(nh);
+          std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
           remoteAddr.sin_family = AF_INET;
           remoteAddr.sin_port = htons(nb->getNodePort());
           remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
