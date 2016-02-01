@@ -31,7 +31,7 @@
  */
 TEST(NeighbourTest, Constructor) {
   Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
-  ASSERT_EQ("node100", n.getNodeId());
+  ASSERT_EQ("node100", n.getId());
   ASSERT_EQ("192.168.1.2", n.getNodeAddress());
   ASSERT_EQ(40000, n.getNodePort());
 }
@@ -46,7 +46,7 @@ TEST(NeighbourTest, Activity) {
   ASSERT_EQ(0, n.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, n.getElapsedActivityTime());
-  n.update("192.168.1.2", 40000);
+  n.update(std::make_shared<Neighbour>("node100", "192.168.1.2", 40000));
   ASSERT_EQ(0, n.getElapsedActivityTime());
 }
 

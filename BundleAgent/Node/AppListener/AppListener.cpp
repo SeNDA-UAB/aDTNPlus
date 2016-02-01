@@ -134,7 +134,8 @@ void AppListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningAppsTable->update(std::to_string(ntohl(appId)), "", 0, sock);
+      m_listeningAppsTable->update(
+          std::make_shared<App>(std::to_string(ntohl(appId)), "", 0, sock));
     }
   }
 }

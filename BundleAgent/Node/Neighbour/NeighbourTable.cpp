@@ -29,7 +29,6 @@
 #include <mutex>
 #include <vector>
 #include <algorithm>
-#include "Node/Neighbour/Neighbour.h"
 #include "Utils/Logger.h"
 
 NeighbourTable::NeighbourTable() {
@@ -38,59 +37,17 @@ NeighbourTable::NeighbourTable() {
 NeighbourTable::~NeighbourTable() {
 }
 
-void NeighbourTable::update(const std::string &nodeId,
-                            const std::string &nodeAddress,
-                            const uint16_t &nodePort) {
-  LOG(61) << "Updating table with neighbour [nodeId: " << nodeId
-          << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
-          << "]";
-  mutex.lock();
-  std::map<std::string, std::shared_ptr<Neighbour>>::iterator it = m_neighbours
-      .find(nodeId);
-  if (it != m_neighbours.end()) {
-    m_neighbours[nodeId]->update(nodeAddress, nodePort);
-  } else {
-    LOG(17) << "New neighbour " << nodeId << " added";
-    m_neighbours[nodeId] = std::make_shared<Neighbour>(nodeId, nodeAddress,
-                                                       nodePort);
-  }
-  mutex.unlock();
-}
-
 void NeighbourTable::clean(int expirationTime) {
   LOG(62) << "Cleaning neighbours that have been out for more than "
           << expirationTime;
   mutex.lock();
   for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it =
-      m_neighbours.begin(); it != m_neighbours.end(); ++it) {
+      m_values.begin(); it != m_values.end(); ++it) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(17) << "Neighbour " << (*it).second->getNodeId()
+      LOG(17) << "Neighbour " << (*it).second->getId()
               << " has disappeared";
-      m_neighbours.erase(it);
+      m_values.erase(it);
     }
   }
   mutex.unlock();
-}
-
-std::vector<std::string> NeighbourTable::getNeighbours() {
-  LOG(61) << "Returning current neighbours";
-  std::vector<std::string> keys;
-  mutex.lock();
-  keys.reserve(m_neighbours.size());
-  std::transform(
-      m_neighbours.begin(), m_neighbours.end(), std::back_inserter(keys),
-      [](const std::map<std::string,
-          std::shared_ptr<Neighbour>>::value_type &pair) {return pair.first;});
-  mutex.unlock();
-  return keys;
-}
-
-std::shared_ptr<Neighbour> NeighbourTable::getNeighbour(
-    const std::string &nodeId) {
-  LOG(61) << "Returning neighbour " << nodeId;
-  auto it = m_neighbours.find(nodeId);
-  if (it != m_neighbours.end())
-    return it->second;
-  else
-    throw NeighbourTableException("Neighbour not found");
 }

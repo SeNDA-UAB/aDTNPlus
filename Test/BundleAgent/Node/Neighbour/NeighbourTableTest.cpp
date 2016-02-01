@@ -29,6 +29,7 @@
 #include "Node/Neighbour/NeighbourTable.h"
 #include "gtest/gtest.h"
 #include "Node/Neighbour/Neighbour.h"
+#include "Utils/Table.h"
 
 /**
  * Check the add and remove options.
@@ -39,20 +40,20 @@
  */
 TEST(NeighbourTableTest, AddAndRemove) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update("node100", "192.168.1.1", 40000);
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40000));
   // Get the neighbours
-  auto neighbours = nt->getNeighbours();
+  auto neighbours = nt->getValues();
   // Check neighbour
-  ASSERT_EQ("node100", nt->getNeighbour("node100")->getNodeId());
+  ASSERT_EQ("node100", nt->getValue("node100")->getId());
   sleep(2);
   // Clean the neighbour
-  auto node = nt->getNeighbour("node100");
+  auto node = nt->getValue("node100");
   nt->clean(1);
   // Check that we still hold the pointer
-  ASSERT_EQ("node100", node->getNodeId());
+  ASSERT_EQ("node100", node->getId());
   neighbours.clear();
-  neighbours = nt->getNeighbours();
-  ASSERT_THROW(nt->getNeighbour("node100"), NeighbourTableException);
+  neighbours = nt->getValues();
+  ASSERT_THROW(nt->getValue("node100"), TableException);
   delete nt;
 }
 
@@ -62,32 +63,32 @@ TEST(NeighbourTableTest, AddAndRemove) {
  */
 TEST(NeighbourTableTest, AddAndRemoveMore) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update("node100", "192.168.1.1", 40100);
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40100));
   sleep(1);
-  nt->update("node101", "192.168.1.1", 40101);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 40101));
   sleep(1);
-  nt->update("node102", "192.168.1.1", 40102);
-  auto neighbours = nt->getNeighbours();
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40102));
+  auto neighbours = nt->getValues();
   ASSERT_EQ(3, neighbours.size());
-  ASSERT_EQ(40100, nt->getNeighbour("node100")->getNodePort());
-  ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
-  ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
+  ASSERT_EQ(40100, nt->getValue("node100")->getNodePort());
+  ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
+  ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
   nt->clean(2);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(2, neighbours.size());
-  ASSERT_EQ(40101, nt->getNeighbour("node101")->getNodePort());
-  ASSERT_EQ(40102, nt->getNeighbour("node102")->getNodePort());
+  ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
+  ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
   nt->clean(1);
   neighbours.clear();
-  nt->update("node102", "192.168.1.1", 40105);
-  neighbours = nt->getNeighbours();
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40105));
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ(40105, nt->getNeighbour("node102")->getNodePort());
+  ASSERT_EQ(40105, nt->getValue("node102")->getNodePort());
   neighbours.clear();
-  nt->update("node102", "192.168.1.102", 40105);
-  neighbours = nt->getNeighbours();
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.102", 40105));
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("192.168.1.102", nt->getNeighbour("node102")->getNodeAddress());
+  ASSERT_EQ("192.168.1.102", nt->getValue("node102")->getNodeAddress());
   delete nt;
 }

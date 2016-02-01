@@ -184,9 +184,10 @@ void NeighbourDiscovery::receiveBeacons() {
                 LOG(15) << "Received beacon from " << b.getNodeId() << " "
                         << b.getNodeAddress() << ":" << b.getNodePort();
                 std::thread([b, this]() {
-                  m_neighbourTable->update(b.getNodeId(),
-                      b.getNodeAddress(),
-                      b.getNodePort());
+                  m_neighbourTable->update(std::make_shared<Neighbour>(
+                          b.getNodeId(),
+                          b.getNodeAddress(),
+                          b.getNodePort()));
                 }).detach();
               }
             } else if (recvLength == -1) {

@@ -31,7 +31,7 @@
  */
 TEST(AppTest, Constructor) {
   App a = App("node100", "192.168.1.2", 40000, 1);
-  ASSERT_EQ("node100", a.getAppId());
+  ASSERT_EQ("node100", a.getId());
   ASSERT_EQ("192.168.1.2", a.getAppAddress());
   ASSERT_EQ(40000, a.getAppPort());
 }
@@ -46,7 +46,7 @@ TEST(AppTest, Activity) {
   ASSERT_EQ(0, a.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, a.getElapsedActivityTime());
-  a.update("192.168.1.2", 40000, 2);
+  a.update(std::make_shared<App>("node100", "192.168.1.2", 40000, 2));
   ASSERT_EQ(0, a.getElapsedActivityTime());
 }
 

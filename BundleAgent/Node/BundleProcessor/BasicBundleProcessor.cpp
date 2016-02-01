@@ -63,7 +63,7 @@ void BasicBundleProcessor::processBundle(
       try {
         dispatch(bundleContainer->getBundle(), destinations);
         discard(std::move(bundleContainer));
-      } catch (const ListeningAppsTableException &e) {
+      } catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";
         restore(std::move(bundleContainer));
       }
@@ -116,7 +116,7 @@ void BasicBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
-      new BundleContainer(from->getNodeId(), std::move(bundle)));
+      new BundleContainer(from->getId(), std::move(bundle)));
 }
 
 std::vector<std::string> BasicBundleProcessor::checkDestination(
@@ -132,7 +132,7 @@ std::vector<std::string> BasicBundleProcessor::checkDestination(
 std::vector<std::string> BasicBundleProcessor::checkForward(
     const BundleContainer &bundleContainer) {
   LOG(55) << "Removing bundle source if we have it as neighbour.";
-  std::vector<std::string> neighbours = m_neighbourTable->getNeighbours();
+  std::vector<std::string> neighbours = m_neighbourTable->getValues();
   auto it = std::find(neighbours.begin(), neighbours.end(),
                       bundleContainer.getFrom());
   if (it != neighbours.end()) {
