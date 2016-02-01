@@ -2,6 +2,16 @@
 
 title ADTNPlus App Listener Class Diagram
 
+class Table<T> {
+  #m_values : std::map<std::string, shared_ptr<T>>
+  #mutex : std::mutex
+  +Table()
+  +~Table()
+  +update(value : shared_ptr<T>) : void
+  +getValues() : std::vector<std::string>
+  +getValue(name : std::string) : shared_ptr<T>
+}
+
 class AppListener {
 	-m_config : Config
 	-m_listeningAppsTable : ListeningAppsTable
@@ -10,26 +20,25 @@ class AppListener {
 }
 
 class ListeningAppsTable {
-	- m_listeningApps : std::map<std::string,App>
 	+ ListeningAppsTable()
 	+ ~ListeningAppsTable()
-	+ add(appId : std::string, appAddress : std::string, appPort : uint16_t): App
-	+ getAppIds() : std::vector<std::string>
-	+ getApp(appId : std::string) : App
 }
 
 class App {
 	- m_appId : std::string
 	- m_appAddress : std::string
 	- m_appPort : uint16_t
-	+ App(appId : std::string, appAddress : std::string, appPort : uint16_t)
+	- m_socket : int
+  + App(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int)
 	+~App()
-	+getAppId() : std::string
+	+getId() : std::string
 	+getAppAddress() : std::string
 	+getAppPort() : uint16_t
+	+getSocket() : int
 	+operator==(app : App) : bool
 }
 
 ListeningAppsTable --> "0..n\n<i>m_listeningApps</i>" App
+Table <|-- ListeningAppsTable
 
 @enduml

@@ -2,6 +2,16 @@
 
 title ADTNPlus App Listener Upgrade Class Diagram
 
+class Table<T> {
+  #m_values : std::map<std::string, shared_ptr<T>>
+  #mutex : std::mutex
+  +Table()
+  +~Table()
+  +update(value : shared_ptr<T>) : void
+  +getValues() : std::vector<std::string>
+  +getValue(name : std::string) : shared_ptr<T>
+}
+
 class AppListener {
 	-m_config : Config
 	-m_listeningAppsTable : ListeningAppsTable
@@ -11,14 +21,10 @@ class AppListener {
 }
 
 class ListeningAppsTable {
-	- m_listeningApps : std::map<std::string,App>
 	+ ListeningAppsTable()
 	+ ~ListeningAppsTable()
-	+ update(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int): App
 	+ clean(expirationTime: int) : void
 	+ stop(appId : std::string) : void
-	+ getAppIds() : std::vector<std::string>
-	+ getApp(appId : std::string) : App
 }
 
 class App {
@@ -29,15 +35,16 @@ class App {
 	- m_socket : int
 	+ App(appId : std::string, appAddress : std::string, appPort : uint16_t, socket : int)
 	+~App()
-	+getAppId() : std::string
+	+getId() : std::string
 	+getAppAddress() : std::string
 	+getAppPort() : uint16_t
 	+getElapsedActivityTime() : int
 	+getSocket() : int
-	+update(appAddress : std::string, appPort : uint16_t) : void
+	+update(app : shared_ptr<App>) : void
 	+operator==(app : App) : bool
 }
 
 ListeningAppsTable --> "0..n\n<i>m_listeningApps</i>" App
+Table <|-- ListeningAppsTable
 
 @enduml
