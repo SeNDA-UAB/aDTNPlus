@@ -140,6 +140,7 @@ std::string Bundle::toRaw() {
       ss << (*it)->toRaw();
     }
     raw = ss.str();
+    m_raw = raw;
   }
   return raw;
 }

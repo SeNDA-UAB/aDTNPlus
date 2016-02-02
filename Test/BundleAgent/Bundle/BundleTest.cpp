@@ -137,6 +137,44 @@ TEST(BundleTest, BadRawException) {
   ss.str(std::string());
   ss << pb.toRaw() << pb1.toRaw() << cb.toRaw();
   ASSERT_NO_THROW(Bundle(ss.str()));
+  // Check Exception when two payload blocks are present
+  ss.str(std::string());
+  ss << pb.toRaw() << pb1.toRaw() << pb1.toRaw() << cb.toRaw();
+  ASSERT_THROW(Bundle(ss.str()), BundleCreationException);
+}
+
+/**
+ * Check an exception throw when a second payload is inserted.
+ */
+TEST(BundleTest, ConstructorWithTwoPayload) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+  std::shared_ptr<CanonicalBlock> payload = std::shared_ptr<CanonicalBlock>(
+      new PayloadBlock("This is a new payload", false));
+  ASSERT_THROW(b.addBlock(payload), BundleException);
+}
+
+/**
+ * Check that a bundle id is correctly generated.
+ * Bundle id format:
+ * <Source><CreationTimestamp><TimestampSeqNumber>
+ */
+TEST(BundleTest, BundleId) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+  std::stringstream ss;
+  ss << b.getPrimaryBlock()->getSource()
+     << b.getPrimaryBlock()->getCreationTimestamp()
+     << b.getPrimaryBlock()->getCreationTimestampSeqNumber();
+  ASSERT_EQ(ss.str(), b.getId());
+}
+
+/**
+ * Check that toRaw saves the raw into the bundle.
+ */
+TEST(BundleTest, RawBundleTest) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+  ASSERT_EQ("", b.getRaw());
+  std::string raw = b.toRaw();
+  ASSERT_EQ(raw, b.getRaw());
 }
 
 /**
