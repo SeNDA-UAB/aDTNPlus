@@ -2,4 +2,4 @@ language: cpp
 compiler: 
   - gcc
 script: 
-  - cmake && make && ./BundleAgent_test
+  - cmake . && make && ./BundleAgent_test
