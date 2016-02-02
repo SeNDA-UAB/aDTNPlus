@@ -168,6 +168,16 @@ TEST(BundleTest, BundleId) {
 }
 
 /**
+ * Check that toRaw saves the raw into the bundle.
+ */
+TEST(BundleTest, RawBundleTest) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+  ASSERT_EQ("", b.getRaw());
+  std::string raw = b.toRaw();
+  ASSERT_EQ(raw, b.getRaw());
+}
+
+/**
  * Send a bundle to check it with the wireshark.
  * The bundle must be valid.
  * It will appears under UDP.
