@@ -65,7 +65,8 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
     uint64_t procFlags = SDNV::decode(data);
     m_procFlags = std::bitset<7>(procFlags);
     data = data.substr(dataSize);
-    if (m_procFlags.test(static_cast<uint32_t>(CanonicalBlockControlFlags::EID_FIELD))) {
+    if (m_procFlags.test(
+        static_cast<uint32_t>(CanonicalBlockControlFlags::EID_FIELD))) {
       dataSize = SDNV::getLength(data);
       blockLength += dataSize;
       int numberOfEID = SDNV::decode(data);
@@ -87,7 +88,7 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
     uint64_t blockDataSize = SDNV::decode(data);
     blockLength += blockDataSize;
     m_raw = rawData.substr(0, blockLength);
-  } catch (const std::out_of_range& e) {
+  } catch (...) {
     throw BlockConstructionException("[CanonicalBlock] Bad raw format");
   }
 }
