@@ -34,22 +34,100 @@ class adtnSocketException : public std::runtime_error {
   }
 };
 
+/**
+ * CLASS adtnSocket
+ * This class is a library that's used to help the task of sending an receiving
+ * messages using the adtnPlus platform.
+ */
 class adtnSocket {
  public:
+  /**
+   * Generates an adtnSocket with the following information:
+   *
+   * @param ip The IP used to send messages to the node.
+   * @param sendPort The port used to send messages to the node.
+   * @param recvPort The port used to register into the node.
+   * @param recvIp The IP used to register into the node.
+   */
   adtnSocket(std::string ip, int sendPort, int recvPort,
              std::string recvIp);
+  /**
+   * Generates an adtnSocket, in this case the IP is the same for sending and
+   * registering in the node.
+   *
+   * @param ip The IP used to send messages and to register into the node.
+   * @param sendPort The port used to send messages to the node.
+   * @param recvPort The port used to register into the node.
+   */
   adtnSocket(std::string ip, int sendPort, int recvPort);
+  /**
+   * Generates an adtnSocket, in this case the IP is the same for sending and
+   * registering in the node. This function is used to only send or to register
+   * depending on the send value.
+   *
+   * @param ip The IP used to send messages and to register into the node.
+   * @param port The port used to send messages or to register to the node.
+   * @param send If send is true (Default value) the port is assumed to be used
+   *             to send messages, if the value is false is assumed to be used
+   *             to register into the node.
+   */
   adtnSocket(std::string ip, int port, bool send = true);
+  /**
+   * Destructor of the class.
+   */
   virtual ~adtnSocket();
+  /**
+   * @brief Register this application into the node using the following appId.
+   *
+   * If the adtnSocket has been created without a receive Port the function will
+   * throw an exception.
+   *
+   * @param appId The appId to register.
+   */
   void connect(int appId);
+  /**
+   * @brief Receives a message from the node.
+   *
+   * This function will block until a message is received from the node.
+   * The adtnSocket must have been connected before using this function.
+   *
+   * @return An string containing the received message.
+   */
   std::string recv();
+  /**
+   * @brief Sends a message with the following parameters:
+   *
+   * @param destination The destination of the message.
+   * @param message The message to send.
+   */
   void send(std::string destination, std::string message);
+
  private:
+  /**
+   * The IP of the node, it the IP for sending if an IP has been given for register,
+   * if not is the IP for both actions.
+   */
   std::string m_nodeIp;
+  /**
+   * The IP for register the application, it can be null, if this is the case the
+   * m_nodeIp is used instead.
+   */
   std::string m_listeningIp;
+  /**
+   * The port used to send the messages.
+   */
   int m_sendPort;
+  /**
+   * The port used to register the application.
+   */
   int m_recvPort;
+  /**
+   * The source name used to create the bundle.
+   */
   std::string m_nodeName;
+  /**
+   * The socket used to receive the bundles.
+   */
   int m_recvSocket;
 };
 
