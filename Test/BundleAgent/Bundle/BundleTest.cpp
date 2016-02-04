@@ -100,8 +100,6 @@ TEST(BundleTest, ConstructorWithCanonical) {
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
   std::shared_ptr<CanonicalBlock> cb1 =
       std::static_pointer_cast<CanonicalBlock>(b1.getBlocks()[2]);
-  std::string aux = cb->toRaw();
-  std::string aux1 = cb1->toRaw();
   ASSERT_EQ(cb->toRaw(), cb1->toRaw());
   ASSERT_EQ(cb->getBlockType(), cb1->getBlockType());
 }
