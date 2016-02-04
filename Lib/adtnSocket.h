@@ -39,7 +39,7 @@ class adtnSocket {
   adtnSocket(std::string ip, int sendPort, int recvPort,
              std::string recvIp);
   adtnSocket(std::string ip, int sendPort, int recvPort);
-  adtnSocket(std::string ip, int port, bool send);
+  adtnSocket(std::string ip, int port, bool send = true);
   virtual ~adtnSocket();
   void connect(int appId);
   std::string recv();
@@ -50,7 +50,6 @@ class adtnSocket {
   int m_sendPort;
   int m_recvPort;
   std::string m_nodeName;
-  int m_sendSocket;
   int m_recvSocket;
 };
 
