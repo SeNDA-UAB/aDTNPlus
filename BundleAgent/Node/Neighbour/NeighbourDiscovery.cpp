@@ -179,8 +179,7 @@ void NeighbourDiscovery::receiveBeacons() {
             // receiving more beacons
             if (recvLength > 0) {
               Beacon b = Beacon(std::string(buffer, recvLength));
-              if (b.getNodeId() != nodeId
-                  || (b.getNodeId() == nodeId && testMode)) {
+              if (b.getNodeId() != nodeId || testMode) {
                 LOG(15) << "Received beacon from " << b.getNodeId() << " "
                         << b.getNodeAddress() << ":" << b.getNodePort();
                 std::thread([b, this]() {
