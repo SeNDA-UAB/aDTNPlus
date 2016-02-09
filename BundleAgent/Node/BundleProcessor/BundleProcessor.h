@@ -61,6 +61,12 @@ class BundleProcessor {
    * Destructor of the class.
    */
   virtual ~BundleProcessor();
+  /**
+   * @brief Function that starts all the process.
+   *
+   * This function will start the process Bundles and receive Bundles process.
+   */
+  void start();
 
  protected:
   /**

@@ -57,14 +57,17 @@ BundleProcessor::BundleProcessor(
       m_bundleQueue(bundleQueue),
       m_neighbourTable(neighbourTable),
       m_listeningAppsTable(listeningAppsTable) {
+}
+
+BundleProcessor::~BundleProcessor() {
+}
+
+void BundleProcessor::start() {
   LOG(10) << "Starting BundleProcessor";
   std::thread t = std::thread(&BundleProcessor::processBundles, this);
   t.detach();
   t = std::thread(&BundleProcessor::receiveBundles, this);
   t.detach();
-}
-
-BundleProcessor::~BundleProcessor() {
 }
 
 void BundleProcessor::processBundles() {

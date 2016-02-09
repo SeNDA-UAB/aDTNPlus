@@ -19,6 +19,7 @@ abstract class BundleProcessor {
 	#m_neighbourTable : NeighbourTable
 	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
 	+~BundleProcessor()
+	+start() : void
 	-processBundles() : void
 	-receiveBundles(): void
 	-{abstract}processBundle(bundleContainer : BundleContainer): void
