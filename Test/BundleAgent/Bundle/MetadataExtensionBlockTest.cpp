@@ -21,7 +21,27 @@
  * VERSION 1
  * This file contains the test of the MetadataExtensionBlock class.
  */
-
+#include <string>
 #include "Bundle/MetadataExtensionBlock.h"
 
 #include "gtest/gtest.h"
+#include "Bundle/BundleTypes.h"
+
+TEST(MetadataExtensionBlockTest, RawFunction) {
+  uint8_t metadata_type =
+      static_cast<uint8_t>(MetadataTypes::ROUTING_SELECTION_MEB);
+  uint8_t block_type =
+      static_cast<uint8_t>(CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
+  uint8_t metadata =
+        static_cast<uint8_t>(RoutingAlgorithms::ANTI_REBOTING);
+  std::string metadata_str = std::to_string(metadata);
+  MetadataExtensionBlock meb = MetadataExtensionBlock(metadata_type,
+                                                      metadata_str);
+  std::string raw = meb.toRaw();
+  MetadataExtensionBlock meb1 = MetadataExtensionBlock(raw);
+  ASSERT_EQ(meb1.getBlockType(), block_type);
+  ASSERT_EQ(metadata_type, meb.getMetadataType());
+  ASSERT_EQ(meb.getMetadataType(), meb1.getMetadataType());
+  ASSERT_EQ(metadata_str, meb.getMetadata());
+  ASSERT_EQ(meb.getMetadata(), meb1.getMetadata());
+}

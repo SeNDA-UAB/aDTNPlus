@@ -58,7 +58,8 @@ class MetadataExtensionBlock : public CanonicalBlock {
   /**
    * @brief Convert the Metadata extension block to raw format.
    *
-   * Virtual function, all the blocks that derive from this class must implement it.
+   * Virtual function, all the blocks that derive from this class must implement
+   *it.
    * This function must return the block in raw format.
    *
    * @return This block in raw format.

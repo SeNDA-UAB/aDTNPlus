@@ -32,10 +32,11 @@
 #include <algorithm>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
-#include "Node/BundleProcessor/BasicBundleProcessor.h"
+#include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
+
 
 std::vector<std::string> getBundlesInFolder(std::string folder) {
   DIR *dir = NULL;
@@ -93,8 +94,9 @@ Node::Node(std::string filename) {
   m_appListener = std::shared_ptr<AppListener>(
       new AppListener(m_config, m_listeningAppsTable));
   m_bundleProcessor = std::shared_ptr<BundleProcessor>(
-      new BasicBundleProcessor(m_config, m_bundleQueue, m_neighbourTable,
-                               m_listeningAppsTable));
+      new RoutingSelectionBundleProcessor(m_config, m_bundleQueue,
+                                          m_listeningAppsTable,
+                                          m_neighbourTable));
 }
 
 Node::~Node() {

@@ -30,6 +30,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
+#include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -72,8 +73,13 @@ Bundle::Bundle(const std::string &rawData)
           // This is an abstraction of the metadata block, so we need to create
           // a derived block of it.
           LOG(35) << "Generating Metadata Extension Block";
-          b = std::shared_ptr<MetadataExtensionBlock>(
-              new MetadataExtensionBlock(data));
+          auto m = MetadataExtensionBlock(data);
+          switch (static_cast<MetadataTypes>(m.getMetadataType())) {
+            case MetadataTypes::ROUTING_SELECTION_MEB: {
+              b = std::make_shared<RoutingSelectionMEB>(
+                  RoutingSelectionMEB(data));
+            }
+          }
           break;
         }
         default: {

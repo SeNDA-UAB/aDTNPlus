@@ -92,7 +92,8 @@ class BasicBundleProcessor : public BundleProcessor {
    *
    * @return A list with the possible forwards.
    */
-  std::vector<std::string> checkForward(const BundleContainer &bundleContainer);
+  virtual std::vector<std::string> checkForward(
+      BundleContainer &bundleContainer);
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
