@@ -40,11 +40,11 @@
 
 std::vector<std::string> getBundlesInFolder(std::string folder) {
   DIR *dir = NULL;
-  struct dirent *ent = NULL;
   std::vector<std::string> files;
   if ((dir = opendir(folder.c_str())) == NULL) {
     LOG(1) << "Cannot open bundles directory, reason: " << strerror(errno);
   } else {
+    struct dirent *ent = NULL;
     while ((ent = readdir(dir)) != NULL) {
       if (ent->d_type != DT_REG)
         continue;

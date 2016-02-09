@@ -41,12 +41,13 @@ void NeighbourTable::clean(int expirationTime) {
   LOG(62) << "Cleaning neighbours that have been out for more than "
           << expirationTime;
   mutex.lock();
-  for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it =
-      m_values.begin(); it != m_values.end(); ++it) {
+  for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it = m_values
+      .begin(); it != m_values.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(17) << "Neighbour " << (*it).second->getId()
-              << " has disappeared";
-      m_values.erase(it);
+      LOG(17) << "Neighbour " << (*it).second->getId() << " has disappeared";
+      it = m_values.erase(it);
+    } else {
+      ++it;
     }
   }
   mutex.unlock();

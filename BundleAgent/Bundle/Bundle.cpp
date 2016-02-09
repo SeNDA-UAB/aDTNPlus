@@ -90,8 +90,6 @@ Bundle::Bundle(const std::string &rawData)
       }
       m_blocks.push_back(b);
       size_t blockSize = b->getLength();
-      if (blockSize <= 0)
-        throw BundleCreationException("[Bundle] Bad raw format");
       data = data.substr(blockSize);
     }
     std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
