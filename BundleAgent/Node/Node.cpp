@@ -97,6 +97,7 @@ Node::Node(std::string filename) {
       new RoutingSelectionBundleProcessor(m_config, m_bundleQueue,
                                           m_listeningAppsTable,
                                           m_neighbourTable));
+  m_bundleProcessor->start();
 }
 
 Node::~Node() {
