@@ -38,6 +38,7 @@
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
 #include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 
 BasicBundleProcessor::BasicBundleProcessor(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
@@ -46,15 +47,14 @@ BasicBundleProcessor::BasicBundleProcessor(
     : BundleProcessor(config, bundleQueue, neighbourTable, listeningAppsTable) {
 }
 
-BasicBundleProcessor::~BasicBundleProcessor() {
-}
+BasicBundleProcessor::~BasicBundleProcessor() {}
 
 void BasicBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
   if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
-      m_config.getNodeId()) != std::string::npos) {
+          m_config.getNodeId()) != std::string::npos) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
     std::vector<std::string> destinations = checkDestination(*bundleContainer);
@@ -63,7 +63,8 @@ void BasicBundleProcessor::processBundle(
       try {
         dispatch(bundleContainer->getBundle(), destinations);
         discard(std::move(bundleContainer));
-      } catch (const TableException &e) {
+      }
+      catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";
         restore(std::move(bundleContainer));
       }
@@ -79,19 +80,20 @@ void BasicBundleProcessor::processBundle(
       discard(std::move(bundleContainer));
     } else {
       LOG(55) << "Bundle is not expired yet.";
-      LOG(55) << "Checking neighbours. " << "";
+      LOG(55) << "Checking neighbours. "
+              << "";
       std::vector<std::string> neighbours = checkForward(*bundleContainer);
       if (neighbours.size() > 0) {
         LOG(55) << "There are some neighbours.";
         LOG(55) << "Checking if one of them is the bundle destination.";
-        auto it = std::find(
-            neighbours.begin(),
-            neighbours.end(),
-            bundleContainer->getBundle().getPrimaryBlock()->getDestination()
-                .substr(
-                0,
-                bundleContainer->getBundle().getPrimaryBlock()->getDestination()
-                    .find(":")));
+        auto it = std::find(neighbours.begin(), neighbours.end(),
+                            bundleContainer->getBundle()
+                                .getPrimaryBlock()
+                                ->getDestination()
+                                .substr(0, bundleContainer->getBundle()
+                                               .getPrimaryBlock()
+                                               ->getDestination()
+                                               .find(":")));
         if (it != neighbours.end()) {
           LOG(55) << "Destination found, sending the bundle to it.";
           std::vector<std::string> nextHop = std::vector<std::string>();
@@ -105,8 +107,7 @@ void BasicBundleProcessor::processBundle(
         LOG(55) << "Discarding the bundle.";
         discard(std::move(bundleContainer));
       } else {
-        LOG(
-            55) << "No neighbours found, restoring the bundle.";
+        LOG(55) << "No neighbours found, restoring the bundle.";
         restore(std::move(bundleContainer));
       }
     }
@@ -121,8 +122,8 @@ std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
 
 std::vector<std::string> BasicBundleProcessor::checkDestination(
     BundleContainer &bundleContainer) {
-  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
-      ->getDestination();
+  std::string destination =
+      bundleContainer.getBundle().getPrimaryBlock()->getDestination();
   std::string appId = destination.substr(destination.find(":") + 1);
   std::vector<std::string> dispatch;
   dispatch.push_back(appId);
@@ -130,7 +131,7 @@ std::vector<std::string> BasicBundleProcessor::checkDestination(
 }
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
-    const BundleContainer &bundleContainer) {
+    BundleContainer &bundleContainer) {
   LOG(55) << "Removing bundle source if we have it as neighbour.";
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   auto it = std::find(neighbours.begin(), neighbours.end(),
@@ -142,10 +143,10 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
 }
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
-  uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
-      ->getCreationTimestamp();
-  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
-      < (time(NULL) - g_timeFrom2000 - creationTimestamp))
+  uint64_t creationTimestamp =
+      bundleContainer.getBundle().getPrimaryBlock()->getCreationTimestamp();
+  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime() <
+      (time(NULL) - g_timeFrom2000 - creationTimestamp))
     return true;
   else
     return false;
