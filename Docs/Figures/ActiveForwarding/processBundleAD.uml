@@ -1,0 +1,36 @@
+
+@startuml
+title Process Bundle Activity Diagram for Active Forwarding
+
+start
+if (Is destination node ?) then (true)
+	if (Is destination app listening ?) then (true)
+		:Dispatch the bundle\nto the destination app;
+		:Discard the bundle;
+	else (false)
+		:Restore the bundle;
+	endif
+else (false)
+	if (lifetime < (NOW - creationTimestamp) ? ) then (true)
+		:Discard the bundle;
+	else (false)
+		if (Is there any neighbour\napart from transmitter ?) then (true)
+			if (Is destination node a neighbour ?) then (true)
+				:Forward the bundle\nto destination;
+			else (false)
+				if (Is there a Forwarding MEB?) then (true)
+					note right: NEW
+					:Forward with the forwarding code included in it;
+				else (false)
+					:Forward with anti-rebot;
+				endif
+			endif
+			:Discard the bundle;
+		else (false)
+			:Restore the bundle;
+		endif
+	endif
+endif
+end
+
+@enduml
