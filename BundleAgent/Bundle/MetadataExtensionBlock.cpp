@@ -32,9 +32,9 @@
 #include "Bundle/BundleTypes.h"
 
 MetadataExtensionBlock::MetadataExtensionBlock()
-  : CanonicalBlock(),
-    m_metadataType(0),
-    m_metadata() {
+    : CanonicalBlock(),
+      m_metadataType(0),
+      m_metadata() {
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
@@ -46,21 +46,18 @@ MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
-    : CanonicalBlock(rawData),
+    : CanonicalBlock(),
       m_metadataType(0),
       m_metadata() {
   try {
-    std::string data = m_raw.substr(m_bodyDataIndex);
-    size_t metadataTypeSize = SDNV::getLength(data);
-    m_metadataType = SDNV::decode(data);
-    m_metadata = data.substr(metadataTypeSize);
-  }
-  catch (const std::out_of_range& e) {
-    throw BlockConstructionException("[MetadataExtensionBlock] Bad raw format");
+    initFromRaw(rawData);
+  } catch (const BlockConstructionException &e) {
+    throw;
   }
 }
 
-MetadataExtensionBlock::~MetadataExtensionBlock() {}
+MetadataExtensionBlock::~MetadataExtensionBlock() {
+}
 
 std::string MetadataExtensionBlock::toRaw() {
   /**
@@ -84,9 +81,13 @@ std::string MetadataExtensionBlock::toRaw() {
   return m_raw;
 }
 
-uint8_t MetadataExtensionBlock::getMetadataType() { return m_metadataType; }
+uint8_t MetadataExtensionBlock::getMetadataType() {
+  return m_metadataType;
+}
 
-std::string MetadataExtensionBlock::getMetadata() { return m_metadata; }
+std::string MetadataExtensionBlock::getMetadata() {
+  return m_metadata;
+}
 
 std::string MetadataExtensionBlock::toString() {
   std::stringstream ss;
@@ -94,15 +95,14 @@ std::string MetadataExtensionBlock::toString() {
   return ss.str();
 }
 
-void MetadataExtensionBlock::initFromRawMEB(const std::string &rawData) {
-  initFromRaw(rawData);
+void MetadataExtensionBlock::initFromRaw(const std::string &rawData) {
+  CanonicalBlock::initFromRaw(rawData);
   try {
     std::string data = m_raw.substr(m_bodyDataIndex);
     size_t metadataTypeSize = SDNV::getLength(data);
     m_metadataType = SDNV::decode(data);
     m_metadata = data.substr(metadataTypeSize);
-  }
-  catch (const std::out_of_range& e) {
+  } catch (const std::out_of_range& e) {
     throw BlockConstructionException("[MetadataExtensionBlock] Bad raw format");
   }
 }

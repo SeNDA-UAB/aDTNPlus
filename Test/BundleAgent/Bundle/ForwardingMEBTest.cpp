@@ -39,14 +39,13 @@ TEST(ForwardingMEBTest, FiledConstructor) {
   ASSERT_EQ(fmeb.getMetadataType(), metadata_type);
   ASSERT_EQ(fmeb.getMetadata(), soft_code);
   ASSERT_EQ(soft_code, fmeb.getSoftCode());
+}
 
-  ForwardingMEB fmeb1 = ForwardingMEB(soft_code, false);
-  ASSERT_EQ(fmeb1.getMetadataType(), metadata_type);
-  ASSERT_EQ(fmeb1.getMetadata(), soft_code);
-  ASSERT_EQ(soft_code, fmeb1.getSoftCode());
-
-  uint8_t block_type = static_cast<uint8_t>(
-      CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
+TEST(ForwardingMEBTest, RawConstructor) {
+  uint8_t metadata_type = static_cast<uint8_t>(MetadataTypes::FORWARDING_MEB);
+  std::string soft_code = "Some code";
+  uint8_t block_type =
+      static_cast<uint8_t>(CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
   ForwardingMEB fmeb2 = ForwardingMEB(soft_code);
   std::string rawData = fmeb2.toRaw();
   ForwardingMEB fmeb2_raw = ForwardingMEB(rawData, true);

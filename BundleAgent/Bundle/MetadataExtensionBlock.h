@@ -84,6 +84,8 @@ class MetadataExtensionBlock : public CanonicalBlock {
    * @return The string with the block information.
    */
   std::string toString();
+
+ protected:
   /**
    * @brief Parses a Metadata Extension Block from raw.
    *
@@ -92,9 +94,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * @parm rawData Raw data to parse.
    */
-  void initFromRawMEB(const std::string &rawData);
-
- protected:
+  void initFromRaw(const std::string &rawData);
   /**
    * Type of the metadata block.
    */

@@ -110,6 +110,15 @@ class CanonicalBlock : public Block {
 
  protected:
   /**
+   * @brief Parses a Canonical Block from raw.
+   *
+   * This function parses a canonical block from raw.
+   * Saving the raw data into the block.
+   *
+   * @param rawData Raw data to parse.
+   */
+  void initFromRaw(const std::string &rawData);
+  /**
    * Variable that holds the Block Type value.
    */
   uint8_t m_blockType;
@@ -121,15 +130,6 @@ class CanonicalBlock : public Block {
    * Block processing control flags, as described into the RFC 5050.
    */
   std::bitset<7> m_procFlags;
-  /**
-   * @brief Parses a Canonical Block from raw.
-   *
-   * This function parses a canonical block from raw.
-   * Saving the raw data into the block.
-   *
-   * @param rawData Raw data to parse.
-   */
-  void initFromRaw(const std::string &rawData);
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_CANONICALBLOCK_H_

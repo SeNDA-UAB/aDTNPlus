@@ -30,10 +30,10 @@ ForwardingMEB::ForwardingMEB(const std::string &softCode, bool isRaw)
   : MetadataExtensionBlock() {
     if (isRaw) {
       try {
-        initFromRawMEB(softCode);
+        initFromRaw(softCode);
         m_softCode = m_metadata;
       } catch (...) {
-        throw BlockConstructionException("[ForwardingMEB] Bar raw format");
+        throw BlockConstructionException("[ForwardingMEB] Bad raw format");
       }
     } else {
       m_blockType = static_cast<uint8_t>(
