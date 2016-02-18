@@ -4,7 +4,7 @@ set(PROJECT_NAME BundleAgent)
 project(${PROJECT_NAME} C CXX)
 
 # Set CMake flags
-set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread --coverage")
+set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread -ldl --coverage")
 
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")
