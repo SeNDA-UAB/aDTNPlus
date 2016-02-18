@@ -70,10 +70,11 @@ template<class T>
 std::function<T> loadFunction(void *handler, std::string name) {
   dlerror();
   void *result = dlsym(handler, name.c_str());
-  char* const error;
-  if ((error = dlerror()) != NULL) {
-    throw WorkerException(
-        "Cannot find symbol in shared library, reason: " << error);
+  char* const error = dlerror();
+  if (error != NULL) {
+    std::stringstream errorMessage;
+    errorMessage << "Cannot find symbol in shared library, reason: " << error;
+    throw WorkerException(errorMessage.str());
   }
   return reinterpret_cast<T*>(result);
 }
@@ -91,7 +92,6 @@ std::string stringFormat(const std::string& format, Args ... args) {
   std::snprintf(buffer.get(), size, format.c_str(), args ...);
   return std::string(buffer.get(), buffer.get() + size - 1);
 }
-
 
 /**
  * CLASS Worker
@@ -121,8 +121,8 @@ class Worker {
       : m_header(header),
         m_footer(footer),
         m_functionName(functionName),
-        m_handler(0),
-        m_commandLine(commandLine) {
+        m_commandLine(commandLine),
+        m_handler(0) {
   }
   /**
    * Destructor of the class.
@@ -140,17 +140,19 @@ class Worker {
     std::stringstream fullCode;
     fullCode << m_header << code << m_footer;
     std::ofstream codeFile("code.cpp");
-    codeFile << fullCode;
+    codeFile << fullCode.str();
     codeFile.close();
     std::string command = stringFormat(m_commandLine, "code.cpp", "code.so");
+    std::signal(SIGSEGV, signalHandler);
     int val = system(command.c_str());
     if (val != 0) {
       throw WorkerException("Error while compiling the code.");
     } else {
       m_handler = dlopen("./code.so", RTLD_LAZY | RTLD_LOCAL);
       if (!m_handler) {
-        throw WorkerException(
-            "Cannot open the shared library, reason: " << dlerror());
+        std::stringstream errorMessage;
+        errorMessage << "Cannot open the shared library, reason: " << dlerror();
+        throw WorkerException(errorMessage.str());
       }
     }
   }
@@ -160,11 +162,11 @@ class Worker {
    */
   void execute(T1 params) {
     std::signal(SIGSEGV, signalHandler);
-    std::function<T(T1)> function = loadFunction<T(T1)>(m_handler,
-                                                        m_functionName.c_str());
-    std::packaged_task<T(T1)> task(function);
-    m_future = task.get_future();
     try {
+      std::function<T(T1)> function = loadFunction<T(T1)>(
+          m_handler, m_functionName.c_str());
+      std::packaged_task<T(T1)> task(function);
+      m_future = task.get_future();
       std::thread t(std::move(task), params);
       t.detach();
     } catch (const SigFaultException &e) {
@@ -210,6 +212,7 @@ class Worker {
    * The shared library handler.
    */
   void *m_handler;
-};
+}
+;
 
 #endif  // BUNDLEAGENT_NODE_EXECUTOR_WORKER_H_

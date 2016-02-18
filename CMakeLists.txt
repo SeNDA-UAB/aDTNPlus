@@ -4,7 +4,7 @@ set(PROJECT_NAME BundleAgent)
 project(${PROJECT_NAME} C CXX)
 
 # Set CMake flags
-set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread -ldl --coverage")
+set(CMAKE_CXX_FLAGS "-ggdb -Wall -std=c++11 -lpthread --coverage")
 
 # Generate a static lib with the source
 set(SRC_DIR "BundleAgent")
@@ -19,7 +19,7 @@ set(EXEC_NAME "BundleAgent")
 set(EXEC_FILES "${SRC_FILES_CPP}" "${SRC_FILES_C}" "${MAIN_FILE}")
 add_executable(${EXEC_NAME} ${EXEC_FILES})
 find_package(Threads)
-target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
 
 # Exclude main for static library
 #list(REMOVE_ITEM SRC_FILES_CPP "${SRC_DIR}/main.cpp")
@@ -42,7 +42,7 @@ file(GLOB_RECURSE TEST_SRC_FILES "${TEST_SRC_DIR}/*.cpp")
 
 #Create an executable with the tests
 add_executable(${TEST_EXEC} ${TEST_SRC_FILES})
-target_link_libraries(${TEST_EXEC} ${LIB_NAME} gtest)
+target_link_libraries(${TEST_EXEC} ${LIB_NAME} ${CMAKE_DL_LIBS} gtest)
 
 #Add the executable as a test
 add_test(BundleTest "${TEST_EXEC}")
