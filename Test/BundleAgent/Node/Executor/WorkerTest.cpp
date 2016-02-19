@@ -30,7 +30,7 @@
 TEST(WorkerTest, SimpleCode) {
   std::string header = "extern \"C\" {int r(int value) {";
   std::string footer = "}}";
-  std::string commandLine = "g++ -w -fPIC -shared %s -o %s";
+  std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 10;";
 
   Worker<int, int> w(header, footer, "r", commandLine);
@@ -45,7 +45,7 @@ TEST(WorkerTest, ComplexCode) {
       "#include <sstream>\n"
       "extern \"C\" {std::string r(std::vector<std::string> values) {";
   std::string footer = "}}";
-  std::string commandLine = "g++ -w -fPIC -shared %s -o %s";
+  std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "std::stringstream ss;"
       "for (int i = 0; i < values.size(); ++i) {"
       "  ss << values[i].at(0);}"
