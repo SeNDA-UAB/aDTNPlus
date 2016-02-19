@@ -98,7 +98,7 @@ TEST(WorkerTest, TryingToExecuteValueAfterError) {
   Worker<int, int> w(header, footer, "r", commandLine);
   try {
     w.generateFunction(code);
-  } catch(const WorkerException &e) {
+  } catch (const WorkerException &e) {
     ASSERT_THROW(w.execute(10), WorkerException);
   }
 }
@@ -113,7 +113,7 @@ TEST(WorkerTest, TryingToGetValueAfterError) {
   w.generateFunction(code);
   try {
     w.execute(10);
-  } catch(const WorkerException &e) {
+  } catch (const WorkerException &e) {
     ASSERT_THROW(w.getResult(), WorkerException);
   }
 }

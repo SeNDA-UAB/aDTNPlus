@@ -36,6 +36,7 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <vector>
 
 class SigFaultException : public std::runtime_error {
  public:
@@ -135,6 +136,12 @@ class Worker {
   virtual ~Worker() {
     if (m_handler)
       dlclose(m_handler);
+    for (std::string s : m_fileNames) {
+      std::string code = s + ".cpp";
+      std::string library = s + ".so";
+      std::remove(code.c_str());
+      std::remove(library.c_str());
+    }
   }
   /**
    * Generates the shared library using the given code.
@@ -143,12 +150,21 @@ class Worker {
    * @param code Code to compile.
    */
   void generateFunction(std::string code) {
+    if (m_handler)
+          dlclose(m_handler);
     std::stringstream fullCode;
     fullCode << m_header << code << m_footer;
-    std::ofstream codeFile("code.cpp");
+    std::hash<std::string> hash_fn;
+    size_t hash = hash_fn(fullCode.str());
+    std::string fileName = std::to_string(hash);
+    std::string codeFileName = fileName + ".cpp";
+    std::string libraryFileName = fileName + ".so";
+    m_fileNames.push_back(fileName);
+    std::ofstream codeFile(codeFileName);
     codeFile << fullCode.str();
     codeFile.close();
-    std::string command = stringFormat(m_commandLine, "code.cpp", "code.so");
+    std::string command = stringFormat(m_commandLine, codeFileName.c_str(),
+                                       libraryFileName.c_str());
     std::unique_ptr<char[]> buffer(new char[2048]);
     FILE *output = popen(command.c_str(), "r");
     std::stringstream commandOutput;
@@ -167,7 +183,9 @@ class Worker {
         errorMessage << "Error while compiling code:\n" << commandOutput.str();
         throw WorkerException(errorMessage.str());
       } else {
-        m_handler = dlopen("./code.so", RTLD_LAZY | RTLD_LOCAL);
+        std::stringstream sharedName;
+        sharedName << "./" << libraryFileName;
+        m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
         if (!m_handler) {
           std::stringstream errorMessage;
           errorMessage << "Cannot open the shared library, reason: "
@@ -231,7 +249,10 @@ class Worker {
    * The shared library handler.
    */
   void *m_handler;
-}
-;
+  /**
+   * Vector with all the generated names.
+   */
+  std::vector<std::string> m_fileNames;
+};
 
 #endif  // BUNDLEAGENT_NODE_EXECUTOR_WORKER_H_
