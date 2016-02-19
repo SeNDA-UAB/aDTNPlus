@@ -118,3 +118,42 @@ TEST(WorkerTest, TryingToGetValueAfterError) {
   }
 }
 
+TEST(WorkerTest, MultipleParameters) {
+  std::string header =
+      "extern \"C\" {int r(int value, int value2, int value3) {";
+  std::string footer = "}}";
+  std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
+  std::string code = "return value + value2 + value3;";
+
+  Worker<int, int, int, int> w(header, footer, "r", commandLine);
+  w.generateFunction(code);
+  w.execute(10, 20, 30);
+  ASSERT_EQ(60, w.getResult());
+}
+
+TEST(WorkerTest, MultipleDifferentParameters) {
+  std::string header = "#include <string>\n"
+      "#include <vector>\n"
+      "extern \"C\" {int r(int value, std::string val2, "
+      "std::vector<std::string> value3) {";
+  std::string footer = "}}";
+  std::string commandLine = "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
+  std::string code = "int res = value;"
+      "for (std::string s : value3) {"
+      " res += std::stoi(s);"
+      "}"
+      "res += std::stoi(val2);"
+      "return res;";
+
+  Worker<int, int, std::string, std::vector<std::string>> w(header, footer, "r",
+                                                            commandLine);
+  w.generateFunction(code);
+  std::vector<std::string> params;
+  params.push_back("10");
+  params.push_back("20");
+  params.push_back("30");
+  params.push_back("40");
+  w.execute(10, "20", params);
+  ASSERT_EQ(130, w.getResult());
+}
+

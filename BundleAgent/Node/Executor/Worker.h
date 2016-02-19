@@ -103,7 +103,7 @@ std::string stringFormat(const std::string& format, Args ... args) {
  * T: return type of the function.
  * T1: type of the argument to pass to the function.
  */
-template<class T, class T1>
+template<class T, typename... Args>
 class Worker {
  public:
   /**
@@ -199,13 +199,13 @@ class Worker {
    * This function gets the function and runs it, with the given parameters.
    * @param params The parameters to pass to the function.
    */
-  void execute(T1 params) {
+  void execute(Args... params) {
     try {
-      std::function<T(T1)> function = loadFunction<T(T1)>(
+      std::function<T(Args...)> function = loadFunction<T(Args...)>(
           m_handler, m_functionName.c_str());
-      std::packaged_task<T(T1)> task(function);
+      std::packaged_task<T(Args...)> task(function);
       m_future = task.get_future();
-      std::thread t(std::move(task), params);
+      std::thread t(std::move(task), params...);
       t.detach();
     } catch (...) {
       throw WorkerException("Worker could not execute the code correctly.");
