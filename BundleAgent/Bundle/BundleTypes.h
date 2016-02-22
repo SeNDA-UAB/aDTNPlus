@@ -59,7 +59,8 @@ enum class CanonicalBlockTypes : uint8_t {
 };
 
 enum class MetadataTypes : uint8_t {
-  ROUTING_SELECTION_MEB = 0x02
+  ROUTING_SELECTION_MEB = 0x02,
+  FORWARDING_MEB = 0x03
 };
 
 enum class RoutingAlgorithms : uint8_t {

@@ -14,4 +14,4 @@ script:
   - cd build
   - cmake .. 
   - make 
-  - ./BundleAgent_test
+  - ./Test/BundleAgent_test
