@@ -23,7 +23,7 @@
  */
 
 #include <string>
-#include "ForwardingMEB.h"
+#include "Bundle/ForwardingMEB.h"
 #include "Bundle/BundleTypes.h"
 
 ForwardingMEB::ForwardingMEB(const std::string &softCode, bool isRaw)
