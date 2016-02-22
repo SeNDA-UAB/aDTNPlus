@@ -20,7 +20,7 @@ add_subdirectory(Node)
 
 set(LIB_NAME BundleAgent_lib)
 add_library(${LIB_NAME} SHARED ${LIB_SOURCES_CPP} ${LIB_SOURCES_C})
-target_link_libraries(${LIB_NAME} ${BUNDLE_LIB_NAME})
+target_link_libraries(${LIB_NAME} ${BUNDLE_LIB_NAME} ${CMAKE_DL_LIBS})
 
 set(APP_SOURCES main.cpp)
 

@@ -37,6 +37,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include "Utils/Logger.h"
 
 class SigFaultException : public std::runtime_error {
  public:
