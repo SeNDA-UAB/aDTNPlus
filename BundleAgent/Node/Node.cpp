@@ -33,6 +33,7 @@
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
+#include "Node/BundleProcessor/ActiveForwardingBundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
@@ -93,8 +94,12 @@ Node::Node(std::string filename) {
       new ListeningAppsTable());
   m_appListener = std::shared_ptr<AppListener>(
       new AppListener(m_config, m_listeningAppsTable));
-  m_bundleProcessor = std::shared_ptr<BundleProcessor>(
+  /* m_bundleProcessor = std::shared_ptr<BundleProcessor>(
       new RoutingSelectionBundleProcessor(m_config, m_bundleQueue,
+                                          m_listeningAppsTable,
+                                          m_neighbourTable));*/
+  m_bundleProcessor = std::shared_ptr<BundleProcessor>(
+      new ActiveForwardingBundleProcessor(m_config, m_bundleQueue,
                                           m_listeningAppsTable,
                                           m_neighbourTable));
 }

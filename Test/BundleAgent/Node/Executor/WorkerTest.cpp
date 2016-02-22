@@ -157,3 +157,32 @@ TEST(WorkerTest, MultipleDifferentParameters) {
   ASSERT_EQ(130, w.getResult());
 }
 
+TEST(WorkerTest, MultipleParameters2) {
+  std::string header = "#include <string>\n"
+      "#include <vector>\n"
+      "#include <algorithm>\n"
+      "extern \"C\" {std::vector<std::string> activeForwardingAlgorithm("
+      "std::vector<std::string> val1, std::string val2) {";
+  std::string footer = "}}";
+  std::string functionName = "activeForwardingAlgorithm";
+  std::string commandLine = "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
+  std::string code = "auto it = std::find(val1.begin(), val1.end(), val2);"
+      "val1.erase(it);"
+      "return val1;";
+  std::string source = "THE_SOURCE";
+  std::vector<std::string> neighbours;
+  neighbours.push_back("THE_INIT");
+  neighbours.push_back("THE_MIDDLE");
+  neighbours.push_back("THE_SOURCE");
+  neighbours.push_back("THE_DESTINATION");
+  neighbours.push_back("THE_FINAL");
+  ASSERT_EQ(neighbours.size(), 5);
+
+  Worker<std::vector<std::string>, std::vector<std::string>,
+  std::string> w(header, footer, functionName, commandLine);
+  w.generateFunction(code);
+  w.execute(neighbours, source);
+  std::vector<std::string> result = w.getResult();
+  ASSERT_EQ(result.size(), 4);
+}
+

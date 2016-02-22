@@ -31,6 +31,7 @@
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/RoutingSelectionMEB.h"
+#include "Bundle/ForwardingMEB.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -79,6 +80,11 @@ Bundle::Bundle(const std::string &rawData)
               b = std::make_shared<RoutingSelectionMEB>(
                   RoutingSelectionMEB(data));
             }
+            break;
+            case MetadataTypes::FORWARDING_MEB: {
+              b = std::make_shared<ForwardingMEB>(ForwardingMEB(data));
+            }
+            break;
           }
           break;
         }
