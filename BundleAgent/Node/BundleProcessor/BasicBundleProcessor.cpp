@@ -39,6 +39,13 @@
 #include "Utils/TimestampManager.h"
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
+#include "Node/BundleProcessor/PluginAPI.h"
+
+#ifdef BASE_PLUGIN
+NEW_PLUGIN(BasicBundleProcessor,
+           "Basic bundle processor", "1.0",
+           "Forwards a bundle this processor only checks for anti-rebooting.")
+#endif
 
 BasicBundleProcessor::BasicBundleProcessor() {
 }

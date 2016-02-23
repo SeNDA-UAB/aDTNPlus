@@ -38,7 +38,8 @@
 
 NEW_PLUGIN(ActiveForwardingBundleProcessor,
            "Active forwarding bundle processor", "1.0",
-           "Shows text without modifications")
+           "Forwards a bundle checking if a ForwardingMEB block exists in the"
+           "bundle.")
 
 ActiveForwardingBundleProcessor::ActiveForwardingBundleProcessor() {
 }

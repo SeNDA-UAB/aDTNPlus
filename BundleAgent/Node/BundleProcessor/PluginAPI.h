@@ -42,9 +42,9 @@ struct PluginInfo {
 
 #define NEW_PLUGIN(classType, pluginName, pluginVersion, pluginDescription)   \
     extern "C" {                                                              \
-      BundleProcessor* initProcessor()\
+      BundleProcessor* initProcessor()                                        \
       {                                                                       \
-        static classType m_singleton;                     \
+        static classType m_singleton;                                         \
         return &m_singleton;                                                  \
       }                                                                       \
       PluginInfo information =                                                \
