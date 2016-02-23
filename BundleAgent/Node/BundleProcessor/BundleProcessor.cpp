@@ -49,20 +49,20 @@
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
 
-BundleProcessor::BundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
-    : m_config(config),
-      m_bundleQueue(bundleQueue),
-      m_neighbourTable(neighbourTable),
-      m_listeningAppsTable(listeningAppsTable) {
+BundleProcessor::BundleProcessor() {
 }
 
 BundleProcessor::~BundleProcessor() {
 }
 
-void BundleProcessor::start() {
+void BundleProcessor::start(
+    Config config, std::shared_ptr<BundleQueue> bundleQueue,
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+  m_config = config;
+  m_bundleQueue = bundleQueue;
+  m_neighbourTable = neighbourTable;
+  m_listeningAppsTable = listeningAppsTable;
   LOG(10) << "Starting BundleProcessor";
   std::thread t = std::thread(&BundleProcessor::processBundles, this);
   t.detach();
@@ -135,8 +135,7 @@ void BundleProcessor::receiveBundles() {
             // Set timeout to socket
             setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                        sizeof(struct timeval));
-            std::thread(&BundleProcessor::receiveMessage, this,
-                        newsock).detach();
+            std::thread(&BundleProcessor::receiveMessage, this, newsock).detach();
           }
         }
       }

@@ -85,6 +85,8 @@ class Node {
    * Variable that holds the listening apps table.
    */
   std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+
+  void *m_handle;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

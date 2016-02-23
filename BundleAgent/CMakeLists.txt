@@ -29,3 +29,6 @@ add_executable(${APPLICATION_NAME} ${APP_SOURCES})
 find_package(Threads)
 target_link_libraries(${APPLICATION_NAME} ${CMAKE_THREAD_LIBS_INIT} 
                       ${CMAKE_DL_LIBS} ${LIB_NAME})
+                      
+
+add_library(ActiveForwardingBundleProcessor MODULE Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp)

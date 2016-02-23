@@ -43,18 +43,9 @@ class Neighbour;
 class BasicBundleProcessor : public BundleProcessor {
  public:
   /**
-   * @brief Generates a BasicBundleProcessor with the given parameters
-   *
-   * The parameters are the configuration, the bundle queue, the neighbour table
-   * and the listening apps table.
-   *
-   * @param config The object holding all the configuration.
-   * @param bundleQueue The queue that will hold all the bundles.
-   * @param neighbourTable The neighbour table to check the neighbours.
+   * @brief Generates a BasicBundleProcessor.
    */
-  BasicBundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                       std::shared_ptr<NeighbourTable> neighbourTable,
-                       std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  BasicBundleProcessor();
   /**
    * Destructor of the class.
    */

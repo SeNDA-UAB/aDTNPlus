@@ -33,12 +33,7 @@
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Utils/Logger.h"
 
-RoutingSelectionBundleProcessor::RoutingSelectionBundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable,
-    std::shared_ptr<NeighbourTable> neighbourTable)
-    : BasicBundleProcessor(config, bundleQueue, neighbourTable,
-                           listeningAppsTable) {
+RoutingSelectionBundleProcessor::RoutingSelectionBundleProcessor() {
 }
 
 RoutingSelectionBundleProcessor::~RoutingSelectionBundleProcessor() {

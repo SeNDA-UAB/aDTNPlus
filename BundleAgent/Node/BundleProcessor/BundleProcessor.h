@@ -45,18 +45,9 @@ class Neighbour;
 class BundleProcessor {
  public:
   /**
-   * @brief Generates a BundleProcessor with the given parameters
-   *
-   * The parameters are the configuration, the bundle queue, the neighbour table
-   * and the listening apps table.
-   *
-   * @param config The object holding all the configuration.
-   * @param bundleQueue The queue that will hold all the bundles.
-   * @param neighbourTable The neighbour table to check the neighbours.
+   * @brief Generates a BundleProcessor.
    */
-  BundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                  std::shared_ptr<NeighbourTable> neighbourTable,
-                  std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  BundleProcessor();
   /**
    * Destructor of the class.
    */
@@ -65,8 +56,17 @@ class BundleProcessor {
    * @brief Function that starts all the process.
    *
    * This function will start the process Bundles and receive Bundles process.
+   *
+   * The parameters are the configuration, the bundle queue, the neighbour table
+   * and the listening apps table.
+   *
+   * @param config The object holding all the configuration.
+   * @param bundleQueue The queue that will hold all the bundles.
+   * @param neighbourTable The neighbour table to check the neighbours.
    */
-  void start();
+  void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+             std::shared_ptr<NeighbourTable> neighbourTable,
+             std::shared_ptr<ListeningAppsTable> listeningAppsTable);
 
  protected:
   /**

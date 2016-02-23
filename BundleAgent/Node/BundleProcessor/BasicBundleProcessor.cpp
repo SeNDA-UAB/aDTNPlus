@@ -40,11 +40,7 @@
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 
-BasicBundleProcessor::BasicBundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
-    : BundleProcessor(config, bundleQueue, neighbourTable, listeningAppsTable) {
+BasicBundleProcessor::BasicBundleProcessor() {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {}
