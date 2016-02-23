@@ -33,7 +33,9 @@
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/AppListener/AppListener.h"
 
-/**
+class PluginInfo;
+
+/**info
  * CLASS Node
  * This class is the class that initialised all the things that are needed
  * for an aDTN node to work.
@@ -70,10 +72,6 @@ class Node {
    */
   std::shared_ptr<NeighbourTable> m_neighbourTable;
   /**
-   * Variable that holds the bundle processor.
-   */
-  std::shared_ptr<BundleProcessor> m_bundleProcessor;
-  /**
    * Variable that holds the bundle queue.
    */
   std::shared_ptr<BundleQueue> m_bundleQueue;
@@ -85,6 +83,10 @@ class Node {
    * Variable that holds the listening apps table.
    */
   std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  /**
+   * Variable that holds the bundle process library handle.
+   */
+  void *m_handle;
 };
 
 #endif  // BUNDLEAGENT_NODE_NODE_H_

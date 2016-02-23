@@ -23,6 +23,7 @@
  */
 
 #include <dirent.h>
+#include <dlfcn.h>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -32,12 +33,11 @@
 #include <algorithm>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
-#include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
-#include "Node/BundleProcessor/ActiveForwardingBundleProcessor.h"
+#include "Node/BundleProcessor/PluginAPI.h"
+#include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
-
 
 std::vector<std::string> getBundlesInFolder(std::string folder) {
   DIR *dir = NULL;
@@ -94,19 +94,32 @@ Node::Node(std::string filename) {
       new ListeningAppsTable());
   m_appListener = std::shared_ptr<AppListener>(
       new AppListener(m_config, m_listeningAppsTable));
-  /* m_bundleProcessor = std::shared_ptr<BundleProcessor>(
-      new RoutingSelectionBundleProcessor(m_config, m_bundleQueue,
-                                          m_listeningAppsTable,
-                                          m_neighbourTable));*/
-  m_bundleProcessor = std::shared_ptr<BundleProcessor>(
-      new ActiveForwardingBundleProcessor(m_config, m_bundleQueue,
-                                          m_listeningAppsTable,
-                                          m_neighbourTable));
-  m_bundleProcessor->start();
+
+  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_LAZY);
+  if (!m_handle) {
+    LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
+           << " reason: " << dlerror();
+    g_stop = true;
+  } else {
+    dlerror();
+    PluginInfo* info = reinterpret_cast<PluginInfo*>(dlsym(m_handle,
+                                                           "information"));
+    const char * error = dlerror();
+    if (error != NULL) {
+      LOG(1) << "Error getting object from plugin, reason: " << error;
+      g_stop = true;
+    } else {
+      reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
+          m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
+    }
+  }
 }
 
 Node::~Node() {
   LOG(6) << "Closing Node...";
+  if (m_handle) {
+    dlclose(m_handle);
+  }
   delete Logger::getInstance();
 }
 

@@ -35,18 +35,9 @@ class RoutingSelectionBundleProcessor : public BasicBundleProcessor {
  public:
   /**
    * @brief Constructor
-   *
-   * Generates a RoutingSelectionBundleProcessor with the given parameters.
-   *
-   * @param config The object holding all the configuration.
-   * @param bundleQueue The queue that will hold all the bundles.
-   * @param listeningAppsTable
-   * @param neighbourTable The neighbour table to check the neighbours.
    */
-  RoutingSelectionBundleProcessor(
-      Config config, std::shared_ptr<BundleQueue> bundleQueue,
-      std::shared_ptr<ListeningAppsTable> listeningAppsTable,
-      std::shared_ptr<NeighbourTable> neighbourTable);
+  RoutingSelectionBundleProcessor();
+
   virtual ~RoutingSelectionBundleProcessor();
 
  private:

@@ -45,6 +45,8 @@ const std::string Config::DATAPATH = "/tmp/adtn/bundles/";
 const std::string Config::LISTENERADDRESS = "127.0.0.1";
 const int Config::LISTENERPORT = 50000;
 const bool Config::CLEAN = false;
+const std::string Config::BUNDLEPROCESSORNAME =
+    "libaDTNPlus_BasicBundleProcessor.so";
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -62,7 +64,8 @@ Config::Config()
       m_dataPath(DATAPATH),
       m_listenerAddress(LISTENERADDRESS),
       m_listenerPort(LISTENERPORT),
-      m_clean(CLEAN) {
+      m_clean(CLEAN),
+      m_bundleProcessorName(BUNDLEPROCESSORNAME) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -104,6 +107,9 @@ Config::Config(const std::string &configFilename) {
                                                         "listenerPort",
                                                         LISTENERPORT);
     m_clean = m_configLoader.m_reader.GetBoolean("Node", "clean", CLEAN);
+    m_bundleProcessorName = m_configLoader.m_reader.Get("BundleProcess",
+                                                        "bundleProcessName",
+                                                        BUNDLEPROCESSORNAME);
   }
 }
 
@@ -172,4 +178,8 @@ int Config::getListenerPort() {
 
 bool Config::getClean() {
   return m_clean;
+}
+
+std::string Config::getBundleProcessorName() {
+  return m_bundleProcessorName;
 }

@@ -21,7 +21,7 @@
  * VERSION 1
  * This file contains the implementation of Routing Selection Bundle Processor.
  */
-#include "RoutingSelectionBundleProcessor.h"
+#include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include <string>
 #include <vector>
 #include "Bundle/Bundle.h"
@@ -32,13 +32,14 @@
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Utils/Logger.h"
+#include "Node/BundleProcessor/PluginAPI.h"
 
-RoutingSelectionBundleProcessor::RoutingSelectionBundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable,
-    std::shared_ptr<NeighbourTable> neighbourTable)
-    : BasicBundleProcessor(config, bundleQueue, neighbourTable,
-                           listeningAppsTable) {
+NEW_PLUGIN(RoutingSelectionBundleProcessor,
+           "Routing selection bundle processor", "1.0",
+           "Forwards a bundle checking if a RoutinSelectionMEB block exists in "
+           "the bundle.")
+
+RoutingSelectionBundleProcessor::RoutingSelectionBundleProcessor() {
 }
 
 RoutingSelectionBundleProcessor::~RoutingSelectionBundleProcessor() {

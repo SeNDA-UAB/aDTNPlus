@@ -49,20 +49,20 @@
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
 
-BundleProcessor::BundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
-    : m_config(config),
-      m_bundleQueue(bundleQueue),
-      m_neighbourTable(neighbourTable),
-      m_listeningAppsTable(listeningAppsTable) {
+BundleProcessor::BundleProcessor() {
 }
 
 BundleProcessor::~BundleProcessor() {
 }
 
-void BundleProcessor::start() {
+void BundleProcessor::start(
+    Config config, std::shared_ptr<BundleQueue> bundleQueue,
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+  m_config = config;
+  m_bundleQueue = bundleQueue;
+  m_neighbourTable = neighbourTable;
+  m_listeningAppsTable = listeningAppsTable;
   LOG(10) << "Starting BundleProcessor";
   std::thread t = std::thread(&BundleProcessor::processBundles, this);
   t.detach();
@@ -71,6 +71,7 @@ void BundleProcessor::start() {
 }
 
 void BundleProcessor::processBundles() {
+  g_startedThread++;
   while (!g_stop.load()) {
     try {
       // LOG(60) << "Trying to dequeue a bundle";
@@ -114,6 +115,7 @@ void BundleProcessor::receiveBundles() {
         LOG(10) << "Listening petitions at (" << m_config.getNodeAddress()
                 << ":" << m_config.getNodePort() << ")";
         fd_set readfds;
+        g_startedThread++;
         while (!g_stop.load()) {
           FD_ZERO(&readfds);
           FD_SET(sock, &readfds);
@@ -135,8 +137,7 @@ void BundleProcessor::receiveBundles() {
             // Set timeout to socket
             setsockopt(newsock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                        sizeof(struct timeval));
-            std::thread(&BundleProcessor::receiveMessage, this,
-                        newsock).detach();
+            std::thread(&BundleProcessor::receiveMessage, this, newsock).detach();
           }
         }
       }

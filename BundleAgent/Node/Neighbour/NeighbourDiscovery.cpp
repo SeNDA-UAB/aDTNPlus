@@ -93,6 +93,7 @@ void NeighbourDiscovery::sendBeacons() {
               << m_config.getDiscoveryPort();
       Beacon b = Beacon(nodeId, nodeAddress, nodePort);
       int sleepTime = m_config.getDiscoveryPeriod();
+      g_startedThread++;
       while (!g_stop.load()) {
         std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
         LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
@@ -171,6 +172,7 @@ void NeighbourDiscovery::receiveBeacons() {
           tv.tv_sec = m_config.getSocketTimeout();
           setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (struct timeval *) &tv,
                      sizeof(struct timeval));
+          g_startedThread++;
           while (!g_stop.load()) {
             char* buffer = reinterpret_cast<char*>(malloc(
                 Beacon::MAX_BEACON_SIZE * sizeof(char)));
@@ -219,6 +221,7 @@ void NeighbourDiscovery::cleanNeighbours() {
   LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime
           << "s all the nodes with inactivity for a period of "
           << expirationTime << "s";
+  g_startedThread++;
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     LOG(67) << "Calling to clean neighbours";

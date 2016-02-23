@@ -32,20 +32,10 @@
 
 class ActiveForwardingBundleProcessor : public BasicBundleProcessor {
  public:
-  /*
+  /**
    * @brief Constructor.
-   *
-   * Generates an Active Forwarding Bundle Processor.
-   *
-   * @param config The object holding all the configuration.
-   * @param bundleQueue The queue that will hold all the bundles.
-   * @param listeningAppsTable
-   * @param neighbourTable The neighbour table to check the neighbours.
    */
-  ActiveForwardingBundleProcessor(
-      Config config, std::shared_ptr<BundleQueue> bundleQueue,
-      std::shared_ptr<ListeningAppsTable> listeningAppsTable,
-      std::shared_ptr<NeighbourTable> neighbourTable);
+  ActiveForwardingBundleProcessor();
 
   /**
    * Destructor of the class.

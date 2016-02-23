@@ -39,12 +39,15 @@
 #include "Utils/TimestampManager.h"
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
+#include "Node/BundleProcessor/PluginAPI.h"
 
-BasicBundleProcessor::BasicBundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
-    : BundleProcessor(config, bundleQueue, neighbourTable, listeningAppsTable) {
+#ifdef BASE_PLUGIN
+NEW_PLUGIN(BasicBundleProcessor,
+           "Basic bundle processor", "1.0",
+           "Forwards a bundle this processor only checks for anti-rebooting.")
+#endif
+
+BasicBundleProcessor::BasicBundleProcessor() {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {}

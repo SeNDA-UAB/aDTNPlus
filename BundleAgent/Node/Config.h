@@ -150,6 +150,12 @@ class Config {
    * @return If clean is enabled.
    */
   bool getClean();
+  /**
+   * Get the bundle processor shared library name.
+   *
+   * @return The bundle processor name.
+   */
+  std::string getBundleProcessorName();
 
  private:
   /**
@@ -217,6 +223,10 @@ class Config {
    */
   bool m_clean;
   /**
+   * The shared library that holds the bundle processor name.
+   */
+  std::string m_bundleProcessorName;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -239,6 +249,7 @@ class Config {
   static const std::string LISTENERADDRESS;
   static const int LISTENERPORT;
   static const bool CLEAN;
+  static const std::string BUNDLEPROCESSORNAME;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_
