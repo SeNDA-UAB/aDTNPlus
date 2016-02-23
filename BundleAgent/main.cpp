@@ -35,6 +35,7 @@
 
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;
+std::atomic<uint16_t> g_startedThread;
 
 void stop(int signal) {
   g_stop = true;
@@ -54,7 +55,7 @@ int main(int argc, char **argv) {
     g_stopped = 0;
     g_stop = false;
     Node n = Node(config);
-    while (!g_stop || (g_stopped.load() < maxThread)) {
+    while (!g_stop || (g_stopped.load() < g_startedThread)) {
       std::this_thread::sleep_for(std::chrono::seconds(5));
     }
   }

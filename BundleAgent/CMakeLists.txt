@@ -19,7 +19,7 @@ unset(LIB_SOURCES_C)
 add_subdirectory(Node)
 
 set(LIB_NAME BundleAgent_lib)
-add_library(${LIB_NAME} SHARED ${LIB_SOURCES_CPP} ${LIB_SOURCES_C})
+add_library(${LIB_NAME} STATIC ${LIB_SOURCES_CPP} ${LIB_SOURCES_C})
 target_link_libraries(${LIB_NAME} ${BUNDLE_LIB_NAME} ${CMAKE_DL_LIBS})
 
 set(APP_SOURCES main.cpp)
@@ -31,4 +31,4 @@ target_link_libraries(${APPLICATION_NAME} ${CMAKE_THREAD_LIBS_INIT}
                       ${CMAKE_DL_LIBS} ${LIB_NAME})
                       
 
-add_library(ActiveForwardingBundleProcessor MODULE Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp)
+add_library(ActiveForwardingBundleProcessor MODULE Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp Node/BundleProcessor/BasicBundleProcessor.cpp Node/BundleProcessor/BundleProcessor.cpp)

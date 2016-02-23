@@ -38,7 +38,6 @@
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
-#include <iostream>
 
 std::vector<std::string> getBundlesInFolder(std::string folder) {
   DIR *dir = NULL;
@@ -98,27 +97,29 @@ Node::Node(std::string filename) {
 
   m_handle = dlopen("libActiveForwardingBundleProcessor.so", RTLD_LAZY);
   if (!m_handle) {
-    std::cout << "ERROR WHILE OPENING LIBRARY";
+    LOG(1) << "Error loading plugin " << "Plugin Name" << " reason: "
+           << dlerror();
+    g_stop = true;
   } else {
     dlerror();
     PluginInfo* info = reinterpret_cast<PluginInfo*>(dlsym(m_handle,
                                                            "information"));
     const char * error = dlerror();
     if (error != NULL) {
-      std::cout << "ERROR WHILE TAKING VALUE";
+      LOG(1) << "Error getting object from plugin, reason: " << error;
+      g_stop = true;
     } else {
-      m_bundleProcessor = std::shared_ptr<BundleProcessor>(
-          reinterpret_cast<BundleProcessor*>(info->getPlugin()));
-      m_bundleProcessor->start(m_config, m_bundleQueue, m_neighbourTable,
-                               m_listeningAppsTable);
+      reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
+          m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
     }
   }
 }
 
 Node::~Node() {
   LOG(6) << "Closing Node...";
-  if (m_handle)
+  if (m_handle) {
     dlclose(m_handle);
+  }
   delete Logger::getInstance();
 }
 

@@ -71,6 +71,7 @@ void BundleProcessor::start(
 }
 
 void BundleProcessor::processBundles() {
+  g_startedThread++;
   while (!g_stop.load()) {
     try {
       // LOG(60) << "Trying to dequeue a bundle";
@@ -114,6 +115,7 @@ void BundleProcessor::receiveBundles() {
         LOG(10) << "Listening petitions at (" << m_config.getNodeAddress()
                 << ":" << m_config.getNodePort() << ")";
         fd_set readfds;
+        g_startedThread++;
         while (!g_stop.load()) {
           FD_ZERO(&readfds);
           FD_SET(sock, &readfds);
