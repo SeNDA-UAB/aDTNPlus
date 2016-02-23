@@ -95,10 +95,10 @@ Node::Node(std::string filename) {
   m_appListener = std::shared_ptr<AppListener>(
       new AppListener(m_config, m_listeningAppsTable));
 
-  m_handle = dlopen("libActiveForwardingBundleProcessor.so", RTLD_LAZY);
+  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_LAZY);
   if (!m_handle) {
-    LOG(1) << "Error loading plugin " << "Plugin Name" << " reason: "
-           << dlerror();
+    LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
+           << " reason: " << dlerror();
     g_stop = true;
   } else {
     dlerror();

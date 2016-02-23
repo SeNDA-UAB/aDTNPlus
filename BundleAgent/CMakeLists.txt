@@ -30,5 +30,21 @@ find_package(Threads)
 target_link_libraries(${APPLICATION_NAME} ${CMAKE_THREAD_LIBS_INIT} 
                       ${CMAKE_DL_LIBS} ${LIB_NAME})
                       
+# Generates the bundle processors libraries
 
-add_library(ActiveForwardingBundleProcessor MODULE Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp Node/BundleProcessor/BasicBundleProcessor.cpp Node/BundleProcessor/BundleProcessor.cpp)
+add_library(aDTNPlus_BasicBundleProcessor MODULE
+  Node/BundleProcessor/BundleProcessor.cpp
+  Node/BundleProcessor/BasicBundleProcessor.cpp
+)
+
+add_library(aDTNPlus_RoutingSelectionBundleProcessor MODULE
+  Node/BundleProcessor/BundleProcessor.cpp
+  Node/BundleProcessor/BasicBundleProcessor.cpp
+  Node/BundleProcessor/RoutingSelectionBundleProcessor.cpp
+)
+
+add_library(aDTNPlus_ActiveForwardingBundleProcessor MODULE
+  Node/BundleProcessor/BundleProcessor.cpp 
+  Node/BundleProcessor/BasicBundleProcessor.cpp 
+  Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp
+)
