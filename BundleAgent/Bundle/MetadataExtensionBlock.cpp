@@ -91,7 +91,9 @@ std::string MetadataExtensionBlock::getMetadata() {
 
 std::string MetadataExtensionBlock::toString() {
   std::stringstream ss;
-  ss << "Metadata Extension Block:" << std::endl;
+  ss << CanonicalBlock::toString() << "\tMetadata Extension Block values:"
+     << std::endl << "\t\tMetadata Type: " << static_cast<int>(m_metadataType)
+     << std::endl;
   return ss.str();
 }
 

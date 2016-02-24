@@ -23,7 +23,7 @@
  */
 
 #include "RoutingSelectionMEB.h"
-#include <iostream>
+#include <sstream>
 #include <string>
 #include <exception>
 #include "Utils/Logger.h"
@@ -50,4 +50,12 @@ RoutingSelectionMEB::~RoutingSelectionMEB() {
 
 uint8_t RoutingSelectionMEB::getSelection() {
   return m_selection;
+}
+
+std::string RoutingSelectionMEB::toString() {
+  std::stringstream ss;
+  ss << "Routing Selection block:" << std::endl
+     << MetadataExtensionBlock::toString() << "\tRouting algorithm: "
+     << static_cast<int>(m_selection) << std::endl;
+  return ss.str();
 }

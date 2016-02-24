@@ -56,6 +56,12 @@ class RoutingSelectionMEB : public MetadataExtensionBlock {
    * @return The routing algorithm.
    */
   uint8_t getSelection();
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  private:
   /**

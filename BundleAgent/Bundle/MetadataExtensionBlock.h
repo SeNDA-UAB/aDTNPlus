@@ -83,7 +83,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * @return The string with the block information.
    */
-  std::string toString();
+  virtual std::string toString();
 
  protected:
   /**
