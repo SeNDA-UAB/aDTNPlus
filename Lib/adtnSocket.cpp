@@ -30,7 +30,13 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <iostream>
 #include "Bundle/Bundle.h"
+#include "Bundle/CanonicalBlock.h"
+#include "Bundle/MetadataExtensionBlock.h"
+#include "Bundle/ForwardingMEB.h"
+#include "Bundle/RoutingSelectionMEB.h"
+#include "Bundle/BundleTypes.h"
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
                        std::string recvIp)
@@ -109,6 +115,9 @@ std::string adtnSocket::recv() {
 void adtnSocket::send(std::string destination, std::string message) {
   try {
     Bundle b = Bundle(m_nodeName, destination, message);
+    for (auto c : m_blocksToAdd) {
+      b.addBlock(c);
+    }
     sockaddr_in remoteAddr = { 0 };
     remoteAddr.sin_family = AF_INET;
     remoteAddr.sin_port = htons(m_sendPort);
@@ -137,4 +146,20 @@ void adtnSocket::send(std::string destination, std::string message) {
   } catch (const std::exception &e) {
     throw adtnSocketException(e.what());
   }
+}
+
+void adtnSocket::changeSource(std::string name) {
+  m_nodeName = name;
+}
+
+void adtnSocket::addRoutingSelection(uint8_t type) {
+  m_blocksToAdd.push_back(std::make_shared<RoutingSelectionMEB>(type));
+}
+
+void adtnSocket::addActiveForwarding(std::string code) {
+  m_blocksToAdd.push_back(std::make_shared<ForwardingMEB>(code));
+}
+
+void adtnSocket::clearBlocks() {
+  m_blocksToAdd.clear();
 }

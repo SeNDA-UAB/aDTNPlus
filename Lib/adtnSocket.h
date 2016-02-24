@@ -26,6 +26,10 @@
 
 #include <string>
 #include <stdexcept>
+#include <memory>
+#include <vector>
+
+class CanonicalBlock;
 
 class adtnSocketException : public std::runtime_error {
  public:
@@ -101,6 +105,30 @@ class adtnSocket {
    * @param message The message to send.
    */
   void send(std::string destination, std::string message);
+  /**
+   * @brief Allows to change the default sender id.
+   *
+   * @param source The new sender id.
+   */
+  void changeSource(std::string source);
+  /**
+   * @brief Adds a Routing Selection MEB to the bundle.
+   *
+   * @param type The type value, it can be
+   *              * 0x01 for anti-rebooting
+   *              * 0x02 for flooding
+   */
+  void addRoutingSelection(uint8_t type);
+  /**
+   * @brief Adds an Active forwarding MEB to the bundle.
+   *
+   * @param code The code that will be executed when forwarding.
+   */
+  void addActiveForwarding(std::string code);
+  /**
+   * @brief Ask to clear all the cached blocks that will go to a bundle.
+   */
+  void clearBlocks();
 
  private:
   /**
@@ -129,6 +157,10 @@ class adtnSocket {
    * The socket used to receive the bundles.
    */
   int m_recvSocket;
+  /**
+   * Lists of canonical blocks that need to be added when creating a new bundle.
+   */
+  std::vector<std::shared_ptr<CanonicalBlock>> m_blocksToAdd;
 };
 
 #endif  // LIB_ADTNSOCKET_H_

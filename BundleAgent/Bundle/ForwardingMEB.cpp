@@ -23,25 +23,26 @@
  */
 
 #include <string>
+#include <sstream>
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/BundleTypes.h"
 
 ForwardingMEB::ForwardingMEB(const std::string &softCode, bool isRaw)
-  : MetadataExtensionBlock() {
-    if (isRaw) {
-      try {
-        initFromRaw(softCode);
-        m_softCode = m_metadata;
-      } catch (...) {
-        throw BlockConstructionException("[ForwardingMEB] Bad raw format");
-      }
-    } else {
-      m_blockType = static_cast<uint8_t>(
-          CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
-      m_metadataType = static_cast<uint8_t>(MetadataTypes::FORWARDING_MEB);
-      m_metadata = softCode;
-      m_softCode = softCode;
+    : MetadataExtensionBlock() {
+  if (isRaw) {
+    try {
+      initFromRaw(softCode);
+      m_softCode = m_metadata;
+    } catch (...) {
+      throw BlockConstructionException("[ForwardingMEB] Bad raw format");
     }
+  } else {
+    m_blockType =
+        static_cast<uint8_t>(CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
+    m_metadataType = static_cast<uint8_t>(MetadataTypes::FORWARDING_MEB);
+    m_metadata = softCode;
+    m_softCode = softCode;
+  }
 }
 
 ForwardingMEB::~ForwardingMEB() {
@@ -49,4 +50,11 @@ ForwardingMEB::~ForwardingMEB() {
 
 std::string ForwardingMEB::getSoftCode() {
   return m_softCode;
+}
+
+std::string ForwardingMEB::toString() {
+  std::stringstream ss;
+  ss << "Forwarding block:" << std::endl << MetadataExtensionBlock::toString()
+     << "\tBlock code: " << m_softCode;
+  return ss.str();
 }

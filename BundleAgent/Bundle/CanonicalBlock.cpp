@@ -125,6 +125,20 @@ bool CanonicalBlock::checkProcFlag(CanonicalBlockControlFlags procFlag) {
 
 std::string CanonicalBlock::toString() {
   std::stringstream ss;
-  ss << "Not recognised block" << std::endl;
+  ss << "\tBlock processing control flags" << std::endl
+     << "\t\tBlock must be replicated in every fragment: "
+     << checkProcFlag(CanonicalBlockControlFlags::REPLICATE_FRAGMENT)
+     << std::endl << "\t\tTransmit status report if block can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::TRANSMIT_STATUS_REPORT)
+     << std::endl << "\t\tDelete bundle if block can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::DELETE_BUNDLE) << std::endl
+     << "\t\tLast block: "
+     << checkProcFlag(CanonicalBlockControlFlags::LAST_BLOCK) << std::endl
+     << "\t\tDiscard block if it can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::DISCARD_BLOCK) << std::endl
+     << "\t\tBlock was forwarded without being processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED)
+     << std::endl << "\t\tBlock contains an EID-reference field: "
+     << checkProcFlag(CanonicalBlockControlFlags::EID_FIELD) << std::endl;
   return ss.str();
 }
