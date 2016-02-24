@@ -26,7 +26,8 @@
 #include "Node/BundleQueue/BundleContainer.h"
 
 BundleQueue::BundleQueue()
-    : m_bundles() {
+    : m_bundles(),
+      m_count(0) {
 }
 
 BundleQueue::~BundleQueue() {
@@ -37,8 +38,22 @@ BundleQueue::BundleQueue(BundleQueue&& bc)
     : m_bundles(std::move(bc.m_bundles)) {
 }
 
+void BundleQueue::wait_for(int time) {
+  std::unique_lock<std::mutex> lck(m_mutex);
+  while (m_count == 0) {
+    while (m_conditionVariable.wait_for(lck, std::chrono::seconds(time))
+        == std::cv_status::timeout) {
+      throw EmptyBundleQueueException("[BundleQueue] The queue is empty");
+    }
+  }
+  --m_count;
+}
+
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   m_bundles.push_back(std::move(bundleContainer));
+  std::unique_lock<std::mutex> lck(m_mutex);
+  ++m_count;
+  m_conditionVariable.notify_one();
 }
 
 std::unique_ptr<BundleContainer> BundleQueue::dequeue() {

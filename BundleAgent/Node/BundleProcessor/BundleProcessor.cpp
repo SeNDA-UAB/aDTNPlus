@@ -74,7 +74,8 @@ void BundleProcessor::processBundles() {
   g_startedThread++;
   while (!g_stop.load()) {
     try {
-      // LOG(60) << "Trying to dequeue a bundle";
+      LOG(60) << "Checking for bundles in the queue";
+      m_bundleQueue->wait_for(m_config.getSocketTimeout());
       std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
       processBundle(std::move(bc));
     } catch (const std::exception &e) {

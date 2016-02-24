@@ -28,6 +28,9 @@
 #include <list>
 #include <string>
 #include <exception>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
 
 class EmptyBundleQueueException : public std::runtime_error {
  public:
@@ -66,12 +69,30 @@ class BundleQueue {
    * @return The oldest bundle container.
    */
   std::unique_ptr<BundleContainer> dequeue();
+  /**
+   * Waits for a enqueue notification.
+   * If no notification is given in time, a exception is thrown.
+   * @param time Wait timeout.
+   */
+  void wait_for(int time);
 
  private:
   /**
    * List that holds the container bundles.
    */
   std::list<std::unique_ptr<BundleContainer>> m_bundles;
+  /**
+   * Mutex for the condition variable.
+   */
+  std::mutex m_mutex;
+  /**
+   * Condition variable.
+   */
+  std::condition_variable m_conditionVariable;
+  /**
+   * Count of elements to consume.
+   */
+  int m_count;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_
