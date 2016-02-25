@@ -36,6 +36,7 @@
 #include <chrono>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
@@ -278,86 +279,115 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
   if (bundleLength <= 0) {
     LOG(1) << "The bundle to forward has a length of 0, aborting forward.";
   } else {
-    std::for_each(
-        nextHop.begin(),
-        nextHop.end(),
-        [this, bundleRaw, bundleLength](std::string &nh) {
-          LOG(45) << "Forwarding bundle to " << nh;
-          LOG(50) << "Bundle to forward " << bundleRaw;
-          sockaddr_in remoteAddr = {0};
-          std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
-          remoteAddr.sin_family = AF_INET;
-          remoteAddr.sin_port = htons(nb->getNodePort());
-          remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
-          int sock = socket(AF_INET, SOCK_STREAM, 0);
-          if (sock == -1) {
-            LOG(1) << "Cannot create socket into forward thread, reason: "
+    auto forwardFunction =
+      [this, bundleRaw, bundleLength](std::string &nh) {
+        LOG(45) << "Forwarding bundle to " << nh;
+        LOG(50) << "Bundle to forward " << bundleRaw;
+        sockaddr_in remoteAddr = {0};
+        std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
+        remoteAddr.sin_family = AF_INET;
+        remoteAddr.sin_port = htons(nb->getNodePort());
+        remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock == -1) {
+          std::stringstream ss;
+          ss << "Cannot create socket into forward thread, reason: "
+          << strerror(errno);
+          throw ForwardException(ss.str());
+        } else {
+          struct timeval tv;
+          tv.tv_sec = m_config.getNeighbourExpirationTime();
+          tv.tv_usec = 0;
+          if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+                  (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
+            std::stringstream ss;
+            ss << "Cannot set receiving timeout to socket, reason: "
             << strerror(errno);
+            close(sock);
+            throw ForwardException(ss.str());
           } else {
-            struct timeval tv;
-            tv.tv_sec = m_config.getNeighbourExpirationTime();
-            tv.tv_usec = 0;
-            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+            if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
                     (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
-              LOG(1) << "Cannot set receiving timeout to socket, reason: "
+              std::stringstream ss;
+              ss << "Cannot set sending timeout to socket, reason: "
               << strerror(errno);
+              close(sock);
+              throw ForwardException(ss.str());
             } else {
-              if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
-                      (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
-                LOG(1) << "Cannot set sending timeout to socket, reason: "
-                << strerror(errno);
+              LOG(46) << "Connecting to neighbour...";
+              if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
+                      sizeof(remoteAddr)) < 0) {
+                std::stringstream ss;
+                ss << "Cannot connect with neighbour " << nh
+                << ", reason: " << strerror(errno);
+                close(sock);
+                throw ForwardException(ss.str());
               } else {
-                LOG(46) << "Connecting to neighbour...";
-                if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
-                        sizeof(remoteAddr)) < 0) {
-                  LOG(1) << "Cannot connect with neighbour " << nh
-                  << ", reason: " << strerror(errno);
+                LOG(46) << "Sending node id: " << m_config.getNodeId();
+                // 1023 is the max size of an id (RFC 5050)
+                int writed = send(sock, m_config.getNodeId().c_str(), 1024,
+                    0);
+                if (writed < 0) {
+                  std::stringstream ss;
+                  ss << "Cannot write to socket, reason: "
+                  << strerror(errno);
+                  close(sock);
+                  throw ForwardException(ss.str());
                 } else {
-                  LOG(46) << "Sending node id: " << m_config.getNodeId();
-                  // 1023 is the max size of an id (RFC 5050)
-                  int writed = send(sock, m_config.getNodeId().c_str(), 1024,
+                  uint32_t nBundleLength = htonl(bundleLength);
+                  LOG(46) << "Sending bundle length: " << bundleLength;
+                  writed = send(sock, &nBundleLength, sizeof(nBundleLength),
                       0);
                   if (writed < 0) {
-                    LOG(1) << "Cannot write to socket, reason: "
+                    std::stringstream ss;
+                    ss << "Cannot write to socket, reason: "
                     << strerror(errno);
+                    close(sock);
+                    throw ForwardException(ss.str());
                   } else {
-                    uint32_t nBundleLength = htonl(bundleLength);
-                    LOG(46) << "Sending bundle length: " << bundleLength;
-                    writed = send(sock, &nBundleLength, sizeof(nBundleLength),
-                        0);
+                    LOG(46) << "Sending bundle...";
+                    writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
                     if (writed < 0) {
-                      LOG(1) << "Cannot write to socket, reason: "
+                      std::stringstream ss;
+                      ss << "Cannot write to socket, reason: "
                       << strerror(errno);
+                      close(sock);
+                      throw ForwardException(ss.str());
                     } else {
-                      LOG(46) << "Sending bundle...";
-                      writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
-                      if (writed < 0) {
-                        LOG(1) << "Cannot write to socket, reason: "
+                      sockaddr_in bundleSrc = {0};
+                      socklen_t bundleSrcLength = sizeof(bundleSrc);
+                      if (getsockname(sock,
+                              reinterpret_cast<sockaddr*>(&bundleSrc),
+                              &bundleSrcLength) != 0) {
+                        LOG(3) << "Cannot get peer name, reason: "
                         << strerror(errno);
                       } else {
-                        sockaddr_in bundleSrc = {0};
-                        socklen_t bundleSrcLength = sizeof(bundleSrc);
-                        if (getsockname(sock,
-                                reinterpret_cast<sockaddr*>(&bundleSrc),
-                                &bundleSrcLength) != 0) {
-                          LOG(3) << "Cannot get peer name, reason: "
-                          << strerror(errno);
-                        } else {
-                          LOG(11) << "A bundle of length " << bundleLength
-                          << " has been sent to " << nb->getNodeAddress()
-                          << ":" << nb->getNodePort() << " from "
-                          << inet_ntoa(bundleSrc.sin_addr) << ":"
-                          << ntohs(bundleSrc.sin_port);
-                        }
+                        LOG(11) << "A bundle of length " << bundleLength
+                        << " has been sent to " << nb->getNodeAddress()
+                        << ":" << nb->getNodePort() << " from "
+                        << inet_ntoa(bundleSrc.sin_addr) << ":"
+                        << ntohs(bundleSrc.sin_port);
                       }
                     }
                   }
                 }
               }
             }
-            close(sock);
           }
-        });
+          close(sock);
+        }
+      };
+    int hops = 0;
+    for (auto hop : nextHop) {
+      try {
+        forwardFunction(hop);
+        hops++;
+      } catch (const ForwardException &e) {
+        LOG(10) << e.what();
+      }
+    }
+    if (hops == 0)
+      throw ForwardException("The bundle has not been send to any neighbour.");
   }
 }
 

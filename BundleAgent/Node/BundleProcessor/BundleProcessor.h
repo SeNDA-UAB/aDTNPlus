@@ -27,6 +27,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <exception>
 #include "Node/Config.h"
 
 class Bundle;
@@ -35,6 +36,13 @@ class BundleContainer;
 class NeighbourTable;
 class ListeningAppsTable;
 class Neighbour;
+
+class ForwardException : public std::runtime_error {
+ public:
+  explicit ForwardException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
 
 /**
  * CLASS BundleProcessor
