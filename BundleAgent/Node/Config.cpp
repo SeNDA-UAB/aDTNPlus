@@ -47,6 +47,8 @@ const int Config::LISTENERPORT = 50000;
 const bool Config::CLEAN = false;
 const std::string Config::BUNDLEPROCESSORNAME =
     "libaDTNPlus_BasicBundleProcessor.so";
+const std::string Config::FORWARDINGDEFAULTCODEPATH =
+    "BundleAgent/Codes/forwarding";
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -65,7 +67,8 @@ Config::Config()
       m_listenerAddress(LISTENERADDRESS),
       m_listenerPort(LISTENERPORT),
       m_clean(CLEAN),
-      m_bundleProcessorName(BUNDLEPROCESSORNAME) {
+      m_bundleProcessorName(BUNDLEPROCESSORNAME),
+      m_forwardingDefaultCodePath(FORWARDINGDEFAULTCODEPATH) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -110,6 +113,8 @@ Config::Config(const std::string &configFilename) {
     m_bundleProcessorName = m_configLoader.m_reader.Get("BundleProcess",
                                                         "bundleProcessName",
                                                         BUNDLEPROCESSORNAME);
+    m_forwardingDefaultCodePath = m_configLoader.m_reader.Get(
+        "DefaultCodes", "forwardingPath", FORWARDINGDEFAULTCODEPATH);
   }
 }
 
@@ -182,4 +187,8 @@ bool Config::getClean() {
 
 std::string Config::getBundleProcessorName() {
   return m_bundleProcessorName;
+}
+
+std::string Config::getForwardingDefaultCodePath() {
+  return m_forwardingDefaultCodePath;
 }

@@ -72,7 +72,7 @@ class BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
              std::shared_ptr<NeighbourTable> neighbourTable,
              std::shared_ptr<ListeningAppsTable> listeningAppsTable);
   /**

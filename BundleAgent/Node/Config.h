@@ -156,6 +156,12 @@ class Config {
    * @return The bundle processor name.
    */
   std::string getBundleProcessorName();
+  /**
+   * Get the forwarding default code path.
+   *
+   * @return The path to the default forwarding code.
+   */
+  std::string getForwardingDefaultCodePath();
 
  private:
   /**
@@ -227,6 +233,10 @@ class Config {
    */
   std::string m_bundleProcessorName;
   /**
+   * The path to the default forwarding code.
+   */
+  std::string m_forwardingDefaultCodePath;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -250,6 +260,7 @@ class Config {
   static const int LISTENERPORT;
   static const bool CLEAN;
   static const std::string BUNDLEPROCESSORNAME;
+  static const std::string FORWARDINGDEFAULTCODEPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

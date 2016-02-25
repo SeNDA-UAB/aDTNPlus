@@ -56,5 +56,8 @@ string(REGEX REPLACE "(\r?\n)+$" "" hostname "${HOSTNAME}")
 file(READ "${BundleAgent_SOURCE_DIR}/Config/adtn.ini" FILE_CONTENT)
 string(REGEX REPLACE "nodeId : [^\n]*" "nodeId : ${hostname}" MODIFIED_FILE_CONTENT ${FILE_CONTENT})
 string(REGEX REPLACE "dataPath : [^\n]*" "dataPath : ${BundleAgent_BINARY_DIR}/Bundles/" MODIFIED_FILE_CONTENT ${MODIFIED_FILE_CONTENT})
+string(REGEX REPLACE "BINARY_PATH" ${BundleAgent_BINARY_DIR} MODIFIED_FILE_CONTENT ${MODIFIED_FILE_CONTENT})
 file(WRITE "${BundleAgent_BINARY_DIR}/adtn.ini" ${MODIFIED_FILE_CONTENT})
 file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
+file(COPY "Codes" DESTINATION ".")
+

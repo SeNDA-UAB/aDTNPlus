@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include "Node/BundleProcessor/BundleProcessor.h"
+#include "Node/Executor/Worker.h"
 
 class Bundle;
 class BundleQueue;
@@ -50,6 +51,10 @@ class BasicBundleProcessor : public BundleProcessor {
    * Destructor of the class.
    */
   virtual ~BasicBundleProcessor();
+
+  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+                     std::shared_ptr<NeighbourTable> neighbourTable,
+                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
 
  private:
   /**
@@ -85,6 +90,14 @@ class BasicBundleProcessor : public BundleProcessor {
    */
   virtual std::vector<std::string> checkForward(
       BundleContainer &bundleContainer);
+  /**
+   * Worker to execute default forwarding code.
+   */
+  Worker<std::vector<std::string>, std::string, std::vector<std::string>> m_worker;
+
+  static const std::string m_header;
+  static const std::string m_footer;
+  static const std::string m_commandLine;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
