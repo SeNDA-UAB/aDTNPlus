@@ -67,6 +67,14 @@ class BundleProcessor {
   void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
              std::shared_ptr<NeighbourTable> neighbourTable,
              std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  /**
+   * @brief Function that restores a bundle container from disk.
+   *
+   * This function generates the bundle container from a serialized data.
+   *
+   * @param data The serialized BundleContainer.
+   */
+  virtual void restoreRawBundleContainer(const std::string &data);
 
  protected:
   /**

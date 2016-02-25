@@ -264,7 +264,7 @@ void BundleProcessor::dispatch(Bundle bundle,
           LOG(17) << "Send the payload: " << payload << " to the appId: "
           << appId;
         } catch (const TableException &e) {
-          LOG(1) << "Error getting appId, reason: " << e.what();
+          LOG(10) << "Error getting appId, reason: " << e.what();
           throw;
         }
       });
@@ -377,4 +377,14 @@ void BundleProcessor::discard(
 void BundleProcessor::restore(
     std::unique_ptr<BundleContainer> bundleContainer) {
   m_bundleQueue->enqueue(std::move(bundleContainer));
+}
+
+void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
+  try {
+    std::unique_ptr<BundleContainer> bundleContainer = std::unique_ptr<
+        BundleContainer>(new BundleContainer(data));
+    m_bundleQueue->enqueue(std::move(bundleContainer));
+  } catch (const BundleContainerCreationException &e) {
+    LOG(1) << e.what();
+  }
 }
