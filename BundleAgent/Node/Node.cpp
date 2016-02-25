@@ -68,28 +68,6 @@ Node::Node(std::string filename) {
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
-  std::vector<std::string> bundles = getBundlesInFolder(m_config.getDataPath());
-  if (m_config.getClean()) {
-    // Delete all the bundles in the folder.
-    std::for_each(bundles.begin(), bundles.end(), [this](std::string &bundle) {
-      int val = std::remove(bundle.c_str());
-      if (val != 0) {
-        LOG(1) << "The bundle: " << bundle << " cannot be deleted, reason: "
-        << strerror(errno);
-      }
-    });
-  } else {
-    // Restore all the bundles in the folder.
-    std::for_each(bundles.begin(), bundles.end(), [this](std::string &bundle) {
-      std::ifstream bundleF(bundle);
-      std::string rawBundleContainer((std::istreambuf_iterator<char>(bundleF))
-          , std::istreambuf_iterator<char>());
-      std::unique_ptr<BundleContainer> bundleContainer =
-      BundleContainer::deserialize(rawBundleContainer);
-      m_bundleQueue->enqueue(std::move(bundleContainer));
-      bundleF.close();
-    });
-  }
   m_listeningAppsTable = std::shared_ptr<ListeningAppsTable>(
       new ListeningAppsTable());
   m_appListener = std::shared_ptr<AppListener>(
@@ -111,6 +89,35 @@ Node::Node(std::string filename) {
     } else {
       reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
           m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
+      // Try to restore the bundles.
+      std::vector<std::string> bundles = getBundlesInFolder(
+          m_config.getDataPath());
+      if (m_config.getClean()) {
+        // Delete all the bundles in the folder.
+        std::for_each(bundles.begin(), bundles.end(),
+                      [this](std::string &bundle) {
+                        int val = std::remove(bundle.c_str());
+                        if (val != 0) {
+                          LOG(1) << "The bundle: " << bundle
+                          << " cannot be deleted, reason: " << strerror(errno);
+                        }
+                      });
+      } else {
+        // Restore all the bundles in the folder.
+        std::for_each(
+            bundles.begin(),
+            bundles.end(),
+            [this, info](std::string &bundle) {
+              std::ifstream bundleF(bundle);
+              std::string
+              rawBundleContainer((std::istreambuf_iterator<char>(bundleF))
+                  , std::istreambuf_iterator<char>());
+              reinterpret_cast<BundleProcessor*>(
+                  info->getPlugin())->restoreRawBundleContainer(
+                      rawBundleContainer);
+              bundleF.close();
+            });
+      }
     }
   }
 }

@@ -42,7 +42,8 @@ TEST(BundleContainerTest, SerializeAndDeserialize) {
       new Bundle("Me", "Someone", "This is a test bundle"));
   BundleContainer bc = BundleContainer("You", std::move(b));
   std::string data = bc.serialize();
-  std::unique_ptr<BundleContainer> sbc = BundleContainer::deserialize(data);
+  std::unique_ptr<BundleContainer> sbc = std::unique_ptr<BundleContainer>(
+      new BundleContainer(data));
   ASSERT_EQ(bc.getFrom(), sbc->getFrom());
   ASSERT_EQ(bc.getBundle().toRaw(), sbc->getBundle().toRaw());
 }
@@ -54,21 +55,21 @@ TEST(BundleContainerTest, BadSerialized) {
   std::string data = bc.serialize();
   // Check a bad header
   data[0] = '0';
-  ASSERT_THROW(BundleContainer::deserialize(data),
+  ASSERT_THROW(new BundleContainer(data),
                BundleContainerCreationException);
   data = bc.serialize();
   // Check a bad footer
   data.back() = '0';
-  ASSERT_THROW(BundleContainer::deserialize(data),
-                 BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data),
+               BundleContainerCreationException);
   data = bc.serialize();
   // Check larger footer
   data.append("4");
-  ASSERT_THROW(BundleContainer::deserialize(data),
-                   BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data),
+               BundleContainerCreationException);
   // Check bad bundle
   data = bc.serialize();
   data[10] = '5';
-  ASSERT_THROW(BundleContainer::deserialize(data),
-                     BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data),
+               BundleContainerCreationException);
 }
