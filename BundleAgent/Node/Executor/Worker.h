@@ -53,7 +53,7 @@ class WorkerException : public std::runtime_error {
   }
 };
 
-void signalHandler(int signum) {
+inline void signalHandler(int signum) {
   throw SigFaultException("Code generated a segmentation fault.");
 }
 
@@ -69,7 +69,7 @@ void signalHandler(int signum) {
  * @return A function.
  */
 template<class T>
-std::function<T> loadFunction(void *handler, std::string name) {
+inline std::function<T> loadFunction(void *handler, std::string name) {
   dlerror();
   void *result = dlsym(handler, name.c_str());
   char* const error = dlerror();
@@ -88,7 +88,7 @@ std::function<T> loadFunction(void *handler, std::string name) {
  * @return The string with the args formated.
  */
 template<typename ... Args>
-std::string stringFormat(const std::string& format, Args ... args) {
+inline std::string stringFormat(const std::string& format, Args ... args) {
   size_t size = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1;
   std::unique_ptr<char[]> buffer(new char[size]);
   std::snprintf(buffer.get(), size, format.c_str(), args ...);

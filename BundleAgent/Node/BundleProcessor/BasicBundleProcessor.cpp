@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -47,10 +48,42 @@ NEW_PLUGIN(BasicBundleProcessor,
     "Forwards a bundle this processor only checks for anti-rebooting.")
 #endif
 
-BasicBundleProcessor::BasicBundleProcessor() {
+const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
+    "#include <string>\n"
+    "#include <algorithm>\n"
+    "extern \"C\" {"
+    " std::vector<std::string> f(std::string from,"
+    " std::vector<std::string> neighbours) {";
+const std::string BasicBundleProcessor::m_footer = "}}";
+const std::string BasicBundleProcessor::m_commandLine =
+    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
+
+BasicBundleProcessor::BasicBundleProcessor()
+    : m_worker(m_header, m_footer, "f", m_commandLine) {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
+}
+
+void BasicBundleProcessor::start(
+    Config config, std::shared_ptr<BundleQueue> bundleQueue,
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+  BundleProcessor::start(config, bundleQueue, neighbourTable,
+                         listeningAppsTable);
+  std::ifstream code(m_config.getForwardingDefaultCodePath());
+  if (code) {
+    std::string defaultCode((std::istreambuf_iterator<char>(code)),
+                            std::istreambuf_iterator<char>());
+    try {
+      m_worker.generateFunction(defaultCode);
+    } catch (const WorkerException &e) {
+      LOG(11) << "Cannot create code worker, reason: " << e.what();
+    }
+  } else {
+    LOG(11) << "Cannot open the file "
+            << m_config.getForwardingDefaultCodePath();
+  }
 }
 
 void BasicBundleProcessor::processBundle(
@@ -150,12 +183,19 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Removing bundle source if we have it as neighbour.";
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
+  try {
+    m_worker.execute(bundleContainer.getFrom(), neighbours);
+    return m_worker.getResult();
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot execute code, reason: " << e.what()
+            << " Executing anti-rebooting.";
+    auto it = std::find(neighbours.begin(), neighbours.end(),
+                        bundleContainer.getFrom());
+    if (it != neighbours.end()) {
+      neighbours.erase(it);
+    }
+    return neighbours;
   }
-  return neighbours;
 }
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
