@@ -377,6 +377,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
         forwardFunction(hop);
         hops++;
       } catch (const ForwardException &e) {
+        LOG(10) << e.what();
       }
     }
     if (hops == 0)
