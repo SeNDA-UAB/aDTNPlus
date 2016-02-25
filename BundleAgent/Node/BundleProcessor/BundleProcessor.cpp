@@ -303,6 +303,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
             std::stringstream ss;
             ss << "Cannot set receiving timeout to socket, reason: "
             << strerror(errno);
+            close(sock);
             throw ForwardException(ss.str());
           } else {
             if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
@@ -310,6 +311,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
               std::stringstream ss;
               ss << "Cannot set sending timeout to socket, reason: "
               << strerror(errno);
+              close(sock);
               throw ForwardException(ss.str());
             } else {
               LOG(46) << "Connecting to neighbour...";
@@ -318,6 +320,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                 std::stringstream ss;
                 ss << "Cannot connect with neighbour " << nh
                 << ", reason: " << strerror(errno);
+                close(sock);
                 throw ForwardException(ss.str());
               } else {
                 LOG(46) << "Sending node id: " << m_config.getNodeId();
@@ -328,6 +331,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                   std::stringstream ss;
                   ss << "Cannot write to socket, reason: "
                   << strerror(errno);
+                  close(sock);
                   throw ForwardException(ss.str());
                 } else {
                   uint32_t nBundleLength = htonl(bundleLength);
@@ -338,6 +342,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     std::stringstream ss;
                     ss << "Cannot write to socket, reason: "
                     << strerror(errno);
+                    close(sock);
                     throw ForwardException(ss.str());
                   } else {
                     LOG(46) << "Sending bundle...";
@@ -346,6 +351,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                       std::stringstream ss;
                       ss << "Cannot write to socket, reason: "
                       << strerror(errno);
+                      close(sock);
                       throw ForwardException(ss.str());
                     } else {
                       sockaddr_in bundleSrc = {0};

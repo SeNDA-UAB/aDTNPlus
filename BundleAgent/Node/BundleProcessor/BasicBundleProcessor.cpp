@@ -102,6 +102,8 @@ void BasicBundleProcessor::processBundle(
           nextHop.push_back(*it);
           try {
             forward(bundleContainer->getBundle(), nextHop);
+            LOG(55) << "Discarding the bundle.";
+            discard(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
             LOG(55) << "The bundle has not been send, restoring the bundle.";
@@ -112,14 +114,14 @@ void BasicBundleProcessor::processBundle(
                   << "sending the bundle to all the neighbours.";
           try {
             forward(bundleContainer->getBundle(), neighbours);
+            LOG(55) << "Discarding the bundle.";
+            discard(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
             LOG(55) << "The bundle has not been send, restoring the bundle.";
             restore(std::move(bundleContainer));
           }
         }
-        LOG(55) << "Discarding the bundle.";
-        discard(std::move(bundleContainer));
       } else {
         LOG(55) << "No neighbours found, restoring the bundle.";
         restore(std::move(bundleContainer));
