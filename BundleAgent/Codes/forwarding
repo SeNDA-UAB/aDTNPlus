@@ -1,0 +1,6 @@
+auto it = std::find(neighbours.begin(), neighbours.end(),
+                        from);
+if (it != neighbours.end()) {
+  neighbours.erase(it);
+}
+return neighbours;
