@@ -97,7 +97,7 @@ class BundleContainer {
    */
   virtual std::string toString();
 
- private:
+ protected:
   /**
    * The bundle that the container holds.
    */
