@@ -157,7 +157,8 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
 PrimaryBlock::PrimaryBlock(const std::string &source,
                            const std::string &destination,
                            const uint64_t &timestamp, const uint64_t &seqNumber)
-    : m_procFlags(),
+    : Block(),
+      m_procFlags(),
       m_destination(destination),
       m_source(source),
       m_reportTo(),
