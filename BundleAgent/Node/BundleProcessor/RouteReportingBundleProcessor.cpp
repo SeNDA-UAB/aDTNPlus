@@ -70,7 +70,7 @@ std::unique_ptr<BundleContainer>
 RouteReportingBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   time_t arrivalTime;
-  time_t departureTime = NULL;
+  time_t departureTime = 0;
   time(&arrivalTime);
   return std::unique_ptr<BundleContainer>(
       new RouteReportingBC(from->getId(), arrivalTime, departureTime,
