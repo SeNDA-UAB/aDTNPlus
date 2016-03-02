@@ -36,6 +36,7 @@
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RoutingSelectionMEB.h"
+#include "Bundle/RouteReportingMEB.h"
 #include "Bundle/BundleTypes.h"
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
@@ -45,7 +46,8 @@ adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
       m_sendPort(sendPort),
       m_recvPort(recvPort),
       m_nodeName("_ADTN_LIB_"),
-      m_recvSocket(-1) {
+      m_recvSocket(-1),
+      m_lastBundle(nullptr) {
 }
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort)
@@ -59,6 +61,8 @@ adtnSocket::adtnSocket(std::string ip, int port, bool send)
 adtnSocket::~adtnSocket() {
   if (m_recvSocket != -1)
     close(m_recvSocket);
+  if (m_lastBundle != nullptr)
+    delete m_lastBundle;
 }
 
 void adtnSocket::connect(int appId) {
@@ -110,8 +114,8 @@ std::string adtnSocket::recv() {
   }
   std::string payload = std::string(payloadraw, payloadSize);
   try {
-    Bundle b = Bundle(payload);
-    return b.getPayloadBlock()->getPayload();
+    m_lastBundle = new Bundle(payload);
+    return m_lastBundle->getPayloadBlock()->getPayload();
   } catch (const BundleCreationException &e) {
     throw adtnSocketException(e.what());
   }
@@ -167,4 +171,29 @@ void adtnSocket::addActiveForwarding(std::string code) {
 
 void adtnSocket::clearBlocks() {
   m_blocksToAdd.clear();
+}
+
+void adtnSocket::addRouteReporting() {
+  m_blocksToAdd.push_back(std::make_shared<RouteReportingMEB>());
+}
+
+std::string adtnSocket::getRouteReporting() {
+  if (m_lastBundle != nullptr) {
+    for (size_t i = 1; i < m_lastBundle->getBlocks().size(); ++i) {
+      std::shared_ptr<Block> block = m_lastBundle->getBlocks()[i];
+      if (static_cast<CanonicalBlockTypes>(std::static_pointer_cast<
+          CanonicalBlock>(block)->getBlockType())
+          == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+        if (static_cast<MetadataTypes>(std::static_pointer_cast<
+            MetadataExtensionBlock>(block)->getMetadataType())
+            == MetadataTypes::ROUTE_REPORTING_MEB) {
+          return std::static_pointer_cast<MetadataExtensionBlock>(block)
+              ->getMetadata();
+        }
+      }
+    }
+  } else {
+    throw adtnSocketException("No bundle has been received yet.");
+  }
+  throw adtnSocketException("No route report block is present in the bundle.");
 }

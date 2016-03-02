@@ -29,6 +29,7 @@
 #include <memory>
 #include <vector>
 
+class Bundle;
 class CanonicalBlock;
 
 class adtnSocketException : public std::runtime_error {
@@ -53,8 +54,7 @@ class adtnSocket {
    * @param recvPort The port used to register into the node.
    * @param recvIp The IP used to register into the node.
    */
-  adtnSocket(std::string ip, int sendPort, int recvPort,
-             std::string recvIp);
+  adtnSocket(std::string ip, int sendPort, int recvPort, std::string recvIp);
   /**
    * Generates an adtnSocket, in this case the IP is the same for sending and
    * registering in the node.
@@ -129,6 +129,21 @@ class adtnSocket {
    * @brief Ask to clear all the cached blocks that will go to a bundle.
    */
   void clearBlocks();
+  /**
+   * @brief Adds a Route reporting MEB to the bundle.
+   *
+   * The route reporting block will log the arrival and the depart time of
+   * the bundle in the different nodes it travels.
+   */
+  void addRouteReporting();
+  /**
+   * If the last received bundle contains a routeReporting MEB it will
+   * return the information.
+   * It will throw an exception otherwise.
+   *
+   * @return The information of the routing report.
+   */
+  std::string getRouteReporting();
 
  private:
   /**
@@ -161,6 +176,10 @@ class adtnSocket {
    * Lists of canonical blocks that need to be added when creating a new bundle.
    */
   std::vector<std::shared_ptr<CanonicalBlock>> m_blocksToAdd;
+  /**
+   * The last received bundle.
+   */
+  Bundle *m_lastBundle;
 };
 
 #endif  // LIB_ADTNSOCKET_H_

@@ -30,21 +30,22 @@
 #include "Bundle/BundleTypes.h"
 
 RouteReportingMEB::RouteReportingMEB(std::string nodeId,
-                   std::time_t arrivalTime, std::time_t departureTime)
-: MetadataExtensionBlock(
-    static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB),
-    nodeId + "," + std::to_string(arrivalTime) + "," +
-    std::to_string(departureTime)) {
+                                     std::time_t arrivalTime,
+                                     std::time_t departureTime)
+    : MetadataExtensionBlock(
+        static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB),
+        nodeId + "," + std::to_string(arrivalTime) + ","
+            + std::to_string(departureTime)) {
   m_routeReporting = m_metadata;
 }
 
 RouteReportingMEB::RouteReportingMEB(const std::string &rawData)
-  : MetadataExtensionBlock(rawData) {
-      m_routeReporting = m_metadata;
+    : MetadataExtensionBlock(rawData) {
+  m_routeReporting = m_metadata;
 }
 
 RouteReportingMEB::RouteReportingMEB()
-: MetadataExtensionBlock() {
+    : MetadataExtensionBlock() {
   m_metadataType = static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB);
   m_routeReporting = m_metadata;
 }
@@ -57,9 +58,10 @@ std::string RouteReportingMEB::getRouteReporting() {
 }
 
 void RouteReportingMEB::addRouteInformation(std::string nodeId,
-                     std::time_t arrivalTime, std::time_t departureTime) {
-  std::string routeInformation = nodeId + "," + std::to_string(arrivalTime) +
-      "," + std::to_string(departureTime);
+                                            std::time_t arrivalTime,
+                                            std::time_t departureTime) {
+  std::string routeInformation = nodeId + "," + std::to_string(arrivalTime)
+      + "," + std::to_string(departureTime);
   if (m_metadata == "") {
     m_metadata = routeInformation;
   } else {
@@ -69,7 +71,8 @@ void RouteReportingMEB::addRouteInformation(std::string nodeId,
 
 std::string RouteReportingMEB::toString() {
   std::stringstream ss;
-  ss << m_metadata;
+  ss << "Route Reporting block: " << std::endl
+     << MetadataExtensionBlock::toString() << "\tRoute is: " << m_metadata;
   return ss.str();
 }
 

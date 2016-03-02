@@ -27,7 +27,6 @@
 #include <vector>
 #include <utility>
 #include <sstream>
-#include <iostream>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
@@ -154,7 +153,6 @@ std::string Bundle::toRaw() {
       CanonicalBlockControlFlags::LAST_BLOCK);
   for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
       it != m_blocks.end(); ++it) {
-    LOG(36) << "\n" << "Getting the next block in raw" << "\n";
     ss << (*it)->toRaw();
   }
   raw = ss.str();
