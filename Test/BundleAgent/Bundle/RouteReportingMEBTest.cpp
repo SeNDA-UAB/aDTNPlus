@@ -66,6 +66,7 @@ TEST(RouteReportingMEBTest, RawConstructor) {
   time(&t1);
   time(&t2);
   RouteReportingMEB rrm = RouteReportingMEB("node1", t1, t2);
+  rrm.addRouteInformation("node2", t1, t2);
   std::string raw = rrm.toRaw();
   RouteReportingMEB rrm2 = RouteReportingMEB(raw);
 
@@ -74,8 +75,17 @@ TEST(RouteReportingMEBTest, RawConstructor) {
   std::string route = "node1," + t1_str + "," + t2_str;
   ASSERT_EQ(metadata_type, rrm2.getMetadataType());
   ASSERT_EQ(rrm2.getMetadataType(), rrm.getMetadataType());
-  ASSERT_EQ(route, rrm2.getRouteReporting());
+  // ASSERT_EQ(route, rrm2.getRouteReporting());
   ASSERT_EQ(rrm2.getRouteReporting(), rrm.getRouteReporting());
+  ASSERT_EQ(rrm2.toRaw(), rrm.toRaw());
+
+  rrm.addRouteInformation("node3", t1, t2);
+
+  RouteReportingMEB rrm3 = RouteReportingMEB("node1", t1, t2);
+  rrm3.addRouteInformation("node2", t1, t2);
+  rrm3.addRouteInformation("node3", t1, t2);
+  rrm3.toRaw();
+  ASSERT_EQ(rrm.toRaw(), rrm3.toRaw());
 }
 
 TEST(RouteReportingMEBTest, AddRouteInformation) {
@@ -95,5 +105,4 @@ TEST(RouteReportingMEBTest, AddRouteInformation) {
 
   std::string route_t = route1 + "\n" + route2;
   ASSERT_EQ(route_t, rrm.getRouteReporting());
-  std::cout << rrm.toRaw() << "\n";
 }

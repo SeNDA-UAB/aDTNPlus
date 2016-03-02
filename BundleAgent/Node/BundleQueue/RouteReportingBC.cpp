@@ -100,6 +100,7 @@ void RouteReportingBC::deserialize(const std::string &data) {
     // std::string bundleData = newData.substr(
     // 0, newData.length() - (footerSize));
     std::string bundleData = newData.substr(0, position);
+    std::cout << "Bundle data: " << bundleData << "\n";
     std::unique_ptr<Bundle> b;
     try {
       m_bundle = std::unique_ptr<Bundle>(new Bundle(bundleData));
@@ -107,6 +108,7 @@ void RouteReportingBC::deserialize(const std::string &data) {
       throw BundleContainerCreationException(
           "[BundleContainer] Bad bundle raw format");
     }
+    std::cout << "Bundle: " << m_bundle->toRaw() << "\n";
     m_nodeId = m_from;
     // int pos = newData.find("\n");
     std::string subData = newData.substr(position + 1, data.size());

@@ -24,6 +24,7 @@
 #include <string>
 #include <ctime>
 #include <sstream>
+#include <iostream>
 #include "RouteReportingMEB.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/BundleTypes.h"
@@ -46,19 +47,19 @@ RouteReportingMEB::~RouteReportingMEB() {
 }
 
 std::string RouteReportingMEB::getRouteReporting() {
-  return m_routeReporting;
+  return m_metadata;
 }
 
 void RouteReportingMEB::addRouteInformation(std::string nodeId,
                      std::time_t arrivalTime, std::time_t departureTime) {
   std::string routeInformation = nodeId + "," + std::to_string(arrivalTime) +
       "," + std::to_string(departureTime);
-  m_routeReporting = m_routeReporting + "\n" + routeInformation;
+  m_metadata = m_metadata + "\n" + routeInformation;
 }
 
 std::string RouteReportingMEB::toString() {
   std::stringstream ss;
-  ss << m_routeReporting;
+  ss << m_metadata;
   return ss.str();
 }
 
