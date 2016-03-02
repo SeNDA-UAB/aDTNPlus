@@ -43,6 +43,12 @@ RouteReportingMEB::RouteReportingMEB(const std::string &rawData)
       m_routeReporting = m_metadata;
 }
 
+RouteReportingMEB::RouteReportingMEB()
+: MetadataExtensionBlock() {
+  m_metadataType = static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB);
+  m_routeReporting = m_metadata;
+}
+
 RouteReportingMEB::~RouteReportingMEB() {
 }
 
@@ -54,7 +60,11 @@ void RouteReportingMEB::addRouteInformation(std::string nodeId,
                      std::time_t arrivalTime, std::time_t departureTime) {
   std::string routeInformation = nodeId + "," + std::to_string(arrivalTime) +
       "," + std::to_string(departureTime);
-  m_metadata = m_metadata + "\n" + routeInformation;
+  if (m_metadata == "") {
+    m_metadata = routeInformation;
+  } else {
+    m_metadata = m_metadata + "\n" + routeInformation;
+  }
 }
 
 std::string RouteReportingMEB::toString() {

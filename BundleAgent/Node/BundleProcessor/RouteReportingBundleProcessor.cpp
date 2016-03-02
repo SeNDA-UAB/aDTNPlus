@@ -102,12 +102,7 @@ void RouteReportingBundleProcessor::checkRouteReporting(
             std::asctime(std::localtime(&arrivalTime)) << "," <<
             std::asctime(std::localtime(&departureTime)); */
         rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
-        LOG(35) << "Exit check route reporting "
-                      << bundleContainer.getBundle().getBlocks()[i]->toRaw();
-        LOG(35) << "TO STRING: " <<
-            bundleContainer.getBundle().getBlocks()[i]->toString();
         // bundleContainer.getBundle().getBlocks()[i] = rrm;
-        // LOG(35) << rrm->getRouteReporting();
       }
     }
     i++;
@@ -186,8 +181,6 @@ void RouteReportingBundleProcessor::processBundle(
                 dynamic_cast<RouteReportingBC*>(bundleContainer.get());
             rrbc->setDepartureTime(departureTime);
             checkRouteReporting(*rrbc);
-            LOG(55) << bundleContainer->getBundle().toRaw();
-            LOG(55) << rrbc->getBundle().toRaw();
             forward(bundleContainer->getBundle(), neighbours);
             LOG(55) << "Discarding the bundle.";
             discard(std::move(bundleContainer));

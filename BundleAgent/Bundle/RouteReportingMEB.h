@@ -51,6 +51,12 @@ class RouteReportingMEB : public MetadataExtensionBlock {
    */
   explicit RouteReportingMEB(const std::string& rawData);
   /**
+   * @brief Empty constructor
+   *
+   * This will generate an empty Route Reporting MEB.
+   */
+  RouteReportingMEB();
+  /**
    * Destructor of the class.
    */
   virtual ~RouteReportingMEB();

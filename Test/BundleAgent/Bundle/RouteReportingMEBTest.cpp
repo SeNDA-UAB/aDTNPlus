@@ -88,6 +88,25 @@ TEST(RouteReportingMEBTest, RawConstructor) {
   ASSERT_EQ(rrm.toRaw(), rrm3.toRaw());
 }
 
+TEST(RouteReportingMEBTest, EmptyConstructor) {
+  uint8_t metadata_type =
+           static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB);
+  RouteReportingMEB rrm = RouteReportingMEB();
+
+  ASSERT_EQ(rrm.getMetadataType(), metadata_type);
+  ASSERT_EQ(rrm.getMetadata(), rrm.getRouteReporting());
+  ASSERT_EQ(rrm.getMetadata(), "");
+
+  time_t t1;
+  time(&t1);
+  time_t t2;
+  time(&t2);
+  rrm.addRouteInformation("node1", t1, t2);
+  RouteReportingMEB rrm2 = RouteReportingMEB("node1", t1, t2);
+
+  ASSERT_EQ(rrm2.getMetadata(), rrm.getMetadata());
+}
+
 TEST(RouteReportingMEBTest, AddRouteInformation) {
   std::time_t t1;
   std::time_t t2;
