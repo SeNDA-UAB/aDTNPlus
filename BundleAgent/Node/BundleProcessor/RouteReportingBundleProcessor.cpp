@@ -70,11 +70,7 @@ std::unique_ptr<BundleContainer>
 RouteReportingBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   time_t arrivalTime;
-<<<<<<< HEAD
-  time_t departureTime = NULL;
-=======
   time_t departureTime = 0;
->>>>>>> f6b859d3460f414682886b7727b839a781dde597
   time(&arrivalTime);
   return std::unique_ptr<BundleContainer>(
       new RouteReportingBC(from->getId(), arrivalTime, departureTime,
@@ -92,10 +88,6 @@ void RouteReportingBundleProcessor::checkRouteReporting(
         CanonicalBlock>(block);
     if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
         == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
-<<<<<<< HEAD
-      LOG(35) << "THER IS MEB";
-=======
->>>>>>> f6b859d3460f414682886b7727b839a781dde597
       std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
           MetadataExtensionBlock>(canonical_block);
       if (static_cast<MetadataTypes>(meb->getMetadataType())
@@ -110,10 +102,6 @@ void RouteReportingBundleProcessor::checkRouteReporting(
             std::asctime(std::localtime(&arrivalTime)) << "," <<
             std::asctime(std::localtime(&departureTime)); */
         rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
-<<<<<<< HEAD
-        LOG(35) << rrm->getRouteReporting();
-=======
->>>>>>> f6b859d3460f414682886b7727b839a781dde597
         // bundleContainer.getBundle().getBlocks()[i] = rrm;
       }
     }
