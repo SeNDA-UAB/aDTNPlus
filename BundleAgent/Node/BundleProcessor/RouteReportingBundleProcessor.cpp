@@ -66,14 +66,17 @@ RouteReportingBundleProcessor::RouteReportingBundleProcessor() {
 RouteReportingBundleProcessor::~RouteReportingBundleProcessor() {
 }
 
-std::unique_ptr<BundleContainer>
-RouteReportingBundleProcessor::createBundleContainer(
+std::unique_ptr<BundleContainer> RouteReportingBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   time_t arrivalTime;
   time_t departureTime = 0;
   time(&arrivalTime);
+  std::stringstream ss;
+  ss << from->getId();
+  if (from->getId() == "_ADTN_LIB_")
+      ss << " (" << m_config.getNodeId() << ")";
   return std::unique_ptr<BundleContainer>(
-      new RouteReportingBC(from->getId(), arrivalTime, departureTime,
+      new RouteReportingBC(ss.str(), arrivalTime, departureTime,
                            std::move(bundle)));
 }
 
@@ -98,11 +101,7 @@ void RouteReportingBundleProcessor::checkRouteReporting(
         std::string nodeId = bundleContainer.getNodeId();
         time_t arrivalTime = bundleContainer.getArrivalTime();
         time_t departureTime = bundleContainer.getDepartureTime();
-        /* LOG(35) << nodeId << "," <<
-            std::asctime(std::localtime(&arrivalTime)) << "," <<
-            std::asctime(std::localtime(&departureTime)); */
         rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
-        // bundleContainer.getBundle().getBlocks()[i] = rrm;
       }
     }
     i++;
