@@ -35,7 +35,7 @@
 static void help(std::string program_name) {
   std::cout << program_name << " is part of the SeNDA aDTNPlus platform\n"
             << "Usage: " << program_name
-            << " -i '127.0.0.1' -p '50000' -s 'node1'"
+            << " -i '127.0.0.1' -p '50000'"
             << " -d 'node2:50' -m 'This is a message for node2.'\n"
             << "Required options:\n"
             << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
