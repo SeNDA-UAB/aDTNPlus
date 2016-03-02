@@ -62,8 +62,6 @@ TEST(RouteReportingBCTest, RawConstructor) {
   RouteReportingBC rrbc2 = RouteReportingBC(rrbc_serialized);
   ASSERT_EQ(rrbc.getNodeId(), rrbc2.getNodeId());
   ASSERT_EQ(rrbc2.getNodeId(), rrbc2.getFrom());
-  std::cout << rrbc.getBundle().toRaw() <<"\n";
-  std::cout << rrbc2.getBundle().toRaw() << "\n";
   ASSERT_EQ(rrbc.getBundle().toRaw(), rrbc2.getBundle().toRaw());
   ASSERT_EQ(rrbc.getArrivalTime(), rrbc2.getArrivalTime());
   ASSERT_EQ(rrbc.getDepartureTime(), rrbc2.getDepartureTime());
