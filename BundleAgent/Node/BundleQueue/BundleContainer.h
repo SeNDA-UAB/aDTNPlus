@@ -63,6 +63,10 @@ class BundleContainer {
    * Destructor of the class.
    */
   virtual ~BundleContainer();
+  /**
+   * Creates an empty BundleContainer.
+   */
+  BundleContainer();
 
   BundleContainer(BundleContainer&& bc);
   /**

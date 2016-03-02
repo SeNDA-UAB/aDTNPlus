@@ -6,6 +6,7 @@ add_subdirectory(ExternTools)
 set(LIB_SOURCES_CPP 
   ${LIB_SOURCES_CPP}
   Node/BundleQueue/BundleContainer.cpp
+  Node/BundleQueue/RouteReportingBC.cpp
 )
 
 set(INCLUDE_DIRS ../BundleAgent)
@@ -48,6 +49,12 @@ add_library(aDTNPlus_ActiveForwardingBundleProcessor MODULE
   Node/BundleProcessor/BundleProcessor.cpp 
   Node/BundleProcessor/BasicBundleProcessor.cpp 
   Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp
+)
+
+add_library(aDTNPlus_RouteReportingBundleProcessor MODULE
+  Node/BundleProcessor/BundleProcessor.cpp 
+  Node/BundleProcessor/BasicBundleProcessor.cpp 
+  Node/BundleProcessor/RouteReportingBundleProcessor.cpp
 )
 
 # Configure adtn.ini: change node id, and default bundle path
