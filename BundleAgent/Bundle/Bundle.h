@@ -29,11 +29,10 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-
-class PrimaryBlock;
-class PayloadBlock;
-class CanonicalBlock;
-class Block;
+#include "Bundle/PrimaryBlock.h"
+#include "Bundle/PayloadBlock.h"
+#include "Bundle/Block.h"
+#include "Bundle/CanonicalBlock.h"
 
 class BundleCreationException : public std::runtime_error {
  public:
