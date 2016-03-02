@@ -7,5 +7,6 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/PayloadBlock.cpp
   Bundle/PrimaryBlock.cpp
   Bundle/RoutingSelectionMEB.cpp
+  Bundle/RouteReportingMEB.cpp
   PARENT_SCOPE
 )

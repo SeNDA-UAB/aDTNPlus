@@ -56,13 +56,13 @@ class BasicBundleProcessor : public BundleProcessor {
                      std::shared_ptr<NeighbourTable> neighbourTable,
                      std::shared_ptr<ListeningAppsTable> listeningAppsTable);
 
- private:
+ protected:
   /**
    * Function that processes one given bundle container.
    *
    * @param bundleContainer The bundle container to process.
    */
-  void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    *

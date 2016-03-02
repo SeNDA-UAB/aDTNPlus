@@ -185,7 +185,9 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
     m_worker.execute(bundleContainer.getFrom(), neighbours);
-    return m_worker.getResult();
+    LOG(55) << "THERE ARE NEIGHBOURS NUM.:" << neighbours.size();
+    // return m_worker.getResult();
+    return neighbours;
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing anti-rebooting.";

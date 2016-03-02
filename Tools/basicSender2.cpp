@@ -88,6 +88,11 @@ int main(int argc, char **argv) {
       time_t dTime = aTime + 3600;*/
       std::shared_ptr<RouteReportingMEB> rrm =
           std::make_shared<RouteReportingMEB>(RouteReportingMEB());
+      time_t aTime = time(NULL);
+      time_t dTime = aTime + 3600;
+      std::shared_ptr<RouteReportingMEB> rrm =
+          std::make_shared<RouteReportingMEB>(
+              RouteReportingMEB("node0", aTime, dTime));
       b.addBlock(rrm);
       sockaddr_in remoteAddr = { 0 };
       remoteAddr.sin_family = AF_INET;

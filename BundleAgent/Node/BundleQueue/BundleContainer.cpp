@@ -37,6 +37,11 @@ BundleContainer::BundleContainer(std::string from,
       m_from(from) {
 }
 
+BundleContainer::BundleContainer() :
+    m_bundle(),
+    m_from() {
+}
+
 BundleContainer::~BundleContainer() {
 }
 

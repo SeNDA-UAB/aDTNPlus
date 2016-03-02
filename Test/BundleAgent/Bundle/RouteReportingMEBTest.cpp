@@ -91,12 +91,17 @@ TEST(RouteReportingMEBTest, RawConstructor) {
 TEST(RouteReportingMEBTest, EmptyConstructor) {
   uint8_t metadata_type =
            static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB);
+<<<<<<< HEAD
   uint8_t block_type =
              static_cast<uint8_t>(
                  CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
   RouteReportingMEB rrm = RouteReportingMEB();
 
   ASSERT_EQ(rrm.getBlockType(), block_type);
+=======
+  RouteReportingMEB rrm = RouteReportingMEB();
+
+>>>>>>> f6b859d3460f414682886b7727b839a781dde597
   ASSERT_EQ(rrm.getMetadataType(), metadata_type);
   ASSERT_EQ(rrm.getMetadata(), rrm.getRouteReporting());
   ASSERT_EQ(rrm.getMetadata(), "");
