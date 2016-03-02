@@ -84,7 +84,6 @@ void RouteReportingBundleProcessor::checkRouteReporting(
     RouteReportingBC &bundleContainer) {
   std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
       .getBlocks();
-  int i = 1;
   blocks.erase(blocks.begin());
   for (std::shared_ptr<Block> block : blocks) {
     std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
@@ -104,7 +103,6 @@ void RouteReportingBundleProcessor::checkRouteReporting(
         rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
       }
     }
-    i++;
   }
 }
 
@@ -112,11 +110,10 @@ void RouteReportingBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
-      m_config.getNodeId()) != std::string::npos) {
+  if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDestination(*bundleContainer);
+    std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {

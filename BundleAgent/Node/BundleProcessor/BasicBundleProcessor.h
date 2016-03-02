@@ -72,24 +72,34 @@ class BasicBundleProcessor : public BundleProcessor {
   std::unique_ptr<BundleContainer> createBundleContainer(
       std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle);
   /**
-   * Function that checks the possible destinations.
+   * Function that checks the possible dispatching apps.
    *
-   * @return A list with the possible destinations.
+   * @param bundleContainer The container with the bundle.
+   * @return A list with the possible dispatching apps.
    */
-  std::vector<std::string> checkDestination(BundleContainer &bundleContainer);
+  std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
   /**
    * Function that checks the lifetime of a bundle.
    *
+   * @param bundleContainer The container with the bundle.
    * @return True if the lifetime has expired, false otherwise.
    */
   bool checkLifetime(BundleContainer &bundleContainer);
   /**
    * Function that checks the possible forwards.
    *
+   * @param bundleContainer The container with the bundle.
    * @return A list with the possible forwards.
    */
   virtual std::vector<std::string> checkForward(
       BundleContainer &bundleContainer);
+  /**
+   * Function that checks if we are the destination node.
+   *
+   * @param bundleContainer The container with the bundle.
+   * @return True if the bundle is for us.
+   */
+  bool checkDestination(BundleContainer &bundleContainer);
   /**
    * Worker to execute default forwarding code.
    */
