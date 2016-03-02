@@ -25,16 +25,12 @@ int main(int argc, char **argv) {
   int port = -1;
   int appId = -1;
 
-  static struct option long_options[] = {
-      { "listeningIP", required_argument, 0, 'i' },
-      { "port", required_argument, 0, 'p' },
-      { "appId", required_argument, 0, 'a' },
-      { "help", no_argument, 0, 'h' },
-      { 0, 0, 0, 0 }
-  };
+  static struct option long_options[] = { { "listeningIP", required_argument, 0,
+      'i' }, { "port", required_argument, 0, 'p' }, { "appId",
+      required_argument, 0, 'a' }, { "help", no_argument, 0, 'h' },
+      { 0, 0, 0, 0 } };
 
-  while ((opt = getopt_long(argc, argv, "i:p:a:h", long_options,
-                            &option_index))) {
+  while ((opt = getopt_long(argc, argv, "i:p:a:h", long_options, &option_index))) {
     switch (opt) {
       case 'i':
         ip = std::string(optarg);
@@ -86,8 +82,7 @@ int main(int argc, char **argv) {
         } else {
           while (true) {
             int payloadSize = 0;
-            int receivedSize = recv(sock, &payloadSize, sizeof(payloadSize),
-                                        0);
+            int receivedSize = recv(sock, &payloadSize, sizeof(payloadSize), 0);
             char* payloadraw = new char[payloadSize];
             int receivedLength = 0;
             while (receivedLength != payloadSize) {
@@ -96,7 +91,13 @@ int main(int argc, char **argv) {
               receivedLength += receivedSize;
             }
             std::string payload = std::string(payloadraw, payloadSize);
-            std::cout << "Payload received: " << payload << std::endl;
+            try {
+              Bundle b = Bundle(payload);
+              std::cout << "Payload received: "
+                        << b.getPayloadBlock()->getPayload() << std::endl;
+            } catch (const BundleCreationException &e) {
+              std::cout << "Received a bad bundle, data is lost." << std::endl;
+            }
           }
         }
       }

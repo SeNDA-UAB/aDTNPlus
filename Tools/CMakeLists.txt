@@ -5,7 +5,7 @@ set(BASIC_SENDER_FILES
 
 set(BASIC_RECEIVER_NAME basicRecv)
 set(BASIC_RECEIVER_FILES
-  basicReciver.cpp
+  basicReceiver.cpp
 )
 
 set(BASIC_VIEWER_NAME bcViewer)

@@ -113,7 +113,7 @@ std::string adtnSocket::recv() {
     Bundle b = Bundle(payload);
     return b.getPayloadBlock()->getPayload();
   } catch (const BundleCreationException &e) {
-    return "";
+    throw adtnSocketException(e.what());
   }
 }
 
