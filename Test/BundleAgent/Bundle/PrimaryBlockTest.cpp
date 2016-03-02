@@ -63,6 +63,7 @@ TEST(PrimaryBlockTest, RawFunctions) {
   ASSERT_EQ(pb.getCreationTimestamp(), pb1.getCreationTimestamp());
   ASSERT_EQ(pb.getCreationTimestampSeqNumber(),
             pb1.getCreationTimestampSeqNumber());
+  ASSERT_EQ(pb.toRaw(), pb1.toRaw());
 }
 
 /**

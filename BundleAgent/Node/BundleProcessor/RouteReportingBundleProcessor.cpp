@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SeNDA
+ * Copyright (c) 2016 SeNDA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,78 +15,101 @@
  *
  */
 /**
- * FILE BasicBundleProcessor.cpp
- * AUTHOR Blackcatn13
- * DATE Dec 17, 2015
+ * FILE RouteReportingBundleProcessor.cpp
+ * AUTHOR clacambra
+ * DATE 26/02/2016
  * VERSION 1
- *
+ * This file contains the implementation of the
+ * Route Reporting Bundle Processor.
  */
-
-#include "Node/BundleProcessor/BasicBundleProcessor.h"
-#include <memory>
-#include <vector>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/select.h>
 #include <string>
+#include <vector>
+#include <ctime>
+#include <memory>
+#include <thread>
+#include <cstdio>
+#include <chrono>
 #include <algorithm>
 #include <fstream>
-#include "Node/BundleProcessor/BundleProcessor.h"
+
+#include "RouteReportingBundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Neighbour.h"
+#include "Node/BundleQueue/RouteReportingBC.h"
 #include "Node/Config.h"
-#include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Node/BundleQueue/BundleContainer.h"
+#include "Bundle/BundleTypes.h"
+#include "Bundle/CanonicalBlock.h"
 #include "Bundle/PrimaryBlock.h"
-#include "Utils/Logger.h"
-#include "Utils/TimestampManager.h"
+#include "Bundle/MetadataExtensionBlock.h"
+#include "Bundle/RouteReportingMEB.h"
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
+#include "Utils/Logger.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 
-#ifdef BASE_PLUGIN
-NEW_PLUGIN(BasicBundleProcessor,
-    "Basic bundle processor", "1.0",
-    "Forwards a bundle this processor only checks for anti-rebooting.")
-#endif
+NEW_PLUGIN(RouteReportingBundleProcessor, "Routing reporting bundle processor",
+           "1.0",
+           "Forwards a bundle checking if a RoutinSelectionMEB block exists in "
+           "the bundle.")
 
-const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
-    "#include <string>\n"
-    "#include <algorithm>\n"
-    "extern \"C\" {"
-    " std::vector<std::string> f(std::string from,"
-    " std::vector<std::string> neighbours) {";
-const std::string BasicBundleProcessor::m_footer = "}}";
-const std::string BasicBundleProcessor::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
-
-BasicBundleProcessor::BasicBundleProcessor()
-    : m_worker(m_header, m_footer, "f", m_commandLine) {
+RouteReportingBundleProcessor::RouteReportingBundleProcessor() {
 }
 
-BasicBundleProcessor::~BasicBundleProcessor() {
+RouteReportingBundleProcessor::~RouteReportingBundleProcessor() {
 }
 
-void BasicBundleProcessor::start(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
-  BundleProcessor::start(config, bundleQueue, neighbourTable,
-                         listeningAppsTable);
-  std::ifstream code(m_config.getForwardingDefaultCodePath());
-  if (code) {
-    std::string defaultCode((std::istreambuf_iterator<char>(code)),
-                            std::istreambuf_iterator<char>());
-    try {
-      m_worker.generateFunction(defaultCode);
-    } catch (const WorkerException &e) {
-      LOG(11) << "Cannot create code worker, reason: " << e.what();
+std::unique_ptr<BundleContainer>
+RouteReportingBundleProcessor::createBundleContainer(
+    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
+  time_t arrivalTime;
+  time_t departureTime = NULL;
+  time(&arrivalTime);
+  return std::unique_ptr<BundleContainer>(
+      new RouteReportingBC(from->getId(), arrivalTime, departureTime,
+                           std::move(bundle)));
+}
+
+void RouteReportingBundleProcessor::checkRouteReporting(
+    RouteReportingBC &bundleContainer) {
+  std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
+      .getBlocks();
+  int i = 1;
+  blocks.erase(blocks.begin());
+  for (std::shared_ptr<Block> block : blocks) {
+    std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
+        CanonicalBlock>(block);
+    if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
+          MetadataExtensionBlock>(canonical_block);
+      if (static_cast<MetadataTypes>(meb->getMetadataType())
+          == MetadataTypes::ROUTE_REPORTING_MEB) {
+        LOG(35) << "There is Route Reporting MEB";
+        std::shared_ptr<RouteReportingMEB> rrm = std::static_pointer_cast<
+            RouteReportingMEB>(meb);
+        std::string nodeId = bundleContainer.getNodeId();
+        time_t arrivalTime = bundleContainer.getArrivalTime();
+        time_t departureTime = bundleContainer.getDepartureTime();
+        /* LOG(35) << nodeId << "," <<
+            std::asctime(std::localtime(&arrivalTime)) << "," <<
+            std::asctime(std::localtime(&departureTime)); */
+        rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
+        // bundleContainer.getBundle().getBlocks()[i] = rrm;
+      }
     }
-  } else {
-    LOG(11) << "Cannot open the file "
-            << m_config.getForwardingDefaultCodePath();
+    i++;
   }
 }
 
-void BasicBundleProcessor::processBundle(
+void RouteReportingBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
@@ -134,6 +157,12 @@ void BasicBundleProcessor::processBundle(
           std::vector<std::string> nextHop = std::vector<std::string>();
           nextHop.push_back(*it);
           try {
+            time_t departureTime;
+            time(&departureTime);
+            RouteReportingBC* rrbc =
+                dynamic_cast<RouteReportingBC*>(bundleContainer.get());
+            rrbc->setDepartureTime(departureTime);
+            checkRouteReporting(*rrbc);
             forward(bundleContainer->getBundle(), nextHop);
             LOG(55) << "Discarding the bundle.";
             discard(std::move(bundleContainer));
@@ -146,6 +175,12 @@ void BasicBundleProcessor::processBundle(
           LOG(55) << "Destination not found, "
                   << "sending the bundle to all the neighbours.";
           try {
+            time_t departureTime;
+            time(&departureTime);
+            RouteReportingBC* rrbc =
+                dynamic_cast<RouteReportingBC*>(bundleContainer.get());
+            rrbc->setDepartureTime(departureTime);
+            checkRouteReporting(*rrbc);
             forward(bundleContainer->getBundle(), neighbours);
             LOG(55) << "Discarding the bundle.";
             discard(std::move(bundleContainer));
@@ -163,49 +198,13 @@ void BasicBundleProcessor::processBundle(
   }
 }
 
-std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
-    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
-  return std::unique_ptr<BundleContainer>(
-      new BundleContainer(from->getId(), std::move(bundle)));
-}
-
-std::vector<std::string> BasicBundleProcessor::checkDestination(
-    BundleContainer &bundleContainer) {
-  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
-      ->getDestination();
-  std::string appId = destination.substr(destination.find(":") + 1);
-  std::vector<std::string> dispatch;
-  dispatch.push_back(appId);
-  return dispatch;
-}
-
-std::vector<std::string> BasicBundleProcessor::checkForward(
-    BundleContainer &bundleContainer) {
-  LOG(55) << "Removing bundle source if we have it as neighbour.";
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+void RouteReportingBundleProcessor::restoreRawBundleContainer(
+    const std::string &data) {
   try {
-    m_worker.execute(bundleContainer.getFrom(), neighbours);
-    LOG(55) << "THERE ARE NEIGHBOURS NUM.:" << neighbours.size();
-    // return m_worker.getResult();
-    return neighbours;
-  } catch (const WorkerException &e) {
-    LOG(11) << "Cannot execute code, reason: " << e.what()
-            << " Executing anti-rebooting.";
-    auto it = std::find(neighbours.begin(), neighbours.end(),
-                        bundleContainer.getFrom());
-    if (it != neighbours.end()) {
-      neighbours.erase(it);
-    }
-    return neighbours;
+    std::unique_ptr<RouteReportingBC> bundleContainer = std::unique_ptr<
+        RouteReportingBC>(new RouteReportingBC(data));
+  } catch (const BundleContainerCreationException &e) {
+    LOG(1) << e.what();
   }
 }
 
-bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
-  uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
-      ->getCreationTimestamp();
-  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
-      < (time(NULL) - g_timeFrom2000 - creationTimestamp))
-    return true;
-  else
-    return false;
-}

@@ -1,11 +1,11 @@
 set(BASIC_SENDER_NAME basicSender)
 set(BASIC_SENDER_FILES
-  basicSender.cpp
+  basicSender2.cpp
 )
 
 set(BASIC_RECEIVER_NAME basicRecv)
 set(BASIC_RECEIVER_FILES
-  basicReceiver.cpp
+  basicReciver2.cpp
 )
 
 set(BASIC_VIEWER_NAME bcViewer)

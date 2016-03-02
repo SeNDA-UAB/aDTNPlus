@@ -291,8 +291,10 @@ std::string PrimaryBlock::toRaw() {
   dictionary << scheme.c_str() << std::ends;
   size_t offset = scheme.size() + 1;
   // If one of the fields is empty, we add the dtn scheme.
-  if (m_destination == "" || m_source == "" || m_reportTo == ""
-      || m_custodian == "") {
+  if (m_destination == "" || m_destination == m_nullEndpoint || m_source == ""
+      || m_source == m_nullEndpoint || m_reportTo == ""
+      || m_reportTo == m_nullEndpoint || m_custodian == ""
+      || m_custodian == m_nullEndpoint) {
     offsetMap[dtnScheme] = offset;
     offset += dtnScheme.size() + 1;
     dictionary << dtnScheme.c_str() << std::ends;

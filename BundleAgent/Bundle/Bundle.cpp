@@ -27,11 +27,13 @@
 #include <vector>
 #include <utility>
 #include <sstream>
+#include <iostream>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/ForwardingMEB.h"
+#include "Bundle/RouteReportingMEB.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -87,6 +89,11 @@ Bundle::Bundle(const std::string &rawData)
               b = std::make_shared<ForwardingMEB>(ForwardingMEB(data, true));
               break;
             }
+            case MetadataTypes::ROUTE_REPORTING_MEB: {
+              LOG(35) << "Generating RouteReporting Metadata Extension Block";
+              b = std::make_shared<RouteReportingMEB>(RouteReportingMEB(data));
+              break;
+            }
           }
           break;
         }
@@ -139,21 +146,19 @@ std::string Bundle::getRaw() {
 std::string Bundle::toRaw() {
   LOG(36) << "Generating bundle in raw format";
   std::string raw = m_raw;
-  if (raw == "") {
-    std::stringstream ss;
-    LOG(36) << "Getting the primary block in raw";
-    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
-        .rbegin();
-    std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
-        CanonicalBlockControlFlags::LAST_BLOCK);
-    for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
-        it != m_blocks.end(); ++it) {
-      LOG(36) << "Getting the next block in raw";
-      ss << (*it)->toRaw();
-    }
-    raw = ss.str();
-    m_raw = raw;
+  std::stringstream ss;
+  LOG(36) << "Getting the primary block in raw";
+  std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
+      .rbegin();
+  std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
+      CanonicalBlockControlFlags::LAST_BLOCK);
+  for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
+      it != m_blocks.end(); ++it) {
+    LOG(36) << "\n" << "Getting the next block in raw" << "\n";
+    ss << (*it)->toRaw();
   }
+  raw = ss.str();
+  m_raw = raw;
   return raw;
 }
 
