@@ -90,11 +90,10 @@ void BasicBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
-      m_config.getNodeId()) != std::string::npos) {
+  if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDestination(*bundleContainer);
+    std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
@@ -169,7 +168,14 @@ std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
       new BundleContainer(from->getId(), std::move(bundle)));
 }
 
-std::vector<std::string> BasicBundleProcessor::checkDestination(
+bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
+  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
+      ->getDestination();
+  std::string destinationId = destination.substr(0, destination.find(":"));
+  return destinationId == m_config.getNodeId();
+}
+
+std::vector<std::string> BasicBundleProcessor::checkDispatch(
     BundleContainer &bundleContainer) {
   std::string destination = bundleContainer.getBundle().getPrimaryBlock()
       ->getDestination();

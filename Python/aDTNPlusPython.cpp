@@ -85,13 +85,19 @@ PYBIND11_PLUGIN(aDTNPlus) {
       .def("changeSource", &adtnSocket::changeSource, "Allows to change the "
           "default sender id.", pybind11::arg("source"))
       .def("addRoutingSelection", &adtnSocket::addRoutingSelection, "Adds a "
-          "Routing Selectiom MEB to the bundle.\nThe values can be:\n"
+          "Routing Selection MEB to the bundle.\nThe values can be:\n"
           "\t0x01 for anti-rebooting\n\t0x02 for flooding.",
           pybind11::arg("type"))
       .def("addActiveForwarding", &adtnSocket::addActiveForwarding, "Adds an "
           "Active forwarding MEB to the bundle.", pybind11::arg("code"))
       .def("clearBlocks", &adtnSocket::clearBlocks, "Clears all the cached "
-          "blocks.");
+          "blocks.")
+      .def("addRouteReporting", &adtnSocket::addRouteReporting, "Adds a Route "
+          "reporting MEB to the bundle.\nThe route reporting block will log"
+          "the arrival and the depart time of the bundle in the different"
+          "node it travels.")
+      .def("getRoute", &adtnSocket::getRouteReporting, "If the last received "
+          "bundle contains a routeReporting MEB it will return the route.");
 
   pybind11::class_<Bundle, std::shared_ptr<Bundle>>(m, "Bundle")
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))

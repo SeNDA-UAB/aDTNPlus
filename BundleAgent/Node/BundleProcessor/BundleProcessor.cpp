@@ -253,7 +253,7 @@ void BundleProcessor::receiveMessage(int sock) {
 void BundleProcessor::dispatch(Bundle bundle,
                                std::vector<std::string> destinations) {
   LOG(11) << "Dispatching bundle";
-  std::string payload = bundle.getPayloadBlock()->getPayload();
+  std::string payload = bundle.toRaw();
   int payloadSize = payload.length();
   std::for_each(
       destinations.begin(), destinations.end(),

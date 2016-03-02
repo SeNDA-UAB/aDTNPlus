@@ -66,14 +66,17 @@ RouteReportingBundleProcessor::RouteReportingBundleProcessor() {
 RouteReportingBundleProcessor::~RouteReportingBundleProcessor() {
 }
 
-std::unique_ptr<BundleContainer>
-RouteReportingBundleProcessor::createBundleContainer(
+std::unique_ptr<BundleContainer> RouteReportingBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   time_t arrivalTime;
   time_t departureTime = 0;
   time(&arrivalTime);
+  std::stringstream ss;
+  ss << from->getId();
+  if (from->getId() == "_ADTN_LIB_")
+      ss << " (" << m_config.getNodeId() << ")";
   return std::unique_ptr<BundleContainer>(
-      new RouteReportingBC(from->getId(), arrivalTime, departureTime,
+      new RouteReportingBC(ss.str(), arrivalTime, departureTime,
                            std::move(bundle)));
 }
 
@@ -81,7 +84,6 @@ void RouteReportingBundleProcessor::checkRouteReporting(
     RouteReportingBC &bundleContainer) {
   std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
       .getBlocks();
-  int i = 1;
   blocks.erase(blocks.begin());
   for (std::shared_ptr<Block> block : blocks) {
     std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
@@ -98,14 +100,9 @@ void RouteReportingBundleProcessor::checkRouteReporting(
         std::string nodeId = bundleContainer.getNodeId();
         time_t arrivalTime = bundleContainer.getArrivalTime();
         time_t departureTime = bundleContainer.getDepartureTime();
-        /* LOG(35) << nodeId << "," <<
-            std::asctime(std::localtime(&arrivalTime)) << "," <<
-            std::asctime(std::localtime(&departureTime)); */
         rrm->addRouteInformation(nodeId, arrivalTime, departureTime);
-        // bundleContainer.getBundle().getBlocks()[i] = rrm;
       }
     }
-    i++;
   }
 }
 
@@ -113,11 +110,10 @@ void RouteReportingBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
-      m_config.getNodeId()) != std::string::npos) {
+  if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDestination(*bundleContainer);
+    std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
