@@ -35,6 +35,8 @@ MetadataExtensionBlock::MetadataExtensionBlock()
     : CanonicalBlock(),
       m_metadataType(0),
       m_metadata() {
+  m_blockType = static_cast<uint8_t>(
+      CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
