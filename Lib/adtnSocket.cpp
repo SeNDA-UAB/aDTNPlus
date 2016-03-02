@@ -109,7 +109,12 @@ std::string adtnSocket::recv() {
     receivedLength += receivedSize;
   }
   std::string payload = std::string(payloadraw, payloadSize);
-  return payload;
+  try {
+    Bundle b = Bundle(payload);
+    return b.getPayloadBlock()->getPayload();
+  } catch (const BundleCreationException &e) {
+    return "";
+  }
 }
 
 void adtnSocket::send(std::string destination, std::string message) {
