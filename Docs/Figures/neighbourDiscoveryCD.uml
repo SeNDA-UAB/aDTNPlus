@@ -2,7 +2,7 @@
 
 title Neighbour Discovery Class Diagram
 
-class Table<T> {
+class Table<class T> {
   #m_values : std::map<std::string, shared_ptr<T>>
   #mutex : std::mutex
   +Table()
@@ -38,7 +38,7 @@ class NeighbourDiscovery {
 	#m_neighbourTable : NeighbourTable
 	+NeighbourDiscovery(config : Config, neighbourTable : NeighbourTable)
 	-sendBeacons() : void
-	#receiveBeacons() : void
+	#{abstract}receiveBeacons() : void
 	-cleanNeighbours() : void
 }
 

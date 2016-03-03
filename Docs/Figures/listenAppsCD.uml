@@ -2,7 +2,7 @@
 
 title ADTNPlus App Listener Class Diagram
 
-class Table<T> {
+class Table<class T> {
   #m_values : std::map<std::string, shared_ptr<T>>
   #mutex : std::mutex
   +Table()
@@ -17,6 +17,7 @@ class AppListener {
 	-m_listeningAppsTable : ListeningAppsTable
 	+AppListener(config : Config, listeningAppsTable : ListeningAppsTable)
 	-listenApps() : void
+	-startListening(socket : int) : void
 }
 
 class ListeningAppsTable {
