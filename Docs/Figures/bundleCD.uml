@@ -4,53 +4,73 @@ title Bundle Class Diagram
 
 class Bundle {
 	-m_raw : std::string
-	-m_primaryBlock : PrimaryBlock*
-	-m_payloadBlock : PayloadBlock*
-	-m_blocks : std::vector<Block *>
+	-m_primaryBlock : PrimaryBlock
+	-m_payloadBlock : PayloadBlock
+	-m_blocks : std::vector<Block>
 	+Bundle(rawData : std::string)
 	+Bundle(source : std::string, destination : std::string, payload : std::string)
 	+~Bundle()
 	+getRaw() : std::string
 	+toRaw() : std::string
-	+getPrimaryBlock() : PrimaryBlock*
-	+getPayloadBlock() : PayloadBlock*
-	+getBlocks() : std::vector<Block *>
-	+addBlock(newBlock : CanonicalBlock*) : void
+	+getPrimaryBlock() : PrimaryBlock
+	+getPayloadBlock() : PayloadBlock
+	+getBlocks() : std::vector<Block>
+	+addBlock(newBlock : CanonicalBlock) : void
 	+getId() : std::string
+	+toString() : std::string
+}
+
+class BundleCreationException {
+  +BundleCreationException(what : std::string)
+}
+
+class BundleException {
+  +BundleException(what : std::string)
 }
 
 abstract class Block {
 	#m_raw : std::string
 	+Block()
+	+Block(rawData : std::string)
 	+~Block()
 	+{abstract}toRaw() : std::string
 	+getRaw() : std::string
 	+getLength() : size_t
+	+{abstract}toString() : std::string
+}
+
+class BlockConstructionException {
+  +BlockConstructionException(what : std::string)
 }
 
 class CanonicalBlock {
 	#m_blockType : uint8_t
-	-m_procFlags : bitset<7>
+	#m_procFlags : bitset<7>
 	#m_bodyDataIndex : int
+	+CanonicalBlock()
 	+CanonicalBlock(rawData:std::string)
 	+~CanonicalBlock()
-	+toRaw() : std::string
+	+{abstract}toRaw() : std::string
 	+getBlockType() : uint8_t
 	+setProcFlags(procFlag : BlockControlFlags) : void
 	+unsetProcFlags(procFlag : BlockControlFlags) : void
 	+checkProcFlags(procFlag : BlockControlFlags) : bool
+	+{abstract}toString : std::string
 	#initFromRaw(rawData : std::string) : void
 }
 
 class MetadataExtensionBlock {
 	#m_metadataType : uint8_t
 	#m_metadata : std::string
+	+MetadataExtensionBlock()
 	+MetadataExtensionBlock(rawData : std::string)
 	+MetadataExtensionBlock(metadataType : uint8_t, metadata : std::string)
 	+~MetadataExtensionBlock()
-	+toRaw() : std::string
+	+{abstract}toRaw() : std::string
 	+getMetadataType() : uint8_t
 	+getMetadata() : std::string
+	+{abstract}toString : std::string
+	#initFromRaw(rawData : std::string) : void
 }
 
 class PayloadBlock {
@@ -59,6 +79,7 @@ class PayloadBlock {
 	+~PayloadBlock()
 	+toRaw() : std::string
 	+getPayload() : std::string
+	+toString() : std::string
 }
 
 
@@ -88,6 +109,7 @@ class PrimaryBlock {
 	+setReportTo(reportTo : std::string) : void
 	+setCustodian(custodian : std::string) : void
 	+setLifetime(lifetime : uint64_t) : void
+	+toString() : std::string
 }
 
 enum BlockControlFlags {
