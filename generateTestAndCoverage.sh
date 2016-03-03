@@ -6,9 +6,9 @@
 CURRENT_DIR=${PWD}
 mkdir build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Profile
 make
-./BundleAgent_test
+./Test/BundleAgent_test
 RET=$?
 lcov --quiet -c -i -d . -o .coverage.base
 lcov --quiet -c -d . -o .coverage.run

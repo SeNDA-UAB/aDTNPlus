@@ -30,6 +30,7 @@
 #include <string>
 #include <iostream>
 #include <cstring>
+#include "adtnSocket.h"
 
 static void help(std::string program_name) {
   std::cout
@@ -82,50 +83,15 @@ int main(int argc, char **argv) {
     help(std::string(argv[0]));
     exit(0);
   }
-  sockaddr_in remoteAddr = { 0 };
-  remoteAddr.sin_family = AF_INET;
-  remoteAddr.sin_port = htons(port);
-  remoteAddr.sin_addr.s_addr = inet_addr(ip.c_str());
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock == -1) {
-    std::cout << "Cannot create socket, reason: " << strerror(errno)
-              << std::endl;
-  } else {
-    if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
-                sizeof(remoteAddr)) < 0) {
-      std::cout << "Cannot connect with node, reason: " << strerror(errno)
-                << std::endl;
-    } else {
-      uint8_t type = htons(0);
-      uint32_t appIdn = htonl(appId);
-      int writed = send(sock, &type, sizeof(type), 0);
-      if (writed < 0) {
-        std::cout << "Cannot write to socket, reason: " << strerror(errno)
-                  << std::endl;
-      } else {
-        writed = send(sock, &appIdn, sizeof(appIdn), 0);
-        if (writed < 0) {
-          std::cout << "Cannot write to socket, reason: " << strerror(errno)
-                    << std::endl;
-        } else {
-          while (true) {
-            int payloadSize = 0;
-            int receivedSize = recv(sock, &payloadSize, sizeof(payloadSize),
-                                        0);
-            char* payloadraw = new char[payloadSize];
-            int receivedLength = 0;
-            while (receivedLength != payloadSize) {
-              receivedSize = recv(sock, payloadraw + receivedLength,
-                                  payloadSize - receivedLength, 0);
-              receivedLength += receivedSize;
-            }
-            std::string payload = std::string(payloadraw, payloadSize);
-            std::cout << "Payload received: " << payload << std::endl;
-          }
-        }
-      }
+
+  adtnSocket s = adtnSocket(ip, port, false);
+  try {
+    s.connect(appId);
+    while (true) {
+      std::cout << "Payload received: " << s.recv() << std::endl;
     }
-    close(sock);
+  } catch (const adtnSocketException &e) {
+    std::cout << "An error has occurred: " << e.what() << std::endl;
   }
   return 0;
 }

@@ -47,10 +47,10 @@ int main(int argc, char **argv) {
       rawBundleContainer = std::string(buffer, fileLength);
       delete[] buffer;
       try {
-        std::unique_ptr<BundleContainer> b = BundleContainer::deserialize(
-            rawBundleContainer);
+        std::unique_ptr<BundleContainer> b = std::unique_ptr<BundleContainer>(
+            new BundleContainer(rawBundleContainer));
         std::cout << "Bundle container " << bundleContainerFileName << std::endl
-            << b->toString();
+                  << b->toString();
       } catch (const BundleContainerCreationException &e) {
         std::cout << "Error while parsing: " << e.what() << std::endl;
       }

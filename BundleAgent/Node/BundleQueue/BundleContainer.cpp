@@ -37,7 +37,16 @@ BundleContainer::BundleContainer(std::string from,
       m_from(from) {
 }
 
+BundleContainer::BundleContainer() :
+    m_bundle(),
+    m_from() {
+}
+
 BundleContainer::~BundleContainer() {
+}
+
+BundleContainer::BundleContainer(const std::string &data) {
+  deserialize(data);
 }
 
 BundleContainer::BundleContainer(BundleContainer&& bc)
@@ -59,7 +68,7 @@ std::string BundleContainer::serialize() {
   return ss.str();
 }
 
-std::unique_ptr<BundleContainer> BundleContainer::deserialize(
+void BundleContainer::deserialize(
     const std::string &data) {
   // Check header
   std::stringstream size;
@@ -75,7 +84,7 @@ std::unique_ptr<BundleContainer> BundleContainer::deserialize(
     char buff[1024];
     snprintf(&buff[0], sizeof(buff), "%s", newData.c_str());
     int length = strlen(buff);
-    std::string from = std::string(buff);
+    m_from = std::string(buff);
     // Remove node id and \0
     newData = newData.substr(length + 1);
     size << m_footer;
@@ -84,7 +93,7 @@ std::unique_ptr<BundleContainer> BundleContainer::deserialize(
     std::string bundleData = newData.substr(0, newData.length() - (footerSize));
     std::unique_ptr<Bundle> b;
     try {
-      b = std::unique_ptr<Bundle>(new Bundle(bundleData));
+      m_bundle = std::unique_ptr<Bundle>(new Bundle(bundleData));
     } catch (const std::exception &e) {
       throw BundleContainerCreationException(
           "[BundleContainer] Bad bundle raw format");
@@ -94,16 +103,11 @@ std::unique_ptr<BundleContainer> BundleContainer::deserialize(
     if (footer != m_footer) {
       throw BundleContainerCreationException(
           "[BundleContainer] Bad footer in bundle container");
-    } else {
-      std::unique_ptr<BundleContainer> container = std::unique_ptr<
-          BundleContainer>(new BundleContainer(from, std::move(b)));
-      return container;
     }
   } else {
     throw BundleContainerCreationException(
         "[BundleContainer] Bad header in bundle container");
   }
-  return 0;
 }
 
 std::string BundleContainer::toString() {

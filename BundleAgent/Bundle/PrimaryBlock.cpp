@@ -157,7 +157,8 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
 PrimaryBlock::PrimaryBlock(const std::string &source,
                            const std::string &destination,
                            const uint64_t &timestamp, const uint64_t &seqNumber)
-    : m_procFlags(),
+    : Block(),
+      m_procFlags(),
       m_destination(destination),
       m_source(source),
       m_reportTo(),
@@ -291,8 +292,10 @@ std::string PrimaryBlock::toRaw() {
   dictionary << scheme.c_str() << std::ends;
   size_t offset = scheme.size() + 1;
   // If one of the fields is empty, we add the dtn scheme.
-  if (m_destination == "" || m_source == "" || m_reportTo == ""
-      || m_custodian == "") {
+  if (m_destination == "" || m_destination == m_nullEndpoint || m_source == ""
+      || m_source == m_nullEndpoint || m_reportTo == ""
+      || m_reportTo == m_nullEndpoint || m_custodian == ""
+      || m_custodian == m_nullEndpoint) {
     offsetMap[dtnScheme] = offset;
     offset += dtnScheme.size() + 1;
     dictionary << dtnScheme.c_str() << std::ends;

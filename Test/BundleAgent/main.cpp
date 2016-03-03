@@ -31,6 +31,7 @@
 
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;
+std::atomic<uint16_t> g_startedThread;
 
 GTEST_API_ int main(int argc, char **argv) {
   g_stop = false;

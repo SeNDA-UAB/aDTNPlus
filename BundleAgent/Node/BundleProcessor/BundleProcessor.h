@@ -27,6 +27,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <exception>
 #include "Node/Config.h"
 
 class Bundle;
@@ -35,6 +36,13 @@ class BundleContainer;
 class NeighbourTable;
 class ListeningAppsTable;
 class Neighbour;
+
+class ForwardException : public std::runtime_error {
+ public:
+  explicit ForwardException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
 
 /**
  * CLASS BundleProcessor
@@ -45,7 +53,17 @@ class Neighbour;
 class BundleProcessor {
  public:
   /**
-   * @brief Generates a BundleProcessor with the given parameters
+   * @brief Generates a BundleProcessor.
+   */
+  BundleProcessor();
+  /**
+   * Destructor of the class.
+   */
+  virtual ~BundleProcessor();
+  /**
+   * @brief Function that starts all the process.
+   *
+   * This function will start the process Bundles and receive Bundles process.
    *
    * The parameters are the configuration, the bundle queue, the neighbour table
    * and the listening apps table.
@@ -54,13 +72,17 @@ class BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  BundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                  std::shared_ptr<NeighbourTable> neighbourTable,
-                  std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+             std::shared_ptr<NeighbourTable> neighbourTable,
+             std::shared_ptr<ListeningAppsTable> listeningAppsTable);
   /**
-   * Destructor of the class.
+   * @brief Function that restores a bundle container from disk.
+   *
+   * This function generates the bundle container from a serialized data.
+   *
+   * @param data The serialized BundleContainer.
    */
-  virtual ~BundleProcessor();
+  virtual void restoreRawBundleContainer(const std::string &data);
 
  protected:
   /**

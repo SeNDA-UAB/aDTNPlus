@@ -50,11 +50,18 @@ int Neighbour::getElapsedActivityTime() {
       / std::chrono::nanoseconds::period::den;
 }
 
-void Neighbour::update(const std::string &nodeAddress,
+/*void Neighbour::update(const std::string &nodeAddress,
                        const uint16_t &nodePort) {
   LOG(69) << "Updating neighbour last activity time to now";
   m_nodeAddress = nodeAddress;
   m_nodePort = nodePort;
+  m_lastActivity = std::chrono::steady_clock::now();
+}*/
+
+void Neighbour::update(std::shared_ptr<Neighbour> neighbour) {
+  LOG(69) << "Updating neighbour last activity time to now";
+  m_nodeAddress = neighbour->getNodeAddress();
+  m_nodePort = neighbour->getNodePort();
   m_lastActivity = std::chrono::steady_clock::now();
 }
 
@@ -65,7 +72,7 @@ bool Neighbour::operator ==(const Neighbour &neighbour) const {
   return equals;
 }
 
-std::string Neighbour::getNodeId() {
+std::string Neighbour::getId() {
   return m_nodeId;
 }
 

@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include "Node/BundleProcessor/BundleProcessor.h"
+#include "Node/Executor/Worker.h"
 
 class Bundle;
 class BundleQueue;
@@ -43,30 +44,25 @@ class Neighbour;
 class BasicBundleProcessor : public BundleProcessor {
  public:
   /**
-   * @brief Generates a BasicBundleProcessor with the given parameters
-   *
-   * The parameters are the configuration, the bundle queue, the neighbour table
-   * and the listening apps table.
-   *
-   * @param config The object holding all the configuration.
-   * @param bundleQueue The queue that will hold all the bundles.
-   * @param neighbourTable The neighbour table to check the neighbours.
+   * @brief Generates a BasicBundleProcessor.
    */
-  BasicBundleProcessor(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                       std::shared_ptr<NeighbourTable> neighbourTable,
-                       std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  BasicBundleProcessor();
   /**
    * Destructor of the class.
    */
   virtual ~BasicBundleProcessor();
 
- private:
+  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
+                     std::shared_ptr<NeighbourTable> neighbourTable,
+                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+
+ protected:
   /**
    * Function that processes one given bundle container.
    *
    * @param bundleContainer The bundle container to process.
    */
-  void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    *
@@ -76,23 +72,42 @@ class BasicBundleProcessor : public BundleProcessor {
   std::unique_ptr<BundleContainer> createBundleContainer(
       std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle);
   /**
-   * Function that checks the possible destinations.
+   * Function that checks the possible dispatching apps.
    *
-   * @return A list with the possible destinations.
+   * @param bundleContainer The container with the bundle.
+   * @return A list with the possible dispatching apps.
    */
-  std::vector<std::string> checkDestination(BundleContainer &bundleContainer);
+  std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
   /**
    * Function that checks the lifetime of a bundle.
    *
+   * @param bundleContainer The container with the bundle.
    * @return True if the lifetime has expired, false otherwise.
    */
   bool checkLifetime(BundleContainer &bundleContainer);
   /**
    * Function that checks the possible forwards.
    *
+   * @param bundleContainer The container with the bundle.
    * @return A list with the possible forwards.
    */
-  std::vector<std::string> checkForward(const BundleContainer &bundleContainer);
+  virtual std::vector<std::string> checkForward(
+      BundleContainer &bundleContainer);
+  /**
+   * Function that checks if we are the destination node.
+   *
+   * @param bundleContainer The container with the bundle.
+   * @return True if the bundle is for us.
+   */
+  bool checkDestination(BundleContainer &bundleContainer);
+  /**
+   * Worker to execute default forwarding code.
+   */
+  Worker<std::vector<std::string>, std::string, std::vector<std::string>> m_worker;
+
+  static const std::string m_header;
+  static const std::string m_footer;
+  static const std::string m_commandLine;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_

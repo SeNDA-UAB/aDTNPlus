@@ -41,38 +41,52 @@
  */
 TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   g_stop = false;
-  Config cf = Config("../BundleAgent/Config/adtn.ini");
+  std::ofstream ss;
+  ss.open("adtn.ini");
+  ss << "[Node]" << std::endl << "nodeId : node1" << std::endl
+     << "nodeAddress : 127.0.0.1" << std::endl << "nodePort : 40000"
+     << std::endl << "[NeighbourDiscovery]" << std::endl
+     << "discoveryAddress : 239.100.100.100" << std::endl
+     << "discoveryPort : 40001" << std::endl << "discoveryPeriod : 2"
+     << std::endl << "neighbourExpirationTime : 4" << std::endl
+     << "neighbourCleanerTime : 2" << std::endl << "testMode : false"
+     << std::endl << "[Logger]" << std::endl << "filename : /tmp/adtn.log"
+     << std::endl << "level : 100" << std::endl << "[Constants]" << std::endl
+     << "timeout : 3" << std::endl << "[BundleProcess]" << std::endl
+     << "dataPath : /tmp/.adtn/" << std::endl;
+  ss.close();
+  Config cf = Config("adtn.ini");
   std::shared_ptr<NeighbourTable> nt = std::shared_ptr<NeighbourTable>(
       new NeighbourTable());
   NeighbourDiscovery nd(cf, nt);
-  nt->update("node100", "192.168.1.1", 4000);
-  auto neighbours = nt->getNeighbours();
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 4000));
+  auto neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(2, neighbours.size());
   sleep(3);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(2, neighbours.size());
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   sleep(2);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node101", nt->getNeighbour("node101")->getNodeId());
+  ASSERT_EQ("node101", nt->getValue("node101")->getId());
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(0, neighbours.size());
   g_stop = true;
   // The neighbour cleaner thread has been stopped, so the new neighbours
   // must not be cleaned.
-  nt->update("node101", "192.168.1.1", 4000);
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 4000));
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getNeighbours();
+  neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
 }
 
@@ -95,7 +109,7 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
      << std::endl << "[Logger]" << std::endl << "filename : /tmp/adtn.log"
      << std::endl << "level : 100" << std::endl << "[Constants]" << std::endl
      << "timeout : 3" << std::endl << "[BundleProcess]" << std::endl
-     << "dataPath : /home/marc/.adtn/" << std::endl;
+     << "dataPath : /tmp/.adtn/" << std::endl;
   ss.close();
 
   Config cf = Config("adtn1.ini");
@@ -105,12 +119,11 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
       new NeighbourTable());
   NeighbourDiscovery nd(cf, nt);
   sleep(3);
-  auto neighbours = nt->getNeighbours();
+  auto neighbours = nt->getValues();
   ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ("node1", nt->getNeighbour(*neighbours.begin())->getNodeId());
-  ASSERT_EQ("127.0.0.1",
-            nt->getNeighbour(*neighbours.begin())->getNodeAddress());
-  ASSERT_EQ(40000, nt->getNeighbour(*neighbours.begin())->getNodePort());
+  ASSERT_EQ("node1", nt->getValue(*neighbours.begin())->getId());
+  ASSERT_EQ("127.0.0.1", nt->getValue(*neighbours.begin())->getNodeAddress());
+  ASSERT_EQ(40000, nt->getValue(*neighbours.begin())->getNodePort());
   g_stop = true;
   sleep(5);
 }

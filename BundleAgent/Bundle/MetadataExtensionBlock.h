@@ -36,6 +36,7 @@
  */
 class MetadataExtensionBlock : public CanonicalBlock {
  public:
+  MetadataExtensionBlock();
   /**
    * @brief Empty constructor.
    *
@@ -58,7 +59,8 @@ class MetadataExtensionBlock : public CanonicalBlock {
   /**
    * @brief Convert the Metadata extension block to raw format.
    *
-   * Virtual function, all the blocks that derive from this class must implement it.
+   * Virtual function, all the blocks that derive from this class must implement
+   *it.
    * This function must return the block in raw format.
    *
    * @return This block in raw format.
@@ -81,9 +83,18 @@ class MetadataExtensionBlock : public CanonicalBlock {
    *
    * @return The string with the block information.
    */
-  std::string toString();
+  virtual std::string toString();
 
  protected:
+  /**
+   * @brief Parses a Metadata Extension Block from raw.
+   *
+   * This function parses a metadata extension block from raw.
+   * Saving the raw data into the block.
+   *
+   * @parm rawData Raw data to parse.
+   */
+  void initFromRaw(const std::string &rawData);
   /**
    * Type of the metadata block.
    */

@@ -2,7 +2,15 @@
 
 title Neighbour Discovery Class Diagram
 
-
+class Table<class T> {
+  #m_values : std::map<std::string, shared_ptr<T>>
+  #mutex : std::mutex
+  +Table()
+  +~Table()
+  +update(value : shared_ptr<T>) : void
+  +getValues() : std::vector<std::string>
+  +getValue(name : std::string) : shared_ptr<T>
+}
 
 class Neighbour {
 	-m_nodeId : std::string
@@ -11,23 +19,18 @@ class Neighbour {
 	-m_lastActivity : time_point
 	+Neighbour(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t)
 	+~Neighbour()
-	+getNodeId() : std::string
+	+getId() : std::string
 	+getNodeAddress() : std::string
 	+getNodePort() : uint16_t
 	+getElapsedActivityTime() : int
-	+update(nodeAddress : std::string, nodePort : uint16_t) : void
+	+update(neighbour : shared_ptr<Neighbour>) : void
 	+operator==(neighbour : Neighbour) : bool
 }
 
 class NeighbourTable {
- 	-m_neighbours : std::map<std::string, shared_ptr<Neighbour>>
- 	-mutex : std::mutex
 	+NeighbourTable()
 	+~NeighbourTable()
-	+update(nodeId : std::string, nodeAddress : std::string, nodePort : uint16_t) : Neighbour
 	+clean(expirationTime: int) : void
-	+getNeighbourIds() : std::vector<std::string*>
-	+getNeighbour(nodeId : std::string ) : Neighbour
 }
 
 class NeighbourDiscovery {
@@ -35,7 +38,7 @@ class NeighbourDiscovery {
 	#m_neighbourTable : NeighbourTable
 	+NeighbourDiscovery(config : Config, neighbourTable : NeighbourTable)
 	-sendBeacons() : void
-	#receiveBeacons() : void
+	#{abstract}receiveBeacons() : void
 	-cleanNeighbours() : void
 }
 
@@ -56,5 +59,6 @@ class Beacon {
 
 
 NeighbourTable --> "0..n\n<i>m_neighbours</i>" Neighbour
+Table <|-- NeighbourTable
 
 @enduml

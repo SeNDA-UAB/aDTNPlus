@@ -74,6 +74,7 @@ void AppListener::listenApps() {
         LOG(17) << "Listening petitions at (" << m_config.getListenerAddress()
                 << ":" << m_config.getListenerPort() << ")";
         fd_set readfds;
+        g_startedThread++;
         while (!g_stop.load()) {
           FD_ZERO(&readfds);
           FD_SET(sock, &readfds);
@@ -134,7 +135,8 @@ void AppListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningAppsTable->update(std::to_string(ntohl(appId)), "", 0, sock);
+      m_listeningAppsTable->update(
+          std::make_shared<App>(std::to_string(ntohl(appId)), "", 0, sock));
     }
   }
 }

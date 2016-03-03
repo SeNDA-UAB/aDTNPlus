@@ -31,21 +31,14 @@
 #include <memory>
 #include <vector>
 #include <stdexcept>
-
-class App;
-
-class ListeningAppsTableException : public std::runtime_error {
- public:
-  explicit ListeningAppsTableException(const std::string &what)
-      : runtime_error(what) {
-  }
-};
+#include "Node/AppListener/App.h"
+#include "Utils/Table.h"
 
 /**
  * CLASS ListeningAppsTable
  * This class contains all the listening apps.
  */
-class ListeningAppsTable {
+class ListeningAppsTable : public Table<App> {
  public:
   /**
    * Constructor of the ListeningAppsTable.
@@ -56,18 +49,6 @@ class ListeningAppsTable {
    */
   virtual ~ListeningAppsTable();
   /**
-   * @brief Updates the app.
-   *
-   * This function updates an app.
-   * If the app is not present in the table this function add the new app.
-   *
-   * @param appId identifier of the app.
-   * @param appAddress IP address of the app.
-   * @param port port of the app.
-   */
-  void update(const std::string &appId, const std::string &appAddress,
-              const uint16_t &port, const int &socket);
-  /**
    * @brief Clean all the apps that have expired.
    *
    * This function deletes all the apps that have been expired.
@@ -77,30 +58,6 @@ class ListeningAppsTable {
    * @param expirationTime Minimum time to expire a neighbour.
    */
   void clean(int expirationTime);
-  /**
-   * Function to get a copy of the current apps list id's
-   *
-   * @return
-   *  a vector with the current apps id's.
-   */
-  std::vector<std::string> getAppIds();
-  /**
-   * Function to get the information of the given app.
-   *
-   * @param appId the id of the app.
-   * @return a App pointer if exists, else throws a ListeningAppsTableException
-   */
-  std::shared_ptr<App> getApp(const std::string &appId);
-
- private:
-  /**
-   * Map with the apps.
-   */
-  std::map<std::string, std::shared_ptr<App>> m_listeningApps;
-  /**
-   * Mutex for the map.
-   */
-  std::mutex mutex;
 };
 
 #endif  // BUNDLEAGENT_NODE_APPLISTENER_LISTENINGAPPSTABLE_H_

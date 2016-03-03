@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -38,32 +39,67 @@
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
 #include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
+#include "Node/BundleProcessor/PluginAPI.h"
 
-BasicBundleProcessor::BasicBundleProcessor(
-    Config config, std::shared_ptr<BundleQueue> bundleQueue,
-    std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable)
-    : BundleProcessor(config, bundleQueue, neighbourTable, listeningAppsTable) {
+#ifdef BASE_PLUGIN
+NEW_PLUGIN(BasicBundleProcessor,
+    "Basic bundle processor", "1.0",
+    "Forwards a bundle this processor only checks for anti-rebooting.")
+#endif
+
+const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
+    "#include <string>\n"
+    "#include <algorithm>\n"
+    "extern \"C\" {"
+    " std::vector<std::string> f(std::string from,"
+    " std::vector<std::string> neighbours) {";
+const std::string BasicBundleProcessor::m_footer = "}}";
+const std::string BasicBundleProcessor::m_commandLine =
+    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
+
+BasicBundleProcessor::BasicBundleProcessor()
+    : m_worker(m_header, m_footer, "f", m_commandLine) {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
+}
+
+void BasicBundleProcessor::start(
+    Config config, std::shared_ptr<BundleQueue> bundleQueue,
+    std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+  BundleProcessor::start(config, bundleQueue, neighbourTable,
+                         listeningAppsTable);
+  std::ifstream code(m_config.getForwardingDefaultCodePath());
+  if (code) {
+    std::string defaultCode((std::istreambuf_iterator<char>(code)),
+                            std::istreambuf_iterator<char>());
+    try {
+      m_worker.generateFunction(defaultCode);
+    } catch (const WorkerException &e) {
+      LOG(11) << "Cannot create code worker, reason: " << e.what();
+    }
+  } else {
+    LOG(11) << "Cannot open the file "
+            << m_config.getForwardingDefaultCodePath();
+  }
 }
 
 void BasicBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (bundleContainer->getBundle().getPrimaryBlock()->getDestination().find(
-      m_config.getNodeId()) != std::string::npos) {
+  if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDestination(*bundleContainer);
+    std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
         dispatch(bundleContainer->getBundle(), destinations);
         discard(std::move(bundleContainer));
-      } catch (const ListeningAppsTableException &e) {
+      } catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";
         restore(std::move(bundleContainer));
       }
@@ -96,17 +132,30 @@ void BasicBundleProcessor::processBundle(
           LOG(55) << "Destination found, sending the bundle to it.";
           std::vector<std::string> nextHop = std::vector<std::string>();
           nextHop.push_back(*it);
-          forward(bundleContainer->getBundle(), nextHop);
+          try {
+            forward(bundleContainer->getBundle(), nextHop);
+            LOG(55) << "Discarding the bundle.";
+            discard(std::move(bundleContainer));
+          } catch (const ForwardException &e) {
+            LOG(1) << e.what();
+            LOG(55) << "The bundle has not been send, restoring the bundle.";
+            restore(std::move(bundleContainer));
+          }
         } else {
           LOG(55) << "Destination not found, "
                   << "sending the bundle to all the neighbours.";
-          forward(bundleContainer->getBundle(), neighbours);
+          try {
+            forward(bundleContainer->getBundle(), neighbours);
+            LOG(55) << "Discarding the bundle.";
+            discard(std::move(bundleContainer));
+          } catch (const ForwardException &e) {
+            LOG(1) << e.what();
+            LOG(55) << "The bundle has not been send, restoring the bundle.";
+            restore(std::move(bundleContainer));
+          }
         }
-        LOG(55) << "Discarding the bundle.";
-        discard(std::move(bundleContainer));
       } else {
-        LOG(
-            55) << "No neighbours found, restoring the bundle.";
+        LOG(55) << "No neighbours found, restoring the bundle.";
         restore(std::move(bundleContainer));
       }
     }
@@ -116,10 +165,17 @@ void BasicBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
-      new BundleContainer(from->getNodeId(), std::move(bundle)));
+      new BundleContainer(from->getId(), std::move(bundle)));
 }
 
-std::vector<std::string> BasicBundleProcessor::checkDestination(
+bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
+  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
+      ->getDestination();
+  std::string destinationId = destination.substr(0, destination.find(":"));
+  return destinationId == m_config.getNodeId();
+}
+
+std::vector<std::string> BasicBundleProcessor::checkDispatch(
     BundleContainer &bundleContainer) {
   std::string destination = bundleContainer.getBundle().getPrimaryBlock()
       ->getDestination();
@@ -130,15 +186,24 @@ std::vector<std::string> BasicBundleProcessor::checkDestination(
 }
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
-    const BundleContainer &bundleContainer) {
+    BundleContainer &bundleContainer) {
   LOG(55) << "Removing bundle source if we have it as neighbour.";
-  std::vector<std::string> neighbours = m_neighbourTable->getNeighbours();
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
+  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  try {
+    m_worker.execute(bundleContainer.getFrom(), neighbours);
+    LOG(55) << "THERE ARE NEIGHBOURS NUM.:" << neighbours.size();
+    // return m_worker.getResult();
+    return neighbours;
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot execute code, reason: " << e.what()
+            << " Executing anti-rebooting.";
+    auto it = std::find(neighbours.begin(), neighbours.end(),
+                        bundleContainer.getFrom());
+    if (it != neighbours.end()) {
+      neighbours.erase(it);
+    }
+    return neighbours;
   }
-  return neighbours;
 }
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {

@@ -65,7 +65,8 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
     uint64_t procFlags = SDNV::decode(data);
     m_procFlags = std::bitset<7>(procFlags);
     data = data.substr(dataSize);
-    if (m_procFlags.test(static_cast<uint32_t>(CanonicalBlockControlFlags::EID_FIELD))) {
+    if (m_procFlags.test(
+        static_cast<uint32_t>(CanonicalBlockControlFlags::EID_FIELD))) {
       dataSize = SDNV::getLength(data);
       blockLength += dataSize;
       int numberOfEID = SDNV::decode(data);
@@ -87,7 +88,7 @@ void CanonicalBlock::initFromRaw(const std::string &rawData) {
     uint64_t blockDataSize = SDNV::decode(data);
     blockLength += blockDataSize;
     m_raw = rawData.substr(0, blockLength);
-  } catch (const std::out_of_range& e) {
+  } catch (...) {
     throw BlockConstructionException("[CanonicalBlock] Bad raw format");
   }
 }
@@ -124,6 +125,20 @@ bool CanonicalBlock::checkProcFlag(CanonicalBlockControlFlags procFlag) {
 
 std::string CanonicalBlock::toString() {
   std::stringstream ss;
-  ss << "Not recognised block" << std::endl;
+  ss << "\tBlock processing control flags" << std::endl
+     << "\t\tBlock must be replicated in every fragment: "
+     << checkProcFlag(CanonicalBlockControlFlags::REPLICATE_FRAGMENT)
+     << std::endl << "\t\tTransmit status report if block can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::TRANSMIT_STATUS_REPORT)
+     << std::endl << "\t\tDelete bundle if block can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::DELETE_BUNDLE) << std::endl
+     << "\t\tLast block: "
+     << checkProcFlag(CanonicalBlockControlFlags::LAST_BLOCK) << std::endl
+     << "\t\tDiscard block if it can't be processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::DISCARD_BLOCK) << std::endl
+     << "\t\tBlock was forwarded without being processed: "
+     << checkProcFlag(CanonicalBlockControlFlags::BLOCK_NOT_PROCESSED)
+     << std::endl << "\t\tBlock contains an EID-reference field: "
+     << checkProcFlag(CanonicalBlockControlFlags::EID_FIELD) << std::endl;
   return ss.str();
 }

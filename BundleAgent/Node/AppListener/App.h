@@ -27,6 +27,7 @@
 #include <string>
 #include <cstdint>
 #include <chrono>
+#include <memory>
 
 /**
  * CLASS App.
@@ -53,7 +54,7 @@ class App {
    * Gets the app id.
    * @return The app id.
    */
-  std::string getAppId();
+  std::string getId();
   /**
    * Gets the app IP address.
    * @return The app IP address.
@@ -80,8 +81,7 @@ class App {
    * @param appAddress IP address of the app.
    * @param appPort port of the app.
    */
-  void update(const std::string &appAddress, const uint16_t &appPort,
-              const int &socket);
+  void update(std::shared_ptr<App> app);
   /**
    * Equality operator overload.
    * @param app to compare

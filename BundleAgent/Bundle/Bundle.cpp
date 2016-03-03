@@ -30,6 +30,9 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
+#include "Bundle/RoutingSelectionMEB.h"
+#include "Bundle/ForwardingMEB.h"
+#include "Bundle/RouteReportingMEB.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -72,8 +75,25 @@ Bundle::Bundle(const std::string &rawData)
           // This is an abstraction of the metadata block, so we need to create
           // a derived block of it.
           LOG(35) << "Generating Metadata Extension Block";
-          b = std::shared_ptr<MetadataExtensionBlock>(
-              new MetadataExtensionBlock(data));
+          auto m = MetadataExtensionBlock(data);
+          LOG(35) << std::to_string(m.getMetadataType());
+          switch (static_cast<MetadataTypes>(m.getMetadataType())) {
+            case MetadataTypes::ROUTING_SELECTION_MEB: {
+              b = std::make_shared<RoutingSelectionMEB>(
+                  RoutingSelectionMEB(data));
+              break;
+            }
+            case MetadataTypes::FORWARDING_MEB: {
+              LOG(35) << "Generating ForwardingMEB Block.";
+              b = std::make_shared<ForwardingMEB>(ForwardingMEB(data, true));
+              break;
+            }
+            case MetadataTypes::ROUTE_REPORTING_MEB: {
+              LOG(35) << "Generating RouteReporting Metadata Extension Block";
+              b = std::make_shared<RouteReportingMEB>(RouteReportingMEB(data));
+              break;
+            }
+          }
           break;
         }
         default: {
@@ -84,8 +104,6 @@ Bundle::Bundle(const std::string &rawData)
       }
       m_blocks.push_back(b);
       size_t blockSize = b->getLength();
-      if (blockSize <= 0)
-        throw BundleCreationException("[Bundle] Bad raw format");
       data = data.substr(blockSize);
     }
     std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
@@ -127,20 +145,18 @@ std::string Bundle::getRaw() {
 std::string Bundle::toRaw() {
   LOG(36) << "Generating bundle in raw format";
   std::string raw = m_raw;
-  if (raw == "") {
-    std::stringstream ss;
-    LOG(36) << "Getting the primary block in raw";
-    std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
-        .rbegin();
-    std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
-        CanonicalBlockControlFlags::LAST_BLOCK);
-    for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
-        it != m_blocks.end(); ++it) {
-      LOG(36) << "Getting the next block in raw";
-      ss << (*it)->toRaw();
-    }
-    raw = ss.str();
+  std::stringstream ss;
+  LOG(36) << "Getting the primary block in raw";
+  std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
+      .rbegin();
+  std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
+      CanonicalBlockControlFlags::LAST_BLOCK);
+  for (std::vector<std::shared_ptr<Block>>::iterator it = m_blocks.begin();
+      it != m_blocks.end(); ++it) {
+    ss << (*it)->toRaw();
   }
+  raw = ss.str();
+  m_raw = raw;
   return raw;
 }
 

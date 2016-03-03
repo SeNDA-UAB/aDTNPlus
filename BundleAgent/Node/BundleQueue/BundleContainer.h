@@ -54,9 +54,19 @@ class BundleContainer {
    */
   BundleContainer(std::string from, std::unique_ptr<Bundle> bundle);
   /**
+   * Generates a BundleContainer from serialized data.
+   *
+   * @param data The serialized bundleCotainer.
+   */
+  explicit BundleContainer(const std::string &data);
+  /**
    * Destructor of the class.
    */
   virtual ~BundleContainer();
+  /**
+   * Creates an empty BundleContainer.
+   */
+  BundleContainer();
 
   BundleContainer(BundleContainer&& bc);
   /**
@@ -76,22 +86,22 @@ class BundleContainer {
    *
    * @return The serialized form of the BundleContainer.
    */
-  std::string serialize();
+  virtual std::string serialize();
   /**
    * Generates a BunldeContainer from a serialized one.
    *
    * @param data a serialized bundleContainer.
    * @return the BundleContainer.
    */
-  static std::unique_ptr<BundleContainer> deserialize(const std::string &data);
+  virtual void deserialize(const std::string &data);
   /**
    * @brief Returns an string with a nice view of the Bundle container information.
    *
    * @return The string with the bundle container information.
    */
-  std::string toString();
+  virtual std::string toString();
 
- private:
+ protected:
   /**
    * The bundle that the container holds.
    */

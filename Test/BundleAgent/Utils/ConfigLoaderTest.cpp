@@ -22,8 +22,10 @@
  * This file contains the test of the ConfigLoader class.
  */
 
+#include <fstream>
 #include "Utils/ConfigLoader.h"
 #include "gtest/gtest.h"
+
 
 /**
  * Check the configuration load.
@@ -31,7 +33,21 @@
  */
 TEST(ConfigLoaderTest, ParseFile) {
   ConfigLoader cf = ConfigLoader();
-  ASSERT_TRUE(cf.load("../BundleAgent/Config/adtn.ini"));
+  std::ofstream ss;
+  ss.open("adtn.ini");
+  ss << "[Node]" << std::endl << "nodeId : node1" << std::endl
+     << "nodeAddress : 127.0.0.1" << std::endl << "nodePort : 40000"
+     << std::endl << "[NeighbourDiscovery]" << std::endl
+     << "discoveryAddress : 239.100.100.100" << std::endl
+     << "discoveryPort : 40001" << std::endl << "discoveryPeriod : 2"
+     << std::endl << "neighbourExpirationTime : 4" << std::endl
+     << "neighbourCleanerTime : 2" << std::endl << "testMode : true"
+     << std::endl << "[Logger]" << std::endl << "filename : /tmp/adtn.log"
+     << std::endl << "level : 100" << std::endl << "[Constants]" << std::endl
+     << "timeout : 3" << std::endl << "[BundleProcess]" << std::endl
+     << "dataPath : /tmp/.adtn/" << std::endl;
+  ss.close();
+  ASSERT_TRUE(cf.load("adtn.ini"));
   ASSERT_EQ("node1", cf.m_reader.Get("Node", "nodeId", ""));
   ASSERT_EQ("127.0.0.1", cf.m_reader.Get("Node", "nodeAddress", ""));
   ASSERT_EQ(40000, cf.m_reader.GetInteger("Node", "nodePort", 0));

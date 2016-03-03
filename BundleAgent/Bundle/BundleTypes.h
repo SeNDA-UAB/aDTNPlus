@@ -26,8 +26,8 @@
 
 #include <cstdio>
 
-enum class PrimaryBlockControlFlags
-  : uint32_t {IS_FRAGMENT = 0,
+enum class PrimaryBlockControlFlags : uint32_t {
+  IS_FRAGMENT = 0,
   IS_ADMINISTRATIVE_RECORD = 1,
   NOT_FRAGMENTED = 2,
   CUSTODY_TRANSFER = 3,
@@ -43,8 +43,8 @@ enum class PrimaryBlockControlFlags
   REQUEST_DELETION = 18
 };
 
-enum class CanonicalBlockControlFlags
-  : uint8_t {REPLICATE_FRAGMENT = 0,
+enum class CanonicalBlockControlFlags : uint8_t {
+  REPLICATE_FRAGMENT = 0,
   TRANSMIT_STATUS_REPORT = 1,
   DELETE_BUNDLE = 2,
   LAST_BLOCK = 3,
@@ -53,9 +53,20 @@ enum class CanonicalBlockControlFlags
   EID_FIELD = 6
 };
 
-enum class CanonicalBlockTypes
-  : uint8_t {PAYLOAD_BLOCK = 1,
+enum class CanonicalBlockTypes : uint8_t {
+  PAYLOAD_BLOCK = 1,
   METADATA_EXTENSION_BLOCK = 8
+};
+
+enum class MetadataTypes : uint8_t {
+  ROUTING_SELECTION_MEB = 0x02,
+  FORWARDING_MEB = 0x03,
+  ROUTE_REPORTING_MEB = 0x04
+};
+
+enum class RoutingAlgorithms : uint8_t {
+  ANTI_REBOTING = 0x01,
+  FLOODING = 0x02
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

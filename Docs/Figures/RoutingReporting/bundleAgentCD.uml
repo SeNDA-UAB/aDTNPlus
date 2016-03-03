@@ -1,0 +1,142 @@
+@startuml
+
+title Bundle Agent Class Diagram
+
+class Node {
+	-m_config : Config
+	+Node(configFileName : std::string)
+	+~Node()
+	+restoreBundles(bundleQueue : BundleQueue): void
+	+reset() : void
+	+start() : void
+	+stop() : void
+}
+
+abstract class BundleProcessor {
+	#m_config : Config
+	#m_bundleQueue : BundleQueue
+	#m_listeningAppsTable : ListeningAppsTable
+	#m_neighbourTable : NeighbourTable
+	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BundleProcessor()
+	+start() : void
+	-processBundles() : void
+	-receiveBundles(): void
+	-{abstract}processBundle(bundleContainer : BundleContainer): void
+	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
+	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
+	#discard(bundleContainer : BundleContainer) : void
+	#restore(bundleContainer : BundleContainer) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer	
+}
+
+class BasicBundleProcessor {
+	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BasicBundleProcessor()
+	-processBundle(bundleContainer : BundleContainer) : void
+	-checkDestination(bundleContainer : BundleContainer): std::vector<std::string>
+	-checkLifetime(bundleContainer : BundleContainer): bool
+	-checkForward(bundleContainer : BundleContainer): std::vector<std::string>
+	-createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
+}
+
+class RouteReportingBC {
+	- m_nodeId : std::string
+	- m_arrivalTime time_t
+	- m_departureTime time_t
+	+ RouteReportingBC(nodeId : std::string, arrivalTime : time_t, departureTime : time_t, bundle : Bundle)
+	+ RouteReportingBC(data : std::string)
+	+ RouteReportingBC(bc : RouteReportingBC)
+	+ ~RouteReportingBC()
+	+ getNodeId() : std::string
+	+ getArrivalTime() : time_t
+	+ getDepartureTime() : time_t
+	+ serialize() ; std::string
+	+ deserialize(data : std::string) : void
+	+ toString() : std::string
+	+ setDepartureTime(departureTime : time_t) : void
+	
+}
+class BundleContainer {
+	# m_bundle : Bundle
+	# m_from : std::string
+	# {static} m_header
+	# {static} m_footer
+	+ BundleContainer(from : std::string, bundle : Bundle)
+	+ BundleContainer(data std::string)
+	+ getBundle() : Bundle
+	+ getFrom() : std::string
+	+ serialize() : std::string
+	+ deserialize(data : std::string) : void
+}
+
+class BundleQueue {
+	- m_bundles : std::vector<BundleContainer>
+	+ BundleQueue()
+	+ ~BundleQueue()
+	+ dequeue(): BundleContainer
+	+ enqueue(bundleContainer : BundleContainer) : void
+}
+
+class Config {
+	-m_nodeId : std::string
+	-m_nodeAddress : std::string
+	-m_nodePort : int
+	-m_discoveryAddress : std::string
+	-m_discoveryProt : int
+	-m_discoveryPeriod : int
+	-m_neighbourExpirationTime : int
+	-m_neighbourCleanerTime : int
+	-m_logFileName : std::string
+	-m_logLevel : int
+	-m_socketTimeout : int
+	-m_neighbourTestMode : bool
+	-m_dataPath : std::string
+	-{static} NODEID : std::string
+	-{static} NODEADDRESS : std::string
+	-{static} NODEPORT : int
+	-{static} DISCOVERYADDRESS : std::string
+	-{static} DISCOVERYPORT : int
+	-{static} DISCOVERYPERIOD : int
+	-{static} NEIGHBOUREXPIRATIONTIME : int
+	-{static} NEIGHBOURCLEANERTIME : int
+	-{static} LOGFILENAME : std::string
+	-{static} LOGLEVEL : int
+	-{static} SOCKETTIMEOUT : int
+	-{static} NEIGHBOURTESTMODE : bool
+	-{static} DATAPATH : std::string
+	+Config()
+	+Config(configFileName : std::string)
+	+~Config()
+	+getNodeId() : std::string
+	+getNodeAddress() : std::string
+	+getNodePort() : int
+	+getDiscoveryAddress() : std::string
+	+getDiscoveryPort() : int
+	+getDiscoveryPeriod() : int
+	+getNeighbourExpirationTime() : int
+	+getNeighbourCLeanerTime() : int
+	+getLogFileName() : std::string
+	+getLogLevel() : int
+	+getSocketTimeout() : int
+	+getNeighbourTestMode() : bool
+	+getDataPath() : std::string
+}
+
+class ConfigLoader {
+	-m_reader : INIReader
+	+load(configFileName : std::string ) : void
+	+ConfigLoader()
+	+~ConfigLoader()
+}
+
+Config ..> ConfigLoader : <i>uses</i> 
+BundleQueue --> "0..n\n<i>m_bundles</i>" BundleContainer
+Node ..> BundleProcessor : <i>uses</i>
+
+
+Node --> "<i>m_config</i>" Config
+BundleProcessor --> "<i>m_bundleQueue</i>" BundleQueue
+BundleProcessor <|-- BasicBundleProcessor
+BundleContainer <|-- RouteReportingBC
+@enduml

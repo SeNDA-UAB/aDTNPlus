@@ -26,26 +26,35 @@
 
 #include <string>
 #include <stdexcept>
+#include <iostream>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
+#include "Bundle/BundleTypes.h"
+
+MetadataExtensionBlock::MetadataExtensionBlock()
+    : CanonicalBlock(),
+      m_metadataType(0),
+      m_metadata() {
+  m_blockType = static_cast<uint8_t>(
+      CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
+}
 
 MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
                                                const std::string metadata)
     : m_metadataType(metadataType),
       m_metadata(metadata) {
+  m_blockType =
+      static_cast<uint8_t>(CanonicalBlockTypes::METADATA_EXTENSION_BLOCK);
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const std::string &rawData)
-    : CanonicalBlock(rawData),
+    : CanonicalBlock(),
       m_metadataType(0),
       m_metadata() {
   try {
-    std::string data = m_raw.substr(m_bodyDataIndex);
-    size_t metadataTypeSize = SDNV::getLength(data);
-    m_metadataType = SDNV::decode(data);
-    m_metadata = data.substr(metadataTypeSize);
-  } catch (const std::out_of_range& e) {
-    throw BlockConstructionException("[MetadataExtensionBlock] Bad raw format");
+    initFromRaw(rawData);
+  } catch (const BlockConstructionException &e) {
+    throw;
   }
 }
 
@@ -67,10 +76,11 @@ std::string MetadataExtensionBlock::toRaw() {
   std::stringstream ss;
   ss << m_blockType;
   ss << SDNV::encode(m_procFlags.to_ulong());
+  ss << SDNV::encode(SDNV::getLength(m_metadataType) + m_metadata.length());
   ss << SDNV::encode(m_metadataType);
   ss << m_metadata;
-  Block::m_raw = ss.str();
-  return Block::m_raw;
+  m_raw = ss.str();
+  return m_raw;
 }
 
 uint8_t MetadataExtensionBlock::getMetadataType() {
@@ -83,6 +93,21 @@ std::string MetadataExtensionBlock::getMetadata() {
 
 std::string MetadataExtensionBlock::toString() {
   std::stringstream ss;
-  ss << "Metadata Extension Block:" << std::endl;
+  ss << CanonicalBlock::toString() << "\tMetadata Extension Block values:"
+     << std::endl << "\t\tMetadata Type: " << static_cast<int>(m_metadataType)
+     << std::endl;
   return ss.str();
 }
+
+void MetadataExtensionBlock::initFromRaw(const std::string &rawData) {
+  CanonicalBlock::initFromRaw(rawData);
+  try {
+    std::string data = m_raw.substr(m_bodyDataIndex);
+    size_t metadataTypeSize = SDNV::getLength(data);
+    m_metadataType = SDNV::decode(data);
+    m_metadata = data.substr(metadataTypeSize);
+  } catch (const std::out_of_range& e) {
+    throw BlockConstructionException("[MetadataExtensionBlock] Bad raw format");
+  }
+}
+

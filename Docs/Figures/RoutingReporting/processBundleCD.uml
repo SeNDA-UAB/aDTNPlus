@@ -1,0 +1,55 @@
+@startuml
+
+title Process Bundle Class Diagram
+
+abstract class BundleProcessor {
+	#m_config : Config
+	#m_bundleQueue : BundleQueue
+	#m_listeningAppsTable : ListeningAppsTable
+	#m_neighbourTable : NeighbourTable
+	+BundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BundleProcessor()
+	-processBundles() : void
+	-receiveBundles(): void
+	-{abstract}processBundle(bundleContainer : BundleContainer): void
+	#dispatch(bundle : Bundle, destinations : std::vector<std::string>) : void
+	#forward(bundle : Bundle, nextHop : std::vector<std::string>) : void
+	#discard(bundleContainer : BundleContainer) : void
+	#restore(bundleContainer : BundleContainer) : void
+	-{abstract}createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer	
+}
+
+class BasicBundleProcessor {
+	#m_worker : Worker
+	# {static} m_header : std::string
+	# {static} m_footer : std::string
+	# {static} m_commandLine std::string
+	+BasicBundleProcessor(config : Config, bundleQueue : BundleQueue, listeningAppsTable : ListeningAppsTable, neighbourTable : NeighbourTable)
+	+~BasicBundleProcessor()
+	#processBundle(bundleContainer : BundleContainer) : void
+	#checkDestination(bundleContainer : BundleContainer): std::vector<std::string>
+	#checkLifetime(bundleContainer : BundleContainer): bool
+	#checkForward(bundleContainer : BundleContainer): std::vector<std::string>
+	#checkDispatch(bundleContainer : BundleContainer) : std::vector<std::string>
+	#createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
+}
+
+class RouteReportingBundleProcessor {
+	+RouteReportingBundleProcessor()
+	+~RouteReportingBundleProcessor()
+	+createBundleContainer(from : Neighbour, bundle : Bundle) : BundleContainer
+	+processBundle(bundleContainer : BundleContainer) : void
+	+restoreRawBundleContainer(data : std::string) : void
+	
+}
+
+class ForwardingAlgorithms {
+	+antiRebot(bundleContainer : BundleContainer, std::vector<std::string> neighbours) : std::vector<std::string>
+	+flood(bundleContainer : BundleContainer, std::vector<std::string> neighbours) : std::vector<std::string> 
+}
+hide ForwardingAlgorithms circle
+
+BundleProcessor <|-- BasicBundleProcessor
+BasicBundleProcessor <|-- RouteReportingBundleProcessor
+
+@enduml
