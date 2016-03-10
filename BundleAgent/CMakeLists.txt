@@ -37,6 +37,7 @@ add_library(aDTNPlus_BasicBundleProcessor MODULE
   Node/BundleProcessor/BundleProcessor.cpp
   Node/BundleProcessor/BasicBundleProcessor.cpp
 )
+
 target_compile_definitions(aDTNPlus_BasicBundleProcessor PRIVATE BASE_PLUGIN)
 
 add_library(aDTNPlus_RoutingSelectionBundleProcessor MODULE
