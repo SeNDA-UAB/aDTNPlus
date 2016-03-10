@@ -56,7 +56,7 @@ const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
     " std::vector<std::string> f(Json info) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++14 -I../BundleAgent %s -o %s 2>&1";
+    "g++ -w -fPIC -shared -std=c++11 -I../BundleAgent %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
     : m_worker(m_header, m_footer, "f", m_commandLine) {
