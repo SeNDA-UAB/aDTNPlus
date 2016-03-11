@@ -28,14 +28,14 @@
 #include "gtest/gtest.h"
 
 TEST(WorkerTest, SimpleCode) {
-  std::string header = "extern \"C\" {int r(int value) {";
+  std::string header = "extern \"C\" {int r(int& value) {";
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 10;";
-
+  int val = 10;
   Worker<int, int> w(header, footer, "r", commandLine);
   w.generateFunction(code);
-  w.execute(10);
+  w.execute(val);
   ASSERT_EQ(100, w.getResult());
 }
 
@@ -83,10 +83,10 @@ TEST(WorkerTest, GoodCodeBadLibrary) {
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 14;";
-
+  int value = 10;
   Worker<int, int> w(header, footer, "g", commandLine);
   w.generateFunction(code);
-  ASSERT_THROW(w.execute(10), WorkerException);
+  ASSERT_THROW(w.execute(value), WorkerException);
 }
 
 TEST(WorkerTest, TryingToExecuteValueAfterError) {
@@ -94,12 +94,12 @@ TEST(WorkerTest, TryingToExecuteValueAfterError) {
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return \"Hi\";";
-
+  int value = 10;
   Worker<int, int> w(header, footer, "r", commandLine);
   try {
     w.generateFunction(code);
   } catch (const WorkerException &e) {
-    ASSERT_THROW(w.execute(10), WorkerException);
+    ASSERT_THROW(w.execute(value), WorkerException);
   }
 }
 
@@ -108,11 +108,11 @@ TEST(WorkerTest, TryingToGetValueAfterError) {
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 25;";
-
+  int value = 10;
   Worker<int, int> w(header, footer, "g", commandLine);
   w.generateFunction(code);
   try {
-    w.execute(10);
+    w.execute(value);
   } catch (const WorkerException &e) {
     ASSERT_THROW(w.getResult(), WorkerException);
   }
@@ -120,21 +120,23 @@ TEST(WorkerTest, TryingToGetValueAfterError) {
 
 TEST(WorkerTest, MultipleParameters) {
   std::string header =
-      "extern \"C\" {int r(int value, int value2, int value3) {";
+      "extern \"C\" {int r(int& value, int& value2, int& value3) {";
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value + value2 + value3;";
-
+  int val1 = 10;
+  int val2 = 20;
+  int val3 = 30;
   Worker<int, int, int, int> w(header, footer, "r", commandLine);
   w.generateFunction(code);
-  w.execute(10, 20, 30);
+  w.execute(val1, val2, val3);
   ASSERT_EQ(60, w.getResult());
 }
 
 TEST(WorkerTest, MultipleDifferentParameters) {
   std::string header = "#include <string>\n"
       "#include <vector>\n"
-      "extern \"C\" {int r(int value, std::string val2, "
+      "extern \"C\" {int r(int& value, std::string val2, "
       "std::vector<std::string> value3) {";
   std::string footer = "}}";
   std::string commandLine = "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
@@ -147,13 +149,15 @@ TEST(WorkerTest, MultipleDifferentParameters) {
 
   Worker<int, int, std::string, std::vector<std::string>> w(header, footer, "r",
                                                             commandLine);
+  int value = 10;
+  std::string val2 = "20";
   w.generateFunction(code);
   std::vector<std::string> params;
   params.push_back("10");
   params.push_back("20");
   params.push_back("30");
   params.push_back("40");
-  w.execute(10, "20", params);
+  w.execute(value, val2, params);
   ASSERT_EQ(130, w.getResult());
 }
 
