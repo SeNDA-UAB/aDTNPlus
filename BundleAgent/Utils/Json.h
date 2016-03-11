@@ -27,7 +27,8 @@
 #include <memory>
 #include <string>
 #include "ExternTools/json/json.hpp"
-#include "Node/Neighbour/NeighbourTable.h"
+
+class NeighbourTable;
 
 /**
  * CLASS Json

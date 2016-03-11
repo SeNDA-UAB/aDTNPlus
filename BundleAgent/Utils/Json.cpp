@@ -24,6 +24,7 @@
 
 #include <string>
 #include "Json.h"
+#include "Node/Neighbour/NeighbourTable.h"
 
 Json::Json() {
 }
