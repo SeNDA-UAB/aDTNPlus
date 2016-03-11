@@ -27,6 +27,8 @@
 #include <memory>
 #include <vector>
 #include <string>
+
+#include "Utils/Json.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/Executor/Worker.h"
 
@@ -103,7 +105,11 @@ class BasicBundleProcessor : public BundleProcessor {
   /**
    * Worker to execute default forwarding code.
    */
-  Worker<std::vector<std::string>, std::string, std::vector<std::string>> m_worker;
+  Worker<std::vector<std::string>, Json> m_worker;
+  /**
+   * Variable that holds the parameters used in the processor calls.
+   */
+  Json m_parameters;
 
   static const std::string m_header;
   static const std::string m_footer;

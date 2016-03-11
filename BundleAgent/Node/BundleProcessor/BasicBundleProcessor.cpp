@@ -51,12 +51,12 @@ NEW_PLUGIN(BasicBundleProcessor,
 const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
+    "#include \"Utils/Json.h\"\n"
     "extern \"C\" {"
-    " std::vector<std::string> f(std::string from,"
-    " std::vector<std::string> neighbours) {";
+    " std::vector<std::string> f(Json info) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
+    "g++ -w -fPIC -shared -std=c++11 -I../BundleAgent %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
     : m_worker(m_header, m_footer, "f", m_commandLine) {
@@ -72,6 +72,7 @@ void BasicBundleProcessor::start(
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream code(m_config.getForwardingDefaultCodePath());
+  m_parameters.start(m_neighbourTable);
   if (code) {
     std::string defaultCode((std::istreambuf_iterator<char>(code)),
                             std::istreambuf_iterator<char>());
@@ -187,16 +188,15 @@ std::vector<std::string> BasicBundleProcessor::checkDispatch(
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
-  LOG(55) << "Removing bundle source if we have it as neighbour.";
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
-    m_worker.execute(bundleContainer.getFrom(), neighbours);
-    LOG(55) << "THERE ARE NEIGHBOURS NUM.:" << neighbours.size();
-    // return m_worker.getResult();
-    return neighbours;
+    m_parameters.setLastFrom(bundleContainer.getFrom());
+    m_worker.execute(m_parameters);
+    return m_worker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing anti-rebooting.";
+    LOG(55) << "Removing bundle source if we have it as neighbour.";
     auto it = std::find(neighbours.begin(), neighbours.end(),
                         bundleContainer.getFrom());
     if (it != neighbours.end()) {
