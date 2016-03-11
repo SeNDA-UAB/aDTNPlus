@@ -23,3 +23,6 @@ target_link_libraries(${BASIC_RECEIVER_NAME} aDTNLib Bundle_lib)
 
 add_executable(${BASIC_VIEWER_NAME} ${BASIC_VIEWER_FILES})
 target_link_libraries(${BASIC_VIEWER_NAME} aDTNLib Bundle_lib)
+
+install(TARGETS ${BASIC_SENDER_NAME} ${BASIC_RECEIVER_NAME} ${BASIC_VIEWER_NAME}
+  RUNTIME DESTINATION bin)
