@@ -68,19 +68,21 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         std::string header = "#include <vector>\n"
             "#include <string>\n"
             "#include <algorithm>\n"
+            "#include \"adtnPlus/Json.h\"\n"
             "extern \"C\" {std::vector<std::string> "
             "activeForwardingAlgorithm("
-            "std::vector<std::string> neighbours, "
-            "std::string source) {";
+            "Json nodeState) {";
         std::string footer = "}}";
         std::string functionName = "activeForwardingAlgorithm";
-        std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
+        std::string commandLine =
+            "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
 
-        Worker<std::vector<std::string>, std::vector<std::string>, std::string> worker(
+        Worker<std::vector<std::string>, Json> worker(
             header, footer, functionName, commandLine);
         worker.generateFunction(code);
-        worker.execute(neighbours, source);
+        m_nodeState.setLastFrom(bundleContainer.getFrom());
+        worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
         return result;
       }
