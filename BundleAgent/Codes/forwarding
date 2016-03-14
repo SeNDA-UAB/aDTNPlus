@@ -1,8 +1,0 @@
-auto neighbours = info["neighbours"];
-std::vector<std::string> toSend = std::vector<std::string>();
-for (const std::string &n : neighbours) {
-  if (!n.compare(info["from"])) {
-    toSend.push_back(n);
-  }
-}
-return toSend;
