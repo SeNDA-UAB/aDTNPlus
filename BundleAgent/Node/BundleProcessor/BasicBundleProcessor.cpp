@@ -51,12 +51,12 @@ NEW_PLUGIN(BasicBundleProcessor,
 const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
-    "#include \"Utils/Json.h\"\n"
+    "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     " std::vector<std::string> f(Json info) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++11 -I../BundleAgent %s -o %s 2>&1";
+    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
     : m_worker(m_header, m_footer, "f", m_commandLine) {

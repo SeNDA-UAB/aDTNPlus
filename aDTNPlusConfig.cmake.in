@@ -1,0 +1,12 @@
+# Define installation prefix
+set(PREFIX "${CMAKE_INSTALL_PREFIX}")
+
+# Define configuration dir
+if (NOT DEFINED SYSCONFDIR)
+  set(SYSCONFDIR "${PREFIX}/etc/adtnPlus" CACHE PATH "System configuration files path" FORCE)
+endif()
+
+#Define data dir
+if (NOT DEFINED DATADIR)
+  set(DATADIR "/var/lib/adtnPlus" CACHE PATH "Data files path" FORCE)
+endif()

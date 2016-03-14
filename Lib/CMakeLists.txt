@@ -9,3 +9,6 @@ set(LIB_HEADERS
 set(LIBRARY_NAME aDTNLib)
 include_directories(../BundleAgent)
 add_library(${LIBRARY_NAME} SHARED ${LIB_SOURCES})
+
+install(TARGETS ${LIBRARY_NAME}
+  LIBRARY DESTINATION lib)
