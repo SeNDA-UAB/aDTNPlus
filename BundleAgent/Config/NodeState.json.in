@@ -1,0 +1,12 @@
+{
+  "configuration" : {
+    "defaultCodes" : {
+      "forwarding" : "auto neighbours = nodeState[\"neighbours\"];std::vector<std::string> toSend = std::vector<std::string>();for (const std::string &n : neighbours) {if (!n.compare(nodeState[\"from\"])) {toSend.push_back(n);}}return toSend;"
+    },
+    "logLevel" : ${log_level}
+  },
+  "state" : {
+    "stop" : false,
+    "changed" : false
+  }
+}

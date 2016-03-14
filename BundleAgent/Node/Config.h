@@ -161,7 +161,7 @@ class Config {
    *
    * @return The path to the default forwarding code.
    */
-  std::string getForwardingDefaultCodePath();
+  std::string getNodeStatePath();
 
  private:
   /**
@@ -235,7 +235,7 @@ class Config {
   /**
    * The path to the default forwarding code.
    */
-  std::string m_forwardingDefaultCodePath;
+  std::string m_NodeStatePath;
   /**
    * Variable that holds the Config Loader.
    */
@@ -260,7 +260,7 @@ class Config {
   static const int LISTENERPORT;
   static const bool CLEAN;
   static const std::string BUNDLEPROCESSORNAME;
-  static const std::string FORWARDINGDEFAULTCODEPATH;
+  static const std::string NODESTATEPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

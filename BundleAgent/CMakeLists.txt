@@ -72,6 +72,7 @@ if (CMAKE_BUILD_TYPE)
 endif()
 set(data_path ${BundleAgent_BINARY_DIR})
 configure_file(${BundleAgent_SOURCE_DIR}/Config/adtn.ini.in ${BundleAgent_BINARY_DIR}/adtn.ini)
+configure_file(${BundleAgent_SOURCE_DIR}/Config/NodeState.json.in ${BundleAgent_BINARY_DIR}/NodeState.json)
 file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
 file(COPY "Codes" DESTINATION ".")
 
@@ -90,4 +91,5 @@ install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Plugins)")
 
 install(DIRECTORY "Codes/" DESTINATION ${DATADIR}/Codes)
 install(FILES ${BundleAgent_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
+install(FILES ${BundleAgent_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})
   

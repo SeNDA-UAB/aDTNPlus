@@ -103,13 +103,24 @@ class BasicBundleProcessor : public BundleProcessor {
    */
   bool checkDestination(BundleContainer &bundleContainer);
   /**
+   * Function that checks the changes in the node state.
+   *
+   * This function implements which changes in the node state should be checked
+   * and what actions the node should do.
+   */
+  virtual void checkNodeStateChanges();
+  /**
    * Worker to execute default forwarding code.
    */
   Worker<std::vector<std::string>, Json> m_worker;
   /**
    * Variable that holds the parameters used in the processor calls.
    */
-  Json m_parameters;
+  Json m_nodeState;
+  /**
+   * Variable that holds the old parameters to check what changed.
+   */
+  Json m_oldNodeState;
 
   static const std::string m_header;
   static const std::string m_footer;
