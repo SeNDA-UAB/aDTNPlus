@@ -39,9 +39,9 @@ void Json::start(std::shared_ptr<NeighbourTable> neighbourTable) {
 Json::reference Json::operator[](const typename object_t::key_type &key) {
   reference r = nlohmann::json::operator[](key);
   if (key == "neighbours") {
-    r["neighbour"] = nlohmann::json(m_neighbourTable->getValues());
+    r = nlohmann::json(m_neighbourTable->getValues());
   } else if (key == "from") {
-    r["from"] = nlohmann::json(m_lastFrom);
+    r = nlohmann::json(m_lastFrom);
   }
   return r;
 }
