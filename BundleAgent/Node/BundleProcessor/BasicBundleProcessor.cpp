@@ -225,8 +225,10 @@ bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
 
 void BasicBundleProcessor::checkNodeStateChanges() {
   if (m_nodeState["state"]["changed"]) {
+    m_nodeState["state"]["changed"] = false;
     // Check what changed and act accordingly
     if (m_nodeState["state"]["stop"]) {
+      m_nodeState["state"]["stop"] = false;
       g_stop = true;
     }
     if (m_nodeState["configuration"]["logLevel"]
@@ -245,7 +247,6 @@ void BasicBundleProcessor::checkNodeStateChanges() {
         LOG(11) << "Cannot create code worker, reason: " << e.what();
       }
     }
-    m_nodeState["state"]["changed"] = false;
     m_oldNodeState = m_nodeState;
   }
 }
