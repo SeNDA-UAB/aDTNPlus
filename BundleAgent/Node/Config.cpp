@@ -47,8 +47,8 @@ const int Config::LISTENERPORT = 50000;
 const bool Config::CLEAN = false;
 const std::string Config::BUNDLEPROCESSORNAME =
     "libaDTNPlus_BasicBundleProcessor.so";
-const std::string Config::NODESTATEPATH =
-    "BundleAgent/NodeState.json";
+const std::string Config::NODESTATEPATH = "BundleAgent/NodeState.json";
+const std::string Config::CODESPATH = "./";
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -68,7 +68,8 @@ Config::Config()
       m_listenerPort(LISTENERPORT),
       m_clean(CLEAN),
       m_bundleProcessorName(BUNDLEPROCESSORNAME),
-      m_NodeStatePath(NODESTATEPATH) {
+      m_nodeStatePath(NODESTATEPATH),
+      m_codesPath(CODESPATH) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -113,8 +114,10 @@ Config::Config(const std::string &configFilename) {
     m_bundleProcessorName = m_configLoader.m_reader.Get("BundleProcess",
                                                         "bundleProcessName",
                                                         BUNDLEPROCESSORNAME);
-    m_NodeStatePath = m_configLoader.m_reader.Get(
-        "NodeState", "path", NODESTATEPATH);
+    m_nodeStatePath = m_configLoader.m_reader.Get("NodeState", "path",
+                                                  NODESTATEPATH);
+    m_codesPath = m_configLoader.m_reader.Get("BundleProcess", "codePath",
+                                              CODESPATH);
   }
 }
 
@@ -190,5 +193,9 @@ std::string Config::getBundleProcessorName() {
 }
 
 std::string Config::getNodeStatePath() {
-  return m_NodeStatePath;
+  return m_nodeStatePath;
+}
+
+std::string Config::getCodesPath() {
+  return m_codesPath;
 }

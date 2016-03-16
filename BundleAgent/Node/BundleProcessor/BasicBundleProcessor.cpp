@@ -77,6 +77,7 @@ void BasicBundleProcessor::start(
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
   m_nodeState.start(m_neighbourTable);
+  m_worker.setPath(m_config.getCodesPath());
   if (nodeState) {
     nodeState >> m_nodeState;
     m_oldNodeState = m_nodeState;

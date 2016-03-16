@@ -79,7 +79,7 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         std::string code = fmeb->getSoftCode();
 
         Worker<std::vector<std::string>, Json> worker(
-            header, footer, functionName, commandLine, "./");
+            header, footer, functionName, commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
         m_nodeState.setLastFrom(bundleContainer.getFrom());
         worker.execute(m_nodeState);

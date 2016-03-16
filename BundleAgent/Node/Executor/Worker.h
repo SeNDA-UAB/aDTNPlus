@@ -161,15 +161,9 @@ class Worker {
     std::hash<std::string> hash_fn;
     size_t hash = hash_fn(fullCode.str());
     std::string fileName = std::to_string(hash);
-    std::string codeFileName = fileName + ".cpp";
-    std::string libraryFileName = fileName + ".so";
-    LOG(1) << "Searching for " << fileName;
-    if (m_fileNames.find(fileName) != m_fileNames.end())
-      LOG(1) << "File already compiled";
-    else
-    LOG(1) << "new file.";
+    std::string codeFileName = m_path + fileName + ".cpp";
+    std::string libraryFileName = m_path + fileName + ".so";
     if (m_fileNames.find(fileName) == m_fileNames.end()) {
-      LOG(1) << "Compiling new file";
       m_fileNames[fileName] = nullptr;
       std::ofstream codeFile(codeFileName);
       codeFile << fullCode.str();
@@ -198,7 +192,7 @@ class Worker {
       }
     }
     std::stringstream sharedName;
-    sharedName << m_path << libraryFileName;
+    sharedName << libraryFileName;
     m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
     if (!m_handler) {
       std::stringstream errorMessage;
@@ -233,6 +227,10 @@ class Worker {
     } catch (...) {
       throw WorkerException("Worker could not retrieve function result.");
     }
+  }
+
+  void setPath(const std::string& newPath) {
+    m_path = newPath;
   }
 
  private:
