@@ -44,7 +44,10 @@ timeout : 10
 # permissions in the folder.
 dataPath : ${DATADIR}/Bundles/
 # Bundle process shared library name to use in this node.
-bundleProcessName : ${DATADIR}/Plugins/libaDTNPlus_BasicBundleProcessor.so 
+bundleProcessName : ${DATADIR}/Plugins/libaDTNPlus_BasicBundleProcessor.so
+# Path to save the generated codes, it has to exist and the application has to
+# have permissions in the folder.
+codePath : ${DATADIR}/Codes/ 
 
 [AppListener]
 # IP address to listen

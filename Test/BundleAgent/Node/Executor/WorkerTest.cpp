@@ -33,7 +33,7 @@ TEST(WorkerTest, SimpleCode) {
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 10;";
   int val = 10;
-  Worker<int, int> w(header, footer, "r", commandLine);
+  Worker<int, int> w(header, footer, "r", commandLine, "./");
   w.generateFunction(code);
   w.execute(val);
   ASSERT_EQ(100, w.getResult());
@@ -52,7 +52,7 @@ TEST(WorkerTest, ComplexCode) {
       "return ss.str();";
 
   Worker<std::string, std::vector<std::string>> w(header, footer, "r",
-                                                  commandLine);
+                                                  commandLine, "./");
   w.generateFunction(code);
   std::vector<std::string> params;
   params.push_back("This");
@@ -74,7 +74,7 @@ TEST(WorkerTest, BadCode) {
       "return ss.str();";
 
   Worker<std::string, std::vector<std::string>> w(header, footer, "r",
-                                                  commandLine);
+                                                  commandLine, "./");
   ASSERT_THROW(w.generateFunction(code), WorkerException);
 }
 
@@ -84,7 +84,7 @@ TEST(WorkerTest, GoodCodeBadLibrary) {
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 14;";
   int value = 10;
-  Worker<int, int> w(header, footer, "g", commandLine);
+  Worker<int, int> w(header, footer, "g", commandLine, "./");
   w.generateFunction(code);
   ASSERT_THROW(w.execute(value), WorkerException);
 }
@@ -95,7 +95,7 @@ TEST(WorkerTest, TryingToExecuteValueAfterError) {
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return \"Hi\";";
   int value = 10;
-  Worker<int, int> w(header, footer, "r", commandLine);
+  Worker<int, int> w(header, footer, "r", commandLine, "./");
   try {
     w.generateFunction(code);
   } catch (const WorkerException &e) {
@@ -109,7 +109,7 @@ TEST(WorkerTest, TryingToGetValueAfterError) {
   std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
   std::string code = "return value * 25;";
   int value = 10;
-  Worker<int, int> w(header, footer, "g", commandLine);
+  Worker<int, int> w(header, footer, "g", commandLine, "./");
   w.generateFunction(code);
   try {
     w.execute(value);
@@ -127,7 +127,7 @@ TEST(WorkerTest, MultipleParameters) {
   int val1 = 10;
   int val2 = 20;
   int val3 = 30;
-  Worker<int, int, int, int> w(header, footer, "r", commandLine);
+  Worker<int, int, int, int> w(header, footer, "r", commandLine, "./");
   w.generateFunction(code);
   w.execute(val1, val2, val3);
   ASSERT_EQ(60, w.getResult());
@@ -148,7 +148,7 @@ TEST(WorkerTest, MultipleDifferentParameters) {
       "return res;";
 
   Worker<int, int, std::string, std::vector<std::string>> w(header, footer, "r",
-                                                            commandLine);
+                                                            commandLine, "./");
   int value = 10;
   std::string val2 = "20";
   w.generateFunction(code);
@@ -183,7 +183,7 @@ TEST(WorkerTest, MultipleParameters2) {
   ASSERT_EQ(neighbours.size(), 5);
 
   Worker<std::vector<std::string>, std::vector<std::string>,
-  std::string> w(header, footer, functionName, commandLine);
+  std::string> w(header, footer, functionName, commandLine, "./");
   w.generateFunction(code);
   w.execute(neighbours, source);
   std::vector<std::string> result = w.getResult();

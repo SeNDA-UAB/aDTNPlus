@@ -157,11 +157,17 @@ class Config {
    */
   std::string getBundleProcessorName();
   /**
-   * Get the forwarding default code path.
+   * Get the node state file path.
    *
-   * @return The path to the default forwarding code.
+   * @return The path to the node state file.
    */
   std::string getNodeStatePath();
+  /**
+   * Get the path to save the generated codes.
+   *
+   * @return The path to save the codes.
+   */
+  std::string getCodesPath();
 
  private:
   /**
@@ -233,9 +239,13 @@ class Config {
    */
   std::string m_bundleProcessorName;
   /**
-   * The path to the default forwarding code.
+   * The path to the node state file.
    */
-  std::string m_NodeStatePath;
+  std::string m_nodeStatePath;
+  /**
+   * The path to save the generated codes.
+   */
+  std::string m_codesPath;
   /**
    * Variable that holds the Config Loader.
    */
@@ -261,6 +271,7 @@ class Config {
   static const bool CLEAN;
   static const std::string BUNDLEPROCESSORNAME;
   static const std::string NODESTATEPATH;
+  static const std::string CODESPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_
