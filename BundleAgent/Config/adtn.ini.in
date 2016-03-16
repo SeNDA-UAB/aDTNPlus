@@ -2,7 +2,7 @@
 
 [Node]
 # Node identification name.
-nodeId : node1
+nodeId : ${hostname}
 # IP of this node to receive bundles.
 nodeAddress : 127.0.0.1
 # Port of this node to receive bundles. 
@@ -27,13 +27,13 @@ testMode : false
 
 [Logger]
 # File to save the logs.
-filename : /tmp/adtn.log
+filename : ${DATADIR}/adtn.log
 # Level of log, 1 to 100, 1 only errors 100 all log.
 # Level 1 is errors only
 # Level 6 is errors and warnings
 # Level 21 is errors, warnings and information.
 # Up to this level are debug logs.
-level : 100
+level : ${log_level}
 
 [Constants]
 # Socket timeout in seconds.
@@ -42,9 +42,12 @@ timeout : 10
 [BundleProcess]
 # Path to save the bundles, it has to exist and the application has to have 
 # permissions in the folder.
-dataPath : /home/marc/.adtn/
+dataPath : ${DATADIR}/Bundles/
 # Bundle process shared library name to use in this node.
-bundleProcessName : libaDTNPlus_BasicBundleProcessor.so 
+bundleProcessName : ${DATADIR}/Plugins/libaDTNPlus_BasicBundleProcessor.so
+# Path to save the generated codes, it has to exist and the application has to
+# have permissions in the folder.
+codePath : ${DATADIR}/Codes/ 
 
 [AppListener]
 # IP address to listen
@@ -52,6 +55,6 @@ listenerAddress : 127.0.0.1
 # Port to register apps
 listenerPort : 50000
 
-[DefaultCodes]
-# Default forwarding code path
-forwardingPath : BINARY_PATH/Codes/forwarding
+[NodeState]
+# Default node state path
+path : ${DATADIR}/NodeState.json

@@ -75,13 +75,13 @@ void adtnSocket::connect(int appId) {
   if (m_recvSocket == -1) {
     std::stringstream ss;
     ss << "Cannot create socket, reason: " << strerror(errno);
-    throw(ss.str());
+    throw adtnSocketException(ss.str());
   } else {
     if (::connect(m_recvSocket, reinterpret_cast<sockaddr*>(&remoteAddr),
                   sizeof(remoteAddr)) < 0) {
       std::stringstream ss;
       ss << "Cannot connect with node, reason: " << strerror(errno);
-      throw(ss.str());
+      throw adtnSocketException(ss.str());
     } else {
       uint8_t type = htons(0);
       uint32_t appIdn = htonl(appId);
@@ -89,13 +89,13 @@ void adtnSocket::connect(int appId) {
       if (writed < 0) {
         std::stringstream ss;
         ss << "Cannot write to socket, reason: " << strerror(errno);
-        throw(ss.str());
+        throw adtnSocketException(ss.str());
       } else {
         writed = ::send(m_recvSocket, &appIdn, sizeof(appIdn), 0);
         if (writed < 0) {
           std::stringstream ss;
           ss << "Cannot write to socket, reason: " << strerror(errno);
-          throw(ss.str());
+          throw adtnSocketException(ss.str());
         }
       }
     }
@@ -135,13 +135,13 @@ void adtnSocket::send(std::string destination, std::string message) {
     if (sock == -1) {
       std::stringstream ss;
       ss << "Cannot create socket, reason: " << strerror(errno);
-      throw(ss.str());
+      throw adtnSocketException(ss.str());
     } else {
       if (::connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
                     sizeof(remoteAddr)) < 0) {
         std::stringstream ss;
         ss << "Cannot connect with node, reason: " << strerror(errno);
-        throw(ss.str());
+        throw adtnSocketException(ss.str());
       } else {
         ::send(sock, m_nodeName.c_str(), 1024, 0);
         std::string bundleRaw = b.toRaw();

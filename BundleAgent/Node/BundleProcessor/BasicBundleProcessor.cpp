@@ -41,6 +41,7 @@
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Node/BundleProcessor/PluginAPI.h"
+#include "Utils/globals.h"
 
 #ifdef BASE_PLUGIN
 NEW_PLUGIN(BasicBundleProcessor,
@@ -51,18 +52,21 @@ NEW_PLUGIN(BasicBundleProcessor,
 const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
-    "#include \"Utils/Json.h\"\n"
+    "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
-    " std::vector<std::string> f(Json info) {";
+    " std::vector<std::string> f(Json nodeState) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++11 -I../BundleAgent %s -o %s 2>&1";
+    "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
-    : m_worker(m_header, m_footer, "f", m_commandLine) {
+    : m_worker(m_header, m_footer, "f", m_commandLine, "./") {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
+  std::ofstream nodeState(m_config.getNodeStatePath());
+  nodeState << m_nodeState.dump(2);
+  nodeState.close();
 }
 
 void BasicBundleProcessor::start(
@@ -71,19 +75,22 @@ void BasicBundleProcessor::start(
     std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
-  std::ifstream code(m_config.getForwardingDefaultCodePath());
-  m_parameters.start(m_neighbourTable);
-  if (code) {
-    std::string defaultCode((std::istreambuf_iterator<char>(code)),
-                            std::istreambuf_iterator<char>());
+  std::ifstream nodeState(m_config.getNodeStatePath());
+  m_nodeState.start(m_neighbourTable);
+  m_worker.setPath(m_config.getCodesPath());
+  if (nodeState) {
+    nodeState >> m_nodeState;
+    m_oldNodeState = m_nodeState;
+    nodeState.close();
+    std::string defaultCode =
+        m_nodeState["configuration"]["defaultCodes"]["forwarding"];
     try {
       m_worker.generateFunction(defaultCode);
     } catch (const WorkerException &e) {
       LOG(11) << "Cannot create code worker, reason: " << e.what();
     }
   } else {
-    LOG(11) << "Cannot open the file "
-            << m_config.getForwardingDefaultCodePath();
+    LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
   }
 }
 
@@ -161,6 +168,7 @@ void BasicBundleProcessor::processBundle(
       }
     }
   }
+  checkNodeStateChanges();
 }
 
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
@@ -190,8 +198,8 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
-    m_parameters.setLastFrom(bundleContainer.getFrom());
-    m_worker.execute(m_parameters);
+    m_nodeState.setLastFrom(bundleContainer.getFrom());
+    m_worker.execute(m_nodeState);
     return m_worker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
@@ -214,4 +222,32 @@ bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
     return true;
   else
     return false;
+}
+
+void BasicBundleProcessor::checkNodeStateChanges() {
+  if (m_nodeState["state"]["changed"]) {
+    m_nodeState["state"]["changed"] = false;
+    // Check what changed and act accordingly
+    if (m_nodeState["state"]["stop"]) {
+      m_nodeState["state"]["stop"] = false;
+      g_stop = true;
+    }
+    if (m_nodeState["configuration"]["logLevel"]
+        != m_oldNodeState["configuration"]["logLevel"]) {
+      Logger::getInstance()->setLogLevel(
+          m_nodeState["configuration"]["logLevel"]);
+    }
+    std::string code =
+        m_nodeState["configuration"]["defaultCodes"]["forwarding"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["forwarding"]) != 0) {
+      try {
+        m_worker.generateFunction(
+            m_nodeState["configuration"]["defaultCodes"]["forwarding"]);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create code worker, reason: " << e.what();
+      }
+    }
+    m_oldNodeState = m_nodeState;
+  }
 }

@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
     std::string config = std::string(argv[1]);
 
     sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGTERM, &sigIntHandler, NULL);
     g_stopped = 0;
     g_stop = false;
     Node n = Node(config);

@@ -36,7 +36,7 @@
 #include <fstream>
 #include <functional>
 #include <memory>
-#include <vector>
+#include <map>
 #include "Utils/Logger.h"
 
 class SigFaultException : public std::runtime_error {
@@ -104,7 +104,7 @@ inline std::string stringFormat(const std::string& format, Args ... args) {
  * T: return type of the function.
  * T1: type of the argument to pass to the function.
  */
-template<class T, typename... Args>
+template<class T, typename ... Args>
 class Worker {
  public:
   /**
@@ -119,11 +119,12 @@ class Worker {
    *                    second for the library output name.)
    */
   Worker(std::string header, std::string footer, std::string functionName,
-         std::string commandLine)
+         std::string commandLine, std::string path)
       : m_header(header),
         m_footer(footer),
         m_functionName(functionName),
         m_commandLine(commandLine),
+        m_path(path),
         m_handler(0) {
     struct sigaction action;
     action.sa_handler = signalHandler;
@@ -137,9 +138,9 @@ class Worker {
   virtual ~Worker() {
     if (m_handler)
       dlclose(m_handler);
-    for (std::string s : m_fileNames) {
-      std::string code = s + ".cpp";
-      std::string library = s + ".so";
+    for (auto& kv : m_fileNames) {
+      std::string code = m_path + kv.first + ".cpp";
+      std::string library = m_path + kv.first + ".so";
       std::remove(code.c_str());
       std::remove(library.c_str());
     }
@@ -160,42 +161,43 @@ class Worker {
     std::hash<std::string> hash_fn;
     size_t hash = hash_fn(fullCode.str());
     std::string fileName = std::to_string(hash);
-    std::string codeFileName = fileName + ".cpp";
-    std::string libraryFileName = fileName + ".so";
-    m_fileNames.push_back(fileName);
-    std::ofstream codeFile(codeFileName);
-    codeFile << fullCode.str();
-    codeFile.close();
-    std::string command = stringFormat(m_commandLine, codeFileName.c_str(),
-                                       libraryFileName.c_str());
-    std::unique_ptr<char[]> buffer(new char[2048]);
-    FILE *output = popen(command.c_str(), "r");
-    std::stringstream commandOutput;
-    int status = 0;
-    if (output) {
-      while (!feof(output)) {
-        if (fgets(buffer.get(), 2048, output) != NULL) {
-          commandOutput << buffer.get();
+    std::string codeFileName = m_path + fileName + ".cpp";
+    std::string libraryFileName = m_path + fileName + ".so";
+    if (m_fileNames.find(fileName) == m_fileNames.end()) {
+      m_fileNames[fileName] = nullptr;
+      std::ofstream codeFile(codeFileName);
+      codeFile << fullCode.str();
+      codeFile.close();
+      std::string command = stringFormat(m_commandLine, codeFileName.c_str(),
+                                         libraryFileName.c_str());
+      std::unique_ptr<char[]> buffer(new char[2048]);
+      FILE *output = popen(command.c_str(), "r");
+      std::stringstream commandOutput;
+      int status = 0;
+      if (output) {
+        while (!feof(output)) {
+          if (fgets(buffer.get(), 2048, output) != NULL) {
+            commandOutput << buffer.get();
+          }
         }
+        status = pclose(output);
       }
-      status = pclose(output);
-    }
-    if (WIFEXITED(status)) {
-      if (WEXITSTATUS(status) != 0) {
-        std::stringstream errorMessage;
-        errorMessage << "Error while compiling code:\n" << commandOutput.str();
-        throw WorkerException(errorMessage.str());
-      } else {
-        std::stringstream sharedName;
-        sharedName << "./" << libraryFileName;
-        m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
-        if (!m_handler) {
+      if (WIFEXITED(status)) {
+        if (WEXITSTATUS(status) != 0) {
           std::stringstream errorMessage;
-          errorMessage << "Cannot open the shared library, reason: "
-                       << dlerror();
+          errorMessage << "Error while compiling code:\n"
+                       << commandOutput.str();
           throw WorkerException(errorMessage.str());
         }
       }
+    }
+    std::stringstream sharedName;
+    sharedName << libraryFileName;
+    m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
+    if (!m_handler) {
+      std::stringstream errorMessage;
+      errorMessage << "Cannot open the shared library, reason: " << dlerror();
+      throw WorkerException(errorMessage.str());
     }
   }
   /**
@@ -227,6 +229,10 @@ class Worker {
     }
   }
 
+  void setPath(const std::string& newPath) {
+    m_path = newPath;
+  }
+
  private:
   /**
    * The future variable where the return value will be saved.
@@ -249,13 +255,18 @@ class Worker {
    */
   std::string m_commandLine;
   /**
+   * Path to save the codes.
+   */
+  std::string m_path;
+  /**
    * The shared library handler.
    */
   void *m_handler;
   /**
    * Vector with all the generated names.
    */
-  std::vector<std::string> m_fileNames;
-};
+  std::map<std::string, uint8_t*> m_fileNames;
+}
+;
 
 #endif  // BUNDLEAGENT_NODE_EXECUTOR_WORKER_H_

@@ -1,5 +1,7 @@
 project("BundleAgent" C CXX)
 
+include(../aDTNPlusConfig.cmake.in)
+
 add_subdirectory(Bundle)
 add_subdirectory(Utils)
 add_subdirectory(ExternTools)
@@ -67,11 +69,31 @@ add_library(aDTNPlus_CodeDataCarrierBundleProcessor MODULE
 # Configure adtn.ini: change node id, and default bundle path
 execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME)
 string(REGEX REPLACE "(\r?\n)+$" "" hostname "${HOSTNAME}")
-file(READ "${BundleAgent_SOURCE_DIR}/Config/adtn.ini" FILE_CONTENT)
-string(REGEX REPLACE "nodeId : [^\n]*" "nodeId : ${hostname}" MODIFIED_FILE_CONTENT ${FILE_CONTENT})
-string(REGEX REPLACE "dataPath : [^\n]*" "dataPath : ${BundleAgent_BINARY_DIR}/Bundles/" MODIFIED_FILE_CONTENT ${MODIFIED_FILE_CONTENT})
-string(REGEX REPLACE "BINARY_PATH" ${BundleAgent_BINARY_DIR} MODIFIED_FILE_CONTENT ${MODIFIED_FILE_CONTENT})
-file(WRITE "${BundleAgent_BINARY_DIR}/adtn.ini" ${MODIFIED_FILE_CONTENT})
+set(log_level "21")
+if (CMAKE_BUILD_TYPE)
+  string(TOLOWER ${CMAKE_BUILD_TYPE} BTYPE)
+  if (${BTYPE} STREQUAL "debug")
+    set(log_level "100")
+  endif()
+endif()
+set(data_path ${BundleAgent_BINARY_DIR})
+configure_file(${BundleAgent_SOURCE_DIR}/Config/adtn.ini.in ${BundleAgent_BINARY_DIR}/adtn.ini)
+configure_file(${BundleAgent_SOURCE_DIR}/Config/NodeState.json.in ${BundleAgent_BINARY_DIR}/NodeState.json)
 file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
-file(COPY "Codes" DESTINATION ".")
 
+install(TARGETS aDTNPlus_BasicBundleProcessor aDTNPlus_RoutingSelectionBundleProcessor
+  aDTNPlus_ActiveForwardingBundleProcessor aDTNPlus_RouteReportingBundleProcessor
+  DESTINATION ${DATADIR}/Plugins)
+  
+install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME} 
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
+
+install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Bundles)")
+install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Codes)")
+install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Plugins)")
+
+install(FILES ${BundleAgent_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
+install(FILES ${BundleAgent_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})
+  

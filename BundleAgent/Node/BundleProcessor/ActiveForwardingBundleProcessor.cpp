@@ -66,11 +66,11 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
             ForwardingMEB>(meb);
         std::string source = bundleContainer.getFrom();
         std::string code = fmeb->getSoftCode();
-
-        Worker<std::vector<std::string>, std::vector<std::string>, std::string> worker(
-            m_header, m_footer, "f", m_commandLine);
+        Worker<std::vector<std::string>, Json> worker(
+            m_header, m_footer, "f", m_commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
-        worker.execute(neighbours, source);
+        m_nodeState.setLastFrom(bundleContainer.getFrom());
+        worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
         return result;
       }

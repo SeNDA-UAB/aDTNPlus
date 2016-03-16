@@ -4,9 +4,13 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 while read local_ref local_sha remote_ref remote_sha;
 do
 	echo "Passing UnitTests"
-	SCRIPT=$(readlink -nf generateTestAndCoverage.sh)
-	bash $SCRIPT
-	RET=$?
-	exit $RET
+	if [ "$local_ref" = "(delete)" ]; then
+	 echo "Deleting branch"
+	else
+	 SCRIPT=$(readlink -nf generateTestAndCoverage.sh)
+	 bash $SCRIPT
+	 RET=$?
+	 exit $RET
+	fi
 done
 exit 0

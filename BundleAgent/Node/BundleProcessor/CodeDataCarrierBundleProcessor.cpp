@@ -51,13 +51,13 @@ const std::string CodeDataCarrierBundleProcessor::m_header1 =
     "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
-    "#include \"ExternTools/json/json.hpp\"\n"
+    "#include \"adtnPlus/ExternTools/json/json.hpp\"\n"
     "using Json = nlohmann::json;\n"
     "extern \"C\" {"
     " std::vector<std::string> f(Json info) {";
 
 CodeDataCarrierBundleProcessor::CodeDataCarrierBundleProcessor()
-: m_worker1(m_header1, m_footer, "f", m_commandLine) {
+: m_worker1(m_header1, m_footer, "f", m_commandLine, "./") {
 }
 
 CodeDataCarrierBundleProcessor::~CodeDataCarrierBundleProcessor() {
@@ -80,7 +80,13 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
         std::shared_ptr<CodeDataCarrierMEB> nm =
             std::static_pointer_cast<CodeDataCarrierMEB>(meb);
         LOG(55) << "There is the CodeDataCarrier MEB";
-        m_worker1.generateFunction(nm->getCode());
+        m_worker1.setPath(m_config.getCodesPath());
+        LOG(55) << nm->getCode();
+        try {
+          m_worker1.generateFunction(nm->getCode());
+        } catch (const WorkerException &e) {
+          LOG(11) << "Cannot create code worker, reason: " << e.what();
+        }
         m_parameters1 = nlohmann::json::parse(nm->getData());
         m_worker1.execute(m_parameters1);
         std::vector<std::string> result = m_worker1.getResult();
