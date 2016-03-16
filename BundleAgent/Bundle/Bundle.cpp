@@ -33,6 +33,7 @@
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
+#include "Bundle/CodeDataCarrierMEB.h"
 #include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
@@ -92,6 +93,11 @@ Bundle::Bundle(const std::string &rawData)
               LOG(35) << "Generating RouteReporting Metadata Extension Block";
               b = std::make_shared<RouteReportingMEB>(RouteReportingMEB(data));
               break;
+            }
+            case MetadataTypes::CODE_DATA_CARRIER_MEB: {
+              LOG(35) << "Generating New Metadata Extension Block";
+              b = std::make_shared<CodeDataCarrierMEB>(
+                  CodeDataCarrierMEB(data));
             }
           }
           break;

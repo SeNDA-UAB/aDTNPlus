@@ -151,8 +151,10 @@ class Worker {
    * @param code Code to compile.
    */
   void generateFunction(std::string code) {
-    if (m_handler)
-          dlclose(m_handler);
+    if (m_handler) {
+      dlclose(m_handler);
+      m_handler = 0;
+    }
     std::stringstream fullCode;
     fullCode << m_header << code << m_footer;
     std::hash<std::string> hash_fn;

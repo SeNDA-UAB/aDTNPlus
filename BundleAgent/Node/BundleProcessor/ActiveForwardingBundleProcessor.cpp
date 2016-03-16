@@ -65,20 +65,10 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         std::shared_ptr<ForwardingMEB> fmeb = std::static_pointer_cast<
             ForwardingMEB>(meb);
         std::string source = bundleContainer.getFrom();
-        std::string header = "#include <vector>\n"
-            "#include <string>\n"
-            "#include <algorithm>\n"
-            "extern \"C\" {std::vector<std::string> "
-            "activeForwardingAlgorithm("
-            "std::vector<std::string> neighbours, "
-            "std::string source) {";
-        std::string footer = "}}";
-        std::string functionName = "activeForwardingAlgorithm";
-        std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
 
         Worker<std::vector<std::string>, std::vector<std::string>, std::string> worker(
-            header, footer, functionName, commandLine);
+            m_header, m_footer, "f", m_commandLine);
         worker.generateFunction(code);
         worker.execute(neighbours, source);
         std::vector<std::string> result = worker.getResult();

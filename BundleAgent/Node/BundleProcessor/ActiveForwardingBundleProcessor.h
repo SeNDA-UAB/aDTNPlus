@@ -28,7 +28,11 @@
 
 #include <string>
 #include <vector>
-#include "BasicBundleProcessor.h"
+
+#include "Node/BundleProcessor/BasicBundleProcessor.h"
+#include "Node/BundleQueue/BundleContainer.h"
+#include "Node/Executor/Worker.h"
+#include "Utils/Json.h"
 
 class ActiveForwardingBundleProcessor : public BasicBundleProcessor {
  public:
