@@ -60,7 +60,7 @@ const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
-    : m_worker(m_header, m_footer, "f", m_commandLine) {
+    : m_worker(m_header, m_footer, "f", m_commandLine, "./") {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
