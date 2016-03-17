@@ -38,6 +38,7 @@
 #include "ExternTools/json/json.hpp"
 #include "Utils/Json.h"
 #include "Node/Executor/Worker.h"
+#include "Node/Neighbour/NeighbourTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/Logger.h"
 
@@ -65,6 +66,7 @@ CodeDataCarrierBundleProcessor::~CodeDataCarrierBundleProcessor() {
 
 std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
+  std::vector<std::string> neighbours = m_neighbourTable->getValues();
   std::vector<std::shared_ptr<Block>> blocks =
       bundleContainer.getBundle().getBlocks();
   blocks.erase(blocks.begin());
@@ -81,7 +83,6 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
             std::static_pointer_cast<CodeDataCarrierMEB>(meb);
         LOG(55) << "There is the CodeDataCarrier MEB";
         m_worker1.setPath(m_config.getCodesPath());
-        LOG(55) << nm->getCode();
         try {
           m_worker1.generateFunction(nm->getCode());
         } catch (const WorkerException &e) {
@@ -90,9 +91,10 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
         m_parameters1 = nlohmann::json::parse(nm->getData());
         m_worker1.execute(m_parameters1);
         std::vector<std::string> result = m_worker1.getResult();
+        return result;
       }
     }
   }
-  return std::vector<std::string>();
+  return neighbours;
 }
 

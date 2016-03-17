@@ -83,6 +83,7 @@ file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
 
 install(TARGETS aDTNPlus_BasicBundleProcessor aDTNPlus_RoutingSelectionBundleProcessor
   aDTNPlus_ActiveForwardingBundleProcessor aDTNPlus_RouteReportingBundleProcessor
+  aDTNPlus_CodeDataCarrierBundleProcessor
   DESTINATION ${DATADIR}/Plugins)
   
 install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME} 
