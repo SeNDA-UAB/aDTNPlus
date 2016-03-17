@@ -29,16 +29,17 @@
 #include <string>
 
 #include "MetadataExtensionBlock.h"
+#include "ExternTools/json/json.hpp"
 
 class CodeDataCarrierMEB : public MetadataExtensionBlock {
  public:
   /**
    * @brief Constructor.
    *
-   * This will generate a new NewMEB.
+   * This will generate a new CodeDataCarrierMEB.
    *
    * @param code String that contains the code to forward the bundle.
-   * @param data
+   * @param data The parameters needed to excute de code.
    */
   CodeDataCarrierMEB(std::string code, std::string data);
   /**
@@ -46,7 +47,7 @@ class CodeDataCarrierMEB : public MetadataExtensionBlock {
    *
    * This will generate NewMEB from raw data.
    *
-   * @param rawData The raw data that contains the NewMEB.
+   * @param rawData The raw data that contains the CodeDataCarrierMEB.
    */
   explicit CodeDataCarrierMEB(const std::string& rawData);
   /**
@@ -54,13 +55,19 @@ class CodeDataCarrierMEB : public MetadataExtensionBlock {
    */
   virtual ~CodeDataCarrierMEB();
   /**
-   * @brief Parses a NewMEB from raw.
+   * @brief Parses a CodeDataCarrierMEB from raw.
    *
    * This function parses a NewMeb from raw saving the raw data into the block.
    *
    * @param rawData Raw data to parse.
    */
   void initFromRaw(const std::string& rawData);
+  /**
+   * Converts the CodeDataCarrierMEB in raw format.
+   *
+   * @return This block in raw format.
+   */
+  std::string toRaw();
   /**
    * Function to get the length of the code.
    *
@@ -78,7 +85,13 @@ class CodeDataCarrierMEB : public MetadataExtensionBlock {
    *
    * @return The data contained in the block.
    */
-  std::string getData();
+  nlohmann::json getData();
+  /**
+   * Set the data to the given value.
+   *
+   * @param data The parameters needed to execute the code.
+   */
+  void setData(std::string data);
 
 
  private:
@@ -91,9 +104,9 @@ class CodeDataCarrierMEB : public MetadataExtensionBlock {
    */
   std::string m_code;
   /**
-   *
+   * Parameters to execute the code.
    */
-  std::string m_data;
+  nlohmann::json m_data;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_CODEDATACARRIERMEB_H_

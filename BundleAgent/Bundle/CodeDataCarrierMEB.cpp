@@ -32,6 +32,7 @@
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Utils/Logger.h"
+#include "ExternTools/json/json.hpp"
 #include "Utils/SDNV.h"
 
 CodeDataCarrierMEB::CodeDataCarrierMEB(std::string code, std::string data)
@@ -41,14 +42,14 @@ CodeDataCarrierMEB::CodeDataCarrierMEB(std::string code, std::string data)
                        data) {
   m_codeLength = static_cast<uint16_t>(code.length());
   m_code = code;
-  m_data = data;
+  m_data = nlohmann::json::parse(data);
 }
 
 CodeDataCarrierMEB::CodeDataCarrierMEB(const std::string& rawData) {
   try {
     initFromRaw(rawData);
   } catch (...) {
-    throw BlockConstructionException("[NewMEB] Bad raw format");
+    throw BlockConstructionException("[CodeDataCarrierMEB] Bad raw format");
   }
 }
 
@@ -64,11 +65,24 @@ void CodeDataCarrierMEB::initFromRaw(const std::string& rawData) {
     size << m_codeLength;
     int codeLength = size.str().length();
     m_code = m_metadata.substr(codeLength, m_codeLength);
-    m_data = m_metadata.substr(
-        codeLength + m_codeLength, m_metadata.size());
+    m_data = nlohmann::json::parse(m_metadata.substr(
+        codeLength + m_codeLength, m_metadata.size()));
   } catch (const std::out_of_range& e) {
-    throw BlockConstructionException("[NewMEB] Bad raw format");
+    throw BlockConstructionException("[CodeDataCarrierMEB] Bad raw format");
   }
+}
+
+std::string CodeDataCarrierMEB::toRaw() {
+  LOG(39) << "Generating raw data from Code Data Carrier MEB";
+  m_metadata = std::to_string(m_code.length()) + m_code + m_data.dump();
+  std::stringstream ss;
+  ss << m_blockType;
+  ss << SDNV::encode(m_procFlags.to_ulong());
+  ss << SDNV::encode(SDNV::getLength(m_metadataType) + m_metadata.length());
+  ss << SDNV::encode(m_metadataType);
+  ss << m_metadata;
+  m_raw = ss.str();
+  return m_raw;
 }
 
 uint16_t CodeDataCarrierMEB::getCodeLength() {
@@ -79,7 +93,10 @@ std::string CodeDataCarrierMEB::getCode() {
   return m_code;
 }
 
-std::string CodeDataCarrierMEB::getData() {
+nlohmann::json CodeDataCarrierMEB::getData() {
   return m_data;
 }
 
+void CodeDataCarrierMEB::setData(std::string data) {
+  m_data = nlohmann::json::parse(data);
+}

@@ -19,7 +19,7 @@
  * AUTHOR clacambra
  * DATE 14/03/2016
  * VERSION 1
- * This file contains the implementation of the data and code carrier bundle container.
+ * This file contains the implementation of the data and code carrier bundle processor.
  */
 
 #include <string>
@@ -88,9 +88,13 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
         } catch (const WorkerException &e) {
           LOG(11) << "Cannot create code worker, reason: " << e.what();
         }
-        m_parameters1 = nlohmann::json::parse(nm->getData());
+        // m_parameters1 = nlohmann::json::parse(nm->getData());
+        m_parameters1 = nm->getData();
+        LOG(55) << "Neighbours in parameters: "
+            << m_parameters1["neighbours"].size();
         m_worker1.execute(m_parameters1);
         std::vector<std::string> result = m_worker1.getResult();
+        LOG(55) << "Neighbours after forward: " << result.size();
         return result;
       }
     }

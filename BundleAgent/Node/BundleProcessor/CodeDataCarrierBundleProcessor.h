@@ -20,7 +20,7 @@
  * AUTHOR clacambra
  * DATE 14/03/2016
  * VERSION 1
- * This file contains the specification of the data and code carrier bundle container.
+ * This file contains the specification of the data and code carrier bundle processor.
  */
 
 #include <vector>
@@ -39,7 +39,7 @@ class CodeDataCarrierBundleProcessor : public BasicBundleProcessor {
   /**
    * @brief Constructor.
    *
-   * This will generate a NewProcessor.
+   * This will generate a CodeDataCarrierBundleProcessor.
    */
   CodeDataCarrierBundleProcessor();
   /**
@@ -47,7 +47,7 @@ class CodeDataCarrierBundleProcessor : public BasicBundleProcessor {
    */
   virtual ~CodeDataCarrierBundleProcessor();
   /**
-   * This function checks if there is a NewMEB in the bundle. If so,
+   * This function checks if there is a CodeDataCarrierMEB in the bundle. If so,
    * implements the code inside it.
    */
   std::vector<std::string> checkForward(BundleContainer &bundleContainer);
