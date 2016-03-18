@@ -31,6 +31,13 @@
 #include "MetadataExtensionBlock.h"
 #include "ExternTools/json/json.hpp"
 
+class JSONException : public std::invalid_argument {
+ public:
+  explicit JSONException(const std::string &what)
+      : invalid_argument(what) {
+  }
+};
+
 class CodeDataCarrierMEB : public MetadataExtensionBlock {
  public:
   /**

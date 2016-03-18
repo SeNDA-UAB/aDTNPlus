@@ -12,6 +12,7 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/CodeDataCarrierMEB.h"
+#include "Utils/Logger.h"
 
 static void help(std::string program_name) {
   std::cout << program_name << " is part of the SeNDA aDTNPlus platform\n"
@@ -106,9 +107,10 @@ int main(int argc, char **argv) {
           "return info[\"neighbours\"];";
       std::string data =
           "{ \"neighbours\" : [\"node1\", \"node2\"], \"from\" : \"node1\"}";
+
       std::shared_ptr<CodeDataCarrierMEB> nm =
-                std::make_shared<CodeDataCarrierMEB>(CodeDataCarrierMEB(
-                    code, data));
+          std::make_shared<CodeDataCarrierMEB>(CodeDataCarrierMEB(
+              code, data));
       b.addBlock(nm);
 
       sockaddr_in remoteAddr = { 0 };
