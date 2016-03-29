@@ -17,6 +17,7 @@ class Bundle {
 	+getBlocks() : std::vector<Block *>
 	+addBlock(newBlock : CanonicalBlock*) : void
 	+getId() : std::string
+	+getFwkExt(FwkId : uint8_t, ExtId : uint8_t) : std::shared_ptr<FwkExt>
 }
 
 abstract class Block {
@@ -55,15 +56,15 @@ class MetadataExtensionBlock {
 
 class FwkMEB {
 	-m_fwkId : uint8_t
-	-m_fwkExts : std::vector<FwkExt *>
+	-m_fwkExts : std::map<uint8_t, std::shared_ptr<FwkExt>>
 	-m_bundleState : std::string
 	+FwkMEB(rawData : std::string)
-	+FwkMEB(fwkId : uint8_t, extensions : std::vector<FwkExt *>, state : std::string)
+	+FwkMEB(fwkId : uint8_t, extensions : std::map<uint8_t, std::shared_ptr<FwkExt>>, state : std::string)
 	+~FwkMEB()
 	+toRaw() : std::string
 	+getFwkId() : uint8_t
-	+getFwkExts() : std::vector<FwkExt *>
-	+getBundleState() : StateManager* 
+	+getFwkExts() : std::map<uint8_t, std::shared_ptr<FwkExt>>
+	+getFwkExt(ExtId : uint8_t) : std::shared_ptr<FwkExt>
 }
 note bottom: m_metadataType is 0x05
 
