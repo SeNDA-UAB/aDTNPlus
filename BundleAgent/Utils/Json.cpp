@@ -40,12 +40,6 @@ Json::reference Json::operator[](const typename object_t::key_type &key) {
   reference r = nlohmann::json::operator[](key);
   if (key == "neighbours") {
     r = nlohmann::json(m_neighbourTable->getValues());
-  } else if (key == "from") {
-    r = nlohmann::json(m_lastFrom);
   }
   return r;
-}
-
-void Json::setLastFrom(std::string lastFrom) {
-  m_lastFrom = lastFrom;
 }

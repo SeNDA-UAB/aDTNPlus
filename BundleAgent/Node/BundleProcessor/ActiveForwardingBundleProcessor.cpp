@@ -64,7 +64,6 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
           == MetadataTypes::FORWARDING_MEB) {
         std::shared_ptr<ForwardingMEB> fmeb = std::static_pointer_cast<
             ForwardingMEB>(meb);
-        std::string source = bundleContainer.getFrom();
         std::string header = "#include <vector>\n"
             "#include <string>\n"
             "#include <algorithm>\n"
@@ -81,17 +80,11 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         Worker<std::vector<std::string>, Json> worker(
             header, footer, functionName, commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
-        m_nodeState.setLastFrom(bundleContainer.getFrom());
         worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
         return result;
       }
     }
-  }
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
   }
   return neighbours;
 }

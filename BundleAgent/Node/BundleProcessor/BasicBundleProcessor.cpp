@@ -174,7 +174,7 @@ void BasicBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
     std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
-      new BundleContainer(from->getId(), std::move(bundle)));
+      new BundleContainer(std::move(bundle)));
 }
 
 bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
@@ -198,18 +198,12 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
-    m_nodeState.setLastFrom(bundleContainer.getFrom());
     m_worker.execute(m_nodeState);
     return m_worker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing anti-rebooting.";
     LOG(55) << "Removing bundle source if we have it as neighbour.";
-    auto it = std::find(neighbours.begin(), neighbours.end(),
-                        bundleContainer.getFrom());
-    if (it != neighbours.end()) {
-      neighbours.erase(it);
-    }
     return neighbours;
   }
 }

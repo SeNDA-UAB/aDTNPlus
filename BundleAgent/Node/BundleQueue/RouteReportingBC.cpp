@@ -35,18 +35,17 @@
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
 
-
 RouteReportingBC::RouteReportingBC(std::string nodeId, time_t arrivalTime,
                                    time_t departureTime,
                                    std::unique_ptr<Bundle> bundle)
-: BundleContainer(nodeId, std::move(bundle)) {
+    : BundleContainer(std::move(bundle)) {
   m_nodeId = nodeId;
   m_arrivalTime = arrivalTime;
   m_departureTime = departureTime;
 }
 
 RouteReportingBC::RouteReportingBC(const std::string &data)
-:BundleContainer() {
+    : BundleContainer() {
   deserialize(data);
 }
 
@@ -67,9 +66,9 @@ time_t RouteReportingBC::getDepartureTime() {
 
 std::string RouteReportingBC::serialize() {
   std::stringstream ss;
-  ss << m_header << m_from << std::ends << m_bundle->toRaw()
-     << std::endl << std::to_string(m_arrivalTime)
-     << std::endl << std::to_string(m_departureTime) << m_footer;
+  ss << m_header << m_state << std::endl << m_bundle->toRaw() << std::endl
+     << std::to_string(m_arrivalTime) << std::endl
+     << std::to_string(m_departureTime) << m_footer;
   return ss.str();
 }
 
@@ -85,13 +84,12 @@ void RouteReportingBC::deserialize(const std::string &data) {
     std::string newData = data.substr(headerSize);
     size.clear();
     size.str(std::string());
-    // Get the neighbour id
-    char buff[1024];
-    snprintf(&buff[0], sizeof(buff), "%s", newData.c_str());
-    int length = strlen(buff);
-    m_from = std::string(buff);
-    // Remove node id and \0
-    newData = newData.substr(length + 1);
+    // Get the state
+    std::stringstream aux(newData);
+    std::string state;
+    aux >> state;
+    m_state = nlohmann::json::parse(state);
+    aux >> newData;
     size_t position = newData.find("\n");
     size << m_footer;
     int footerSize = size.str().length();
@@ -106,15 +104,15 @@ void RouteReportingBC::deserialize(const std::string &data) {
       throw BundleContainerCreationException(
           "[BundleContainer] Bad bundle raw format");
     }
-    m_nodeId = m_from;
+    m_nodeId = "";
     // int pos = newData.find("\n");
     std::string subData = newData.substr(position + 1, data.size());
     position = subData.find("\n");
     std::string arrivalTime = subData.substr(0, position);
     m_arrivalTime = atoi(arrivalTime.c_str());
     subData = subData.substr(position + 1, subData.size());
-    std::string departureTime = subData.substr(
-        0, subData.size() - (footerSize));
+    std::string departureTime = subData.substr(0,
+                                               subData.size() - (footerSize));
     m_departureTime = atoi(departureTime.c_str());
     uint16_t footer = std::atoi(
         newData.substr(newData.length() - (footerSize)).c_str());
@@ -130,8 +128,8 @@ void RouteReportingBC::deserialize(const std::string &data) {
 
 std::string RouteReportingBC::toString() {
   std::stringstream ss;
-  ss << "From: " << m_from << std::endl << "Bundle: " << std::endl
-     << m_bundle->toString() << std::endl << "Arrival time: "
+  ss << "From: " << std::setw(2) << m_state << std::endl << "Bundle: "
+     << std::endl << m_bundle->toString() << std::endl << "Arrival time: "
      << std::asctime(std::localtime(&m_arrivalTime)) << std::endl
      << "Departure time: " << std::asctime(std::localtime(&m_departureTime));
   return ss.str();

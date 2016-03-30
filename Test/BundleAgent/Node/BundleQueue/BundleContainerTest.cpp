@@ -32,44 +32,62 @@ TEST(BundleContainerTest, GenerateContainer) {
   std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
   Bundle b1 = *b.get();
-  BundleContainer bc = BundleContainer("Me", std::move(b));
-  ASSERT_EQ("Me", bc.getFrom());
+  BundleContainer bc = BundleContainer(std::move(b));
+  ASSERT_EQ(nlohmann::json(), bc.getState());
   ASSERT_EQ(b1.toRaw(), bc.getBundle().toRaw());
 }
 
 TEST(BundleContainerTest, SerializeAndDeserialize) {
   std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("You", std::move(b));
+  BundleContainer bc = BundleContainer(std::move(b));
   std::string data = bc.serialize();
   std::unique_ptr<BundleContainer> sbc = std::unique_ptr<BundleContainer>(
       new BundleContainer(data));
-  ASSERT_EQ(bc.getFrom(), sbc->getFrom());
+  ASSERT_EQ(bc.getState(), sbc->getState());
+  ASSERT_EQ(bc.getBundle().toRaw(), sbc->getBundle().toRaw());
+
+}
+
+TEST(BundleContainerTest, SerializeAndDeserializeWithChange) {
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle"));
+  BundleContainer bc = BundleContainer(std::move(b));
+  std::string data = bc.serialize();
+  std::unique_ptr<BundleContainer> sbc = std::unique_ptr<BundleContainer>(
+      new BundleContainer(data));
+  ASSERT_EQ(bc.getState(), sbc->getState());
+  ASSERT_EQ(bc.getBundle().toRaw(), sbc->getBundle().toRaw());
+  nlohmann::json state = bc.getState();
+  state["this"] = "hi";
+  data = bc.serialize();
+  sbc = std::unique_ptr<BundleContainer>(new BundleContainer(data));
+  ASSERT_EQ(bc.getState(), sbc->getState());
   ASSERT_EQ(bc.getBundle().toRaw(), sbc->getBundle().toRaw());
 }
 
 TEST(BundleContainerTest, BadSerialized) {
   std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("You", std::move(b));
+  BundleContainer bc = BundleContainer(std::move(b));
   std::string data = bc.serialize();
   // Check a bad header
   data[0] = '0';
-  ASSERT_THROW(new BundleContainer(data),
-               BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data), BundleContainerCreationException);
   data = bc.serialize();
   // Check a bad footer
   data.back() = '0';
-  ASSERT_THROW(new BundleContainer(data),
-               BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data), BundleContainerCreationException);
   data = bc.serialize();
   // Check larger footer
   data.append("4");
-  ASSERT_THROW(new BundleContainer(data),
-               BundleContainerCreationException);
+  ASSERT_THROW(new BundleContainer(data), BundleContainerCreationException);
   // Check bad bundle
   data = bc.serialize();
-  data[10] = '5';
-  ASSERT_THROW(new BundleContainer(data),
-               BundleContainerCreationException);
+  data[11] = '5';
+  ASSERT_THROW(new BundleContainer(data), BundleContainerCreationException);
+  // Check bad json
+  data = bc.serialize();
+  data[8] = '5';
+  ASSERT_THROW(new BundleContainer(data), BundleContainerCreationException);
 }

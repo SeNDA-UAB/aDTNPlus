@@ -64,22 +64,12 @@ class Json : public nlohmann::json {
    * @return A reference to the key element.
    */
   reference operator[](const typename object_t::key_type &key);
-  /**
-   * Sets the last from element.
-   *
-   * @param lastFrom From field of the bundleContainer.
-   */
-  void setLastFrom(std::string lastFrom);
 
  private:
   /**
    * Variable that holds the neighbour table.
    */
   std::shared_ptr<NeighbourTable> m_neighbourTable;
-  /**
-   * Variable that holds the last from field.
-   */
-  std::string m_lastFrom;
 };
 
 #endif  // BUNDLEAGENT_UTILS_JSON_H_

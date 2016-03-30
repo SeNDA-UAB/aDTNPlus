@@ -42,7 +42,7 @@ TEST(RouteReportingBCTest, FilledConstructor) {
   RouteReportingBC rrbc = RouteReportingBC("node1", t1, t2, std::move(b));
 
   ASSERT_EQ("node1", rrbc.getNodeId());
-  ASSERT_EQ(rrbc.getNodeId(), rrbc.getFrom());
+  //ASSERT_EQ(rrbc.getNodeId(), rrbc.getFrom());
   ASSERT_EQ(t1, rrbc.getArrivalTime());
   ASSERT_EQ(t2, rrbc.getDepartureTime());
   ASSERT_EQ(b1.toRaw(), rrbc.getBundle().toRaw());
@@ -61,7 +61,7 @@ TEST(RouteReportingBCTest, RawConstructor) {
 
   RouteReportingBC rrbc2 = RouteReportingBC(rrbc_serialized);
   ASSERT_EQ(rrbc.getNodeId(), rrbc2.getNodeId());
-  ASSERT_EQ(rrbc2.getNodeId(), rrbc2.getFrom());
+  //ASSERT_EQ(rrbc2.getNodeId(), rrbc2.getFrom());
   ASSERT_EQ(rrbc.getBundle().toRaw(), rrbc2.getBundle().toRaw());
   ASSERT_EQ(rrbc.getArrivalTime(), rrbc2.getArrivalTime());
   ASSERT_EQ(rrbc.getDepartureTime(), rrbc2.getDepartureTime());
@@ -91,7 +91,7 @@ TEST(RouteReportingBCTest, toStringMethod) {
 TEST(RouteReportingBCTest, BadSerialized) {
   std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
       new Bundle("Me", "Someone", "This is a test bundle"));
-  BundleContainer bc = BundleContainer("You", std::move(b));
+  BundleContainer bc = BundleContainer(std::move(b));
   std::string data = bc.serialize();
   // Check a bad header
   data[0] = '0';
