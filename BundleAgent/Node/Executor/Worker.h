@@ -37,7 +37,6 @@
 #include <functional>
 #include <memory>
 #include <map>
-#include "Utils/Logger.h"
 
 class SigFaultException : public std::runtime_error {
  public:
@@ -266,7 +265,6 @@ class Worker {
    * Vector with all the generated names.
    */
   std::map<std::string, uint8_t*> m_fileNames;
-}
-;
+};
 
 #endif  // BUNDLEAGENT_NODE_EXECUTOR_WORKER_H_
