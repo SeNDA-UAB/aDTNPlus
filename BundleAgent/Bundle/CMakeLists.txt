@@ -10,3 +10,13 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/RouteReportingMEB.cpp
   PARENT_SCOPE
 )
+
+install(FILES 
+  Bundle.h 
+  Block.h
+  BundleTypes.h
+  CanonicalBlock.h
+  MetadataExtensionBlock.h
+  PayloadBlock.h
+  PrimaryBlock.h
+  DESTINATION include/adtnPlus/Bundle)
