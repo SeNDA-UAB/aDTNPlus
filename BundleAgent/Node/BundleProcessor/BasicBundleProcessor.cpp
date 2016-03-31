@@ -52,6 +52,7 @@ NEW_PLUGIN(BasicBundleProcessor,
 const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
+    "#include <cstdlib>\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     " std::vector<std::string> f(Json nodeState) {";
