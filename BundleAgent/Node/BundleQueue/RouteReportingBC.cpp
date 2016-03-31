@@ -88,8 +88,14 @@ void RouteReportingBC::deserialize(const std::string &data) {
     std::stringstream aux(newData);
     std::string state;
     aux >> state;
-    m_state = nlohmann::json::parse(state);
-    aux >> newData;
+    try {
+      m_state = nlohmann::json::parse(state);
+    } catch (const std::invalid_argument &e) {
+      std::stringstream error;
+      error << "[BundleContainer] Bad state format: " << e.what();
+      throw BundleContainerCreationException(error.str());
+    }
+    newData = aux.str().substr(state.size() + 1);
     size_t position = newData.find("\n");
     size << m_footer;
     int footerSize = size.str().length();
