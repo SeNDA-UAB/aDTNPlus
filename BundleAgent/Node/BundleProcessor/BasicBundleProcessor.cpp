@@ -62,19 +62,29 @@ const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
     "extern \"C\" {"
     "const uint64_t g_timeFrom2000 = 946684800;"
     "bool f(Json nodeState, Bundle bundle) {";
+const std::string BasicBundleProcessor::m_destinationHeader =
+    "#include <string>\n"
+        "#include \"adtnPlus/Json.h\"\n"
+        "#include \"Bundle/Bundle.h\"\n"
+        "extern \"C\" {"
+        "bool f(Json nodeState, Bundle bundle) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
     : m_forwardWorker(m_forwardHeader, m_footer, "f", m_commandLine, "./"),
-      m_lifeWorker(m_lifeHeader, m_footer, "f", m_commandLine, "./") {
+      m_lifeWorker(m_lifeHeader, m_footer, "f", m_commandLine, "./"),
+      m_destinationWorker(m_destinationHeader, m_footer, "f", m_commandLine,
+                          "./") {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
-  std::ofstream nodeState(m_config.getNodeStatePath());
-  nodeState << m_nodeState.dump(2);
-  nodeState.close();
+  if (!m_nodeState.empty()) {
+    std::ofstream nodeState(m_config.getNodeStatePath());
+    nodeState << m_nodeState.dump(2);
+    nodeState.close();
+  }
 }
 
 void BasicBundleProcessor::start(
@@ -87,19 +97,28 @@ void BasicBundleProcessor::start(
   m_nodeState.start(m_neighbourTable);
   m_forwardWorker.setPath(m_config.getCodesPath());
   m_lifeWorker.setPath(m_config.getCodesPath());
+  m_destinationWorker.setPath(m_config.getCodesPath());
   if (nodeState) {
-    nodeState >> m_nodeState;
-    m_oldNodeState = m_nodeState;
-    nodeState.close();
-    std::string defaultForwardingCode =
-        m_nodeState["configuration"]["defaultCodes"]["forwarding"];
-    std::string defaultLifeCode =
-        m_nodeState["configuration"]["defaultCodes"]["lifetime"];
     try {
-      m_forwardWorker.generateFunction(defaultForwardingCode);
-      m_lifeWorker.generateFunction(defaultLifeCode);
-    } catch (const WorkerException &e) {
-      LOG(11) << "Cannot create code worker, reason: " << e.what();
+      nodeState >> m_nodeState;
+      m_oldNodeState = m_nodeState;
+      nodeState.close();
+      std::string defaultForwardingCode =
+          m_nodeState["configuration"]["defaultCodes"]["forwarding"];
+      std::string defaultLifeCode =
+          m_nodeState["configuration"]["defaultCodes"]["lifetime"];
+      std::string defaultDestinationCode =
+          m_nodeState["configuration"]["defaultCodes"]["destination"];
+      try {
+        m_forwardWorker.generateFunction(defaultForwardingCode);
+        m_lifeWorker.generateFunction(defaultLifeCode);
+        m_destinationWorker.generateFunction(defaultDestinationCode);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create code worker, reason: " << e.what();
+      }
+    } catch (const std::invalid_argument &e) {
+      LOG(1) << "Error in NodeState json: " << e.what();
+      g_stop = true;
     }
   } else {
     LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
@@ -190,10 +209,13 @@ std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
 }
 
 bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
-  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
-      ->getDestination();
-  std::string destinationId = destination.substr(0, destination.find(":"));
-  return destinationId == m_config.getNodeId();
+  try {
+    m_destinationWorker.execute(m_nodeState, bundleContainer.getBundle());
+    return m_destinationWorker.getResult();
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot execute code, reason: " << e.what();
+  }
+  return false;
 }
 
 std::vector<std::string> BasicBundleProcessor::checkDispatch(
@@ -215,7 +237,6 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing flooding.";
-    LOG(55) << "Removing bundle source if we have it as neighbour.";
     return neighbours;
   }
 }
@@ -227,13 +248,7 @@ bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot create code worker, reason: " << e.what();
   }
-  uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
-      ->getCreationTimestamp();
-  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
-      < (time(NULL) - g_timeFrom2000 - creationTimestamp))
-    return true;
-  else
-    return false;
+  return false;
 }
 
 void BasicBundleProcessor::checkNodeStateChanges() {
