@@ -51,8 +51,6 @@ std::string FrameworkExtension::getSwSrcCode() {
 bool FrameworkExtension::operator ==(const FrameworkExtension &fe) const {
   bool id = m_fwkExtId == fe.m_fwkExtId;
   bool code = m_swSrcCode == fe.m_swSrcCode;
-  // std::cout << "ext id: " << m_fwkExtId << " fe id: " << fe.m_fwkExtId << " equals: " << id << std::endl;
-  // std::cout << "ext code: " << m_swSrcCode << " fe code: " << fe.m_swSrcCode << " equals: " << code << std::endl << std::flush;
   return (id && code);
 }
 

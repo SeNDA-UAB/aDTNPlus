@@ -64,22 +64,26 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
           == MetadataTypes::FORWARDING_MEB) {
         std::shared_ptr<ForwardingMEB> fmeb = std::static_pointer_cast<
             ForwardingMEB>(meb);
-        std::string source = bundleContainer.getFrom();
+        std::string header = "#include <vector>\n"
+            "#include <string>\n"
+            "#include <algorithm>\n"
+            "#include \"adtnPlus/Json.h\"\n"
+            "extern \"C\" {std::vector<std::string> "
+            "activeForwardingAlgorithm("
+            "Json nodeState) {";
+        std::string footer = "}}";
+        std::string functionName = "activeForwardingAlgorithm";
+        std::string commandLine =
+            "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
         Worker<std::vector<std::string>, Json> worker(
-            m_header, m_footer, "f", m_commandLine, m_config.getCodesPath());
+            header, footer, functionName, commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
-        m_nodeState.setLastFrom(bundleContainer.getFrom());
         worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
         return result;
       }
     }
-  }
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
   }
   return neighbours;
 }
