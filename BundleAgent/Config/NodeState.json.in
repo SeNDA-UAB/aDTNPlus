@@ -1,7 +1,9 @@
 {
   "configuration" : {
     "defaultCodes" : {
-      "forwarding" : "auto neighbours = nodeState[\"neighbours\"]; std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() % neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;"
+      "forwarding" : "auto neighbours = nodeState[\"neighbours\"]; std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() % neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;",
+      "lifetime" : "uint64_t creationTimestamp = bundle.getPrimaryBlock()->getCreationTimestamp(); if(bundle.getPrimaryBlock()->getLifetime() < (time(NULL) - g_timeFrom2000 - creationTimestamp)) return true; else return false;",
+      "destination" : ""
     },
     "logLevel" : ${log_level}
   },

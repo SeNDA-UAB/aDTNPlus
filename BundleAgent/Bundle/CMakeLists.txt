@@ -19,4 +19,4 @@ install(FILES
   MetadataExtensionBlock.h
   PayloadBlock.h
   PrimaryBlock.h
-  DESTINATION include/adtnPlus/Bundle)
+  DESTINATION include/Bundle)

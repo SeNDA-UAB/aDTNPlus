@@ -49,19 +49,26 @@ NEW_PLUGIN(BasicBundleProcessor,
     "Forwards a bundle this processor only checks for anti-rebooting.")
 #endif
 
-const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
+const std::string BasicBundleProcessor::m_forwardHeader = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
     "#include <cstdlib>\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     " std::vector<std::string> f(Json nodeState) {";
+const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
+    "#include \"Bundle/Bundle.h\"\n"
+    "#include \"adtnPlus/Json.h\"\n"
+    "extern \"C\" {"
+    "const uint64_t g_timeFrom2000 = 946684800;"
+    "bool f(Json nodeState, Bundle bundle) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
-    : m_worker(m_header, m_footer, "f", m_commandLine, "./") {
+    : m_forwardWorker(m_forwardHeader, m_footer, "f", m_commandLine, "./"),
+      m_lifeWorker(m_lifeHeader, m_footer, "f", m_commandLine, "./") {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
@@ -78,15 +85,19 @@ void BasicBundleProcessor::start(
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
   m_nodeState.start(m_neighbourTable);
-  m_worker.setPath(m_config.getCodesPath());
+  m_forwardWorker.setPath(m_config.getCodesPath());
+  m_lifeWorker.setPath(m_config.getCodesPath());
   if (nodeState) {
     nodeState >> m_nodeState;
     m_oldNodeState = m_nodeState;
     nodeState.close();
-    std::string defaultCode =
+    std::string defaultForwardingCode =
         m_nodeState["configuration"]["defaultCodes"]["forwarding"];
+    std::string defaultLifeCode =
+        m_nodeState["configuration"]["defaultCodes"]["lifetime"];
     try {
-      m_worker.generateFunction(defaultCode);
+      m_forwardWorker.generateFunction(defaultForwardingCode);
+      m_lifeWorker.generateFunction(defaultLifeCode);
     } catch (const WorkerException &e) {
       LOG(11) << "Cannot create code worker, reason: " << e.what();
     }
@@ -199,17 +210,23 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
-    m_worker.execute(m_nodeState);
-    return m_worker.getResult();
+    m_forwardWorker.execute(m_nodeState);
+    return m_forwardWorker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
-            << " Executing anti-rebooting.";
+            << " Executing flooding.";
     LOG(55) << "Removing bundle source if we have it as neighbour.";
     return neighbours;
   }
 }
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
+  try {
+    m_lifeWorker.execute(m_nodeState, bundleContainer.getBundle());
+    return m_lifeWorker.getResult();
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot create code worker, reason: " << e.what();
+  }
   uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
       ->getCreationTimestamp();
   if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
@@ -237,10 +254,18 @@ void BasicBundleProcessor::checkNodeStateChanges() {
     if (code.compare(
         m_oldNodeState["configuration"]["defaultCodes"]["forwarding"]) != 0) {
       try {
-        m_worker.generateFunction(
-            m_nodeState["configuration"]["defaultCodes"]["forwarding"]);
+        m_forwardWorker.generateFunction(code);
       } catch (const WorkerException &e) {
-        LOG(11) << "Cannot create code worker, reason: " << e.what();
+        LOG(11) << "Cannot create forward code worker, reason: " << e.what();
+      }
+    }
+    code = m_nodeState["configuration"]["defaultCodes"]["lifetime"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["lifetime"]) != 0) {
+      try {
+        m_lifeWorker.generateFunction(code);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create life code worker, reason: " << e.what();
       }
     }
     m_oldNodeState = m_nodeState;

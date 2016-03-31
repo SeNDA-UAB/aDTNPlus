@@ -112,7 +112,9 @@ class BasicBundleProcessor : public BundleProcessor {
   /**
    * Worker to execute default forwarding code.
    */
-  Worker<std::vector<std::string>, Json> m_worker;
+  Worker<std::vector<std::string>, Json> m_forwardWorker;
+
+  Worker<bool, Json, Bundle> m_lifeWorker;
   /**
    * Variable that holds the parameters used in the processor calls.
    */
@@ -122,7 +124,8 @@ class BasicBundleProcessor : public BundleProcessor {
    */
   Json m_oldNodeState;
 
-  static const std::string m_header;
+  static const std::string m_forwardHeader;
+  static const std::string m_lifeHeader;
   static const std::string m_footer;
   static const std::string m_commandLine;
 };
