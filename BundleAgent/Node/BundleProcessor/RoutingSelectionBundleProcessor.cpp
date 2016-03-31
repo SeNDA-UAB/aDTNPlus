@@ -75,10 +75,5 @@ std::vector<std::string> RoutingSelectionBundleProcessor::checkForward(
       }
     }
   }
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
-  }
   return neighbours;
 }
