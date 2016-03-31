@@ -33,6 +33,7 @@
 #include "Bundle/PayloadBlock.h"
 #include "Bundle/Block.h"
 #include "Bundle/CanonicalBlock.h"
+#include "Bundle/FrameworkExtension.h"
 
 class BundleCreationException : public std::runtime_error {
  public:
@@ -45,6 +46,13 @@ class BundleException : public std::runtime_error {
  public:
   explicit BundleException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class FrameworkNotFounException : public std::runtime_error {
+ public:
+  explicit FrameworkNotFounException(const std::string &what)
+    : runtime_error(what) {
   }
 };
 
@@ -140,6 +148,11 @@ class Bundle {
    * @return The string with the bundle information.
    */
   std::string toString();
+  /**
+   *
+   */
+  std::shared_ptr<FrameworkExtension> getFwkExt(uint8_t fwkId,
+                                                uint8_t fwkExtId);
 
  private:
   /**

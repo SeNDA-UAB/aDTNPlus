@@ -9,5 +9,7 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/RoutingSelectionMEB.cpp
   Bundle/RouteReportingMEB.cpp
   Bundle/CodeDataCarrierMEB.cpp
+  Bundle/FrameworkMEB.cpp
+  Bundle/FrameworkExtension.cpp
   PARENT_SCOPE
 )

@@ -62,12 +62,18 @@ enum class MetadataTypes : uint8_t {
   ROUTING_SELECTION_MEB = 0x02,
   FORWARDING_MEB = 0x03,
   ROUTE_REPORTING_MEB = 0x04,
-  CODE_DATA_CARRIER_MEB = 0x05
+  CODE_DATA_CARRIER_MEB = 0x05,
+  FRAMEWORK_MEB = 0x06
 };
 
 enum class RoutingAlgorithms : uint8_t {
   ANTI_REBOTING = 0x01,
   FLOODING = 0x02
+};
+
+enum class FrameworksIds : uint8_t {
+  FWK_1 = 0x01,
+  FWK_2 = 0x02
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

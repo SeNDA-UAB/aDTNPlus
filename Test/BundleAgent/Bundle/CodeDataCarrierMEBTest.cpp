@@ -61,7 +61,6 @@ TEST(CodeDataCarrierMEBTest, RawConstructor) {
       code + data;
   uint16_t codeLength = static_cast<uint16_t>(
       std::stoi(std::to_string(code.length())));
-
   CodeDataCarrierMEB nm = CodeDataCarrierMEB(code, data);
   std::string rawData = nm.toRaw();
   CodeDataCarrierMEB nm2 = CodeDataCarrierMEB(rawData);

@@ -27,6 +27,7 @@
 #include <vector>
 #include <utility>
 #include <sstream>
+#include <map>
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
@@ -39,6 +40,8 @@
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
 
 Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
@@ -98,6 +101,12 @@ Bundle::Bundle(const std::string &rawData)
               LOG(35) << "Generating New Metadata Extension Block";
               b = std::make_shared<CodeDataCarrierMEB>(
                   CodeDataCarrierMEB(data));
+              break;
+            }
+            case MetadataTypes::FRAMEWORK_MEB: {
+              LOG(35) << "Generating New Framework Metadata Extension Block";
+              b = std::make_shared<FrameworkMEB>(FrameworkMEB(data));
+              break;
             }
           }
           break;
@@ -206,4 +215,34 @@ std::string Bundle::toString() {
     ss << m_blocks[i]->toString();
   }
   return ss.str();
+}
+
+std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(
+    uint8_t fwkId, uint8_t fwkExtId) {
+  std::shared_ptr<FrameworkExtension> fext;
+  std::vector<std::shared_ptr<Block>> blocks = m_blocks;
+  blocks.erase(blocks.begin());
+  for (std::shared_ptr<Block> block : m_blocks) {
+    std::shared_ptr<CanonicalBlock> cb =
+        std::static_pointer_cast<CanonicalBlock>(block);
+    if (static_cast<CanonicalBlockTypes>(cb->getBlockType()) ==
+        CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      std::shared_ptr<MetadataExtensionBlock> meb =
+          std::static_pointer_cast<MetadataExtensionBlock>(cb);
+      if (static_cast<MetadataTypes>(meb->getMetadataType()) ==
+          MetadataTypes::FRAMEWORK_MEB) {
+        std::shared_ptr<FrameworkMEB> fmeb =
+            std::static_pointer_cast<FrameworkMEB>(meb);
+        if (fmeb->getFwkId() == fwkId) {
+          fext = fmeb->getFwkExts()[fwkExtId];
+        }
+      }
+    }
+  }
+  if (fext != NULL) {
+    return fext;
+  } else {
+    throw FrameworkNotFounException(
+          "[Bundle] Framework extension not found.");
+  }
 }
