@@ -60,6 +60,12 @@ add_library(aDTNPlus_RouteReportingBundleProcessor MODULE
   Node/BundleProcessor/RouteReportingBundleProcessor.cpp
 )
 
+add_library(aDTNPlus_CodeDataCarrierBundleProcessor MODULE
+  Node/BundleProcessor/BundleProcessor.cpp 
+  Node/BundleProcessor/BasicBundleProcessor.cpp 
+  Node/BundleProcessor/CodeDataCarrierBundleProcessor.cpp
+)
+
 # Configure adtn.ini: change node id, and default bundle path
 execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME)
 string(REGEX REPLACE "(\r?\n)+$" "" hostname "${HOSTNAME}")
@@ -77,6 +83,7 @@ file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
 
 install(TARGETS aDTNPlus_BasicBundleProcessor aDTNPlus_RoutingSelectionBundleProcessor
   aDTNPlus_ActiveForwardingBundleProcessor aDTNPlus_RouteReportingBundleProcessor
+  aDTNPlus_CodeDataCarrierBundleProcessor
   DESTINATION ${DATADIR}/Plugins)
   
 install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME} 

@@ -76,7 +76,6 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         std::string commandLine =
             "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
-
         Worker<std::vector<std::string>, Json> worker(
             header, footer, functionName, commandLine, m_config.getCodesPath());
         worker.generateFunction(code);

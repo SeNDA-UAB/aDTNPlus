@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstring>
 
+#include "Bundle/Bundle.h"
+
 static void help(std::string program_name) {
   std::cout
       << program_name << " is part of the SeNDA aDTNPlus platform\n"

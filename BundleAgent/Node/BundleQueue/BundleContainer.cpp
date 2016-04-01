@@ -29,6 +29,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <iostream>
+
 #include "Bundle/Bundle.h"
 #include <iostream>
 

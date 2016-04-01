@@ -5,6 +5,7 @@ include_directories(../BundleAgent)
 set(TEST_EXEC BundleAgent_test)
 
 file(GLOB_RECURSE TEST_SRC_FILES "BundleAgent/*.cpp")
+#set(TEST_SRC_FILES BundleAgent/main.cpp BundleAgent/Bundle/FrameworkMEBTest.cpp)
 
 add_executable(${TEST_EXEC} ${TEST_SRC_FILES})
 target_link_libraries(${TEST_EXEC} BundleAgent_lib ${CMAKE_DL_LIBS} gtest)
