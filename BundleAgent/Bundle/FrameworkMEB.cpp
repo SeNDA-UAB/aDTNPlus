@@ -165,10 +165,11 @@ std::string FrameworkMEB::getBundleState() {
 }
 
 std::shared_ptr<FrameworkExtension> FrameworkMEB::getFwkExt(uint8_t fwkExtId) {
-  std::shared_ptr<FrameworkExtension> fwkExt = m_fwkExts[fwkExtId];
+  /*std::shared_ptr<FrameworkExtension> fwkExt = m_fwkExts[fwkExtId];
   if (fwkExt == NULL) {
     return std::nullptr_t();
   }
-  return fwkExt;
+  return fwkExt;*/
+  return m_fwkExts[fwkExtId];
 }
 

@@ -263,3 +263,24 @@ TEST(FrameworkMEBTest, Test) {
   ASSERT_EQ(fmeb.getBundleState(), fmeb2.getBundleState());
 }
 
+TEST(FrameworkMEBTest, GetFwkExt) {
+  uint8_t fwkId = 1;
+  std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
+  std::string state = "state";
+
+  uint8_t fwkExtId = 2;
+  std::string code = "code";
+  std::shared_ptr<FrameworkExtension> ext =
+      std::shared_ptr<FrameworkExtension>(
+          new FrameworkExtension(fwkExtId, code));
+  extensions.insert(std::pair<uint8_t, std::shared_ptr<FrameworkExtension>>
+                    (fwkExtId, ext));
+
+  FrameworkMEB fmeb = FrameworkMEB(fwkId, extensions, state);
+
+  std::shared_ptr<FrameworkExtension> fext2;
+
+  ASSERT_EQ(fmeb.getFwkExt(fwkExtId), ext);
+  ASSERT_EQ(fmeb.getFwkExt(fwkId), fext2);
+}
+

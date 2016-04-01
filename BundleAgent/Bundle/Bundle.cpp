@@ -234,7 +234,7 @@ std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(
         std::shared_ptr<FrameworkMEB> fmeb =
             std::static_pointer_cast<FrameworkMEB>(meb);
         if (fmeb->getFwkId() == fwkId) {
-          fext = fmeb->getFwkExts()[fwkExtId];
+          fext = fmeb->getFwkExt(fwkExtId);
         }
       }
     }
