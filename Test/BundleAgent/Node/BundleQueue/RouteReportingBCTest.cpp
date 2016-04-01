@@ -84,8 +84,6 @@ TEST(RouteReportingBCTest, toStringMethod) {
       + std::asctime(std::localtime(&t2));
 
   ASSERT_EQ(rrbc.toString(), rrbc_string);
-  // std::cout << "\n" << rrbc_string << "\n";
-  // std::cout << rrbc.toString();
 }
 
 TEST(RouteReportingBCTest, BadSerialized) {

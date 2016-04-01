@@ -38,17 +38,6 @@
 #include "Utils/Logger.h"
 #include "Utils/SDNV.h"
 
-/*std::string mapToStr(
-    std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions) {
-  std::stringstream ss;
-  for (auto& ext : extensions) {
-    ss << ext.second->getFwkExtId();
-    ss << ext.second->getCodeLength();
-    ss << ext.second->getSwSrcCode();
-  }
-  return ss.str();
-}*/
-
 FrameworkMEB::FrameworkMEB(
     uint8_t fwkId,
     std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions,
@@ -61,7 +50,6 @@ FrameworkMEB::FrameworkMEB(
   std::stringstream ss;
   m_metadataType = static_cast<uint8_t>(MetadataTypes::FRAMEWORK_MEB);
   ss << fwkId << std::to_string(static_cast<uint8_t>(extensions.size()));
-     // << mapToStr(extensions) << state;
   for (auto& ext : extensions) {
     ss << ext.second->getFwkExtId() << ext.second->getCodeLength()
         << ext.second->getSwSrcCode();
@@ -81,12 +69,8 @@ FrameworkMEB::FrameworkMEB(const std::string& rawData) {
 void FrameworkMEB::initFromRaw(const std::string& rawData) {
   MetadataExtensionBlock::initFromRaw(rawData);
   try {
-    // m_fwkId = static_cast<uint8_t>(m_metadata[0]);
-    // std::cout << "Res: " << m_fwkId << "\n";
-    // std::cout << m_metadata << "\n";
     std::stringstream ss(m_metadata);
     ss >> m_fwkId;
-    // std::cout << "id: " << static_cast<uint8_t>(m_fwkId) << "\n";
     std::stringstream frameworkId;
     frameworkId << m_fwkId;
     int length = frameworkId.str().length();
@@ -99,10 +83,6 @@ void FrameworkMEB::initFromRaw(const std::string& rawData) {
     int numExtensions = std::stoi(data.substr(0, length));
     data = data.substr(length, data.size());
     std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-    // std::cout << "EXTENSIONS: " << data << "\n";
-    // int i = static_cast<int>(m_nExtensions);
-    // std::cout << i;
-    // std::cout << "N_EXTENSIONS: " << m_nExtensions << "\n";
     while (numExtensions > 0) {
       uint8_t extensionId;
       std::stringstream s(data);
@@ -121,13 +101,10 @@ void FrameworkMEB::initFromRaw(const std::string& rawData) {
       data = data.substr(length + codeLength, data.size());
       std::shared_ptr<FrameworkExtension> extension = std::shared_ptr<
           FrameworkExtension>(new FrameworkExtension(extensionId, code));
-      // std::cout << extensionId << ";" << code << ".\n";
       extensions.insert(
           std::pair<uint8_t, std::shared_ptr<FrameworkExtension>>(extensionId,
                                                                   extension));
       numExtensions--;
-      // std::cout << "[InitFromRaw] " << extension->getFwkExtId()
-      //    << " " << extension->getSwSrcCode() << "\n";
     }
     m_fwkExts = extensions;
     m_bundleState = data;
@@ -165,11 +142,6 @@ std::string FrameworkMEB::getBundleState() {
 }
 
 std::shared_ptr<FrameworkExtension> FrameworkMEB::getFwkExt(uint8_t fwkExtId) {
-  /*std::shared_ptr<FrameworkExtension> fwkExt = m_fwkExts[fwkExtId];
-  if (fwkExt == NULL) {
-    return std::nullptr_t();
-  }
-  return fwkExt;*/
   return m_fwkExts[fwkExtId];
 }
 
