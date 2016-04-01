@@ -105,7 +105,7 @@ TEST(CodeDataCarrierMEBTest, JSONException) {
   std::string code = "Some code";
   std::string data = "{\"from\" : \"node1\", "
         "\"neighbour : [\"node1\", \"node2\"]}";
-  ASSERT_THROW(CodeDataCarrierMEB(code, data), JSONException);
+  ASSERT_THROW(CodeDataCarrierMEB(code, data), BlockConstructionException);
   std::string data2 = "{\"from\" : \"node1\", "
           "\"neighbour\" : [\"node1\", \"node2\"]}";
   CodeDataCarrierMEB nm = CodeDataCarrierMEB(code, data2);
