@@ -28,6 +28,7 @@
 #include <utility>
 #include <sstream>
 #include <map>
+#include "Bundle/BundleTypes.h"
 #include "Bundle/Block.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
