@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "Bundle/Bundle.h"
+#include "Bundle/PayloadBlock.h"
 
 static void help(std::string program_name) {
   std::cout

@@ -88,7 +88,6 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
         } catch (const WorkerException &e) {
           LOG(11) << "Cannot create code worker, reason: " << e.what();
         }
-        // m_parameters1 = nlohmann::json::parse(nm->getData());
         m_parameters1 = nm->getData();
         LOG(55) << "Neighbours in parameters: "
             << m_parameters1["neighbours"].size();

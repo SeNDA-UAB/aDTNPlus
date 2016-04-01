@@ -58,6 +58,7 @@ const std::string BasicBundleProcessor::m_forwardHeader = "#include <vector>\n"
     " std::vector<std::string> f(Json nodeState) {";
 const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
     "#include \"Bundle/Bundle.h\"\n"
+    "#include \"Bundle/PrimaryBlock.h\"\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     "const uint64_t g_timeFrom2000 = 946684800;"
@@ -66,6 +67,7 @@ const std::string BasicBundleProcessor::m_destinationHeader =
     "#include <string>\n"
         "#include \"adtnPlus/Json.h\"\n"
         "#include \"Bundle/Bundle.h\"\n"
+        "#include \"Bundle/PrimaryBlock.h\"\n"
         "extern \"C\" {"
         "bool f(Json nodeState, Bundle bundle) {";
 const std::string BasicBundleProcessor::m_footer = "}}";

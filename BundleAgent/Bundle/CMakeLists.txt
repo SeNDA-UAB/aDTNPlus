@@ -22,4 +22,5 @@ install(FILES
   MetadataExtensionBlock.h
   PayloadBlock.h
   PrimaryBlock.h
+  FrameworkExtension.h
   DESTINATION include/Bundle)

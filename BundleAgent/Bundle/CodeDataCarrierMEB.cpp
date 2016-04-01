@@ -45,7 +45,7 @@ CodeDataCarrierMEB::CodeDataCarrierMEB(std::string code, std::string data)
   try {
     m_data = nlohmann::json::parse(data);
   } catch (const std::invalid_argument& e) {
-    throw JSONException("[CodeDataCarrierMEB] Bad JSON format");
+    throw BlockConstructionException("[CodeDataCarrierMEB] Bad JSON format");
   }
 }
 
@@ -74,7 +74,7 @@ void CodeDataCarrierMEB::initFromRaw(const std::string& rawData) {
   } catch (const std::out_of_range& e) {
     throw BlockConstructionException("[CodeDataCarrierMEB] Bad raw format");
   } catch (const std::invalid_argument& e) {
-    throw JSONException("[CodeDataCarrierMEB] Bad JSON format");
+    throw BlockConstructionException("[CodeDataCarrierMEB] Bad JSON format");
   }
 }
 

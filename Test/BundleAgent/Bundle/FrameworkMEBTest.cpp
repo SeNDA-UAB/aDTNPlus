@@ -87,10 +87,9 @@ bool testMaps(std::map<uint8_t, std::shared_ptr<FrameworkExtension>> m1,
 
 TEST(FrameworkMEBTest, RawConstructor) {
   uint8_t fwkId = 1;
-  // std::cout << fwkId << "\n";
+
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
   std::string state = "state";
-
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
@@ -101,9 +100,6 @@ TEST(FrameworkMEBTest, RawConstructor) {
   extensions.insert(std::pair<uint8_t, std::shared_ptr<FrameworkExtension>>
                     (fwkExtId, ext));
 
-  // std::cout << "[test] " << ext->getFwkExtId() << " "
-  //    << ext->getSwSrcCode() << "\n";
-
   std::stringstream ss;
   for (auto& ext : extensions) {
     ss << ext.second->getFwkExtId();
@@ -111,27 +107,15 @@ TEST(FrameworkMEBTest, RawConstructor) {
     ss << ext.second->getSwSrcCode();
   }
 
-  /*std::string metadata = std::to_string(fwkId) +
-      std::to_string(static_cast<uint8_t>(extensions.size())) +
-      ss.str() + state;*/
   std::stringstream ss2;
   ss2 << fwkId <<
       static_cast<uint16_t>(std::stoi(std::to_string(extensions.size()))) <<
       ss.str() << state;
   std::string metadata = ss2.str();
 
-  // uint8_t d = 1;
-  // std::cout << d << "s\n";
-  /*std::string str1 = std::to_string(1);
-  std::stringstream strs1(std::to_string(d));
-  uint8_t d2;
-  strs1 >> d2*/
-
   FrameworkMEB fmeb = FrameworkMEB(fwkId, extensions, state);
   std::string rawData = fmeb.toRaw();
-  // std::cout << rawData << std::endl;
   FrameworkMEB fmeb2 = FrameworkMEB(rawData);
-
 
   ASSERT_EQ(fmeb.getMetadataType(), fmeb2.getMetadataType());
   ASSERT_EQ(fmeb.getMetadata(), fmeb2.getMetadata());
