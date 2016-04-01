@@ -132,8 +132,6 @@ Bundle::Bundle(const std::string &rawData)
     throw BundleCreationException(e.what());
   } catch (const std::exception &e) {
     throw BundleCreationException("[Bundle] Bad raw format");
-  } catch (const JSONException &e) {
-    throw JSONException(e.what());
   }
 }
 
