@@ -30,10 +30,9 @@
 #include <memory>
 #include <string>
 #include <map>
-
-
 #include "Bundle/MetadataExtensionBlock.h"
-#include "Bundle/FrameworkExtension.h"
+
+class FrameworkExtension;
 
 
 class FrameworkMEB : public MetadataExtensionBlock {

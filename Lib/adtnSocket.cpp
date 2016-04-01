@@ -33,6 +33,7 @@
 #include <iostream>
 #include "Bundle/Bundle.h"
 #include "Bundle/CanonicalBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RoutingSelectionMEB.h"

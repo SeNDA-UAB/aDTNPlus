@@ -28,6 +28,7 @@
 #include <utility>
 #include <sstream>
 #include <map>
+#include "Bundle/Block.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
@@ -35,7 +36,6 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/CodeDataCarrierMEB.h"
-#include "Bundle/Block.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
