@@ -11,16 +11,11 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/CodeDataCarrierMEB.cpp
   Bundle/FrameworkMEB.cpp
   Bundle/FrameworkExtension.cpp
+  Bundle/BundleInfo.cpp
   PARENT_SCOPE
 )
 
 install(FILES 
   Bundle.h 
-  Block.h
-  BundleTypes.h
-  CanonicalBlock.h
-  MetadataExtensionBlock.h
-  PayloadBlock.h
-  PrimaryBlock.h
-  FrameworkExtension.h
+  BundleInfo.h
   DESTINATION include/Bundle)
