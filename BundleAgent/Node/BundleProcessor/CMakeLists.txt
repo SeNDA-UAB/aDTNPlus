@@ -5,5 +5,6 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Node/BundleProcessor/ActiveForwardingBundleProcessor.cpp
   Node/BundleProcessor/RouteReportingBundleProcessor.cpp
   Node/BundleProcessor/CodeDataCarrierBundleProcessor.cpp
+  Node/BundleProcessor/FirstADTNPlusFwk.cpp
   PARENT_SCOPE
 )
