@@ -67,14 +67,13 @@ RouteReportingBundleProcessor::~RouteReportingBundleProcessor() {
 }
 
 std::unique_ptr<BundleContainer> RouteReportingBundleProcessor::createBundleContainer(
-    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
+    std::unique_ptr<Bundle> bundle) {
   time_t arrivalTime;
   time_t departureTime = 0;
   time(&arrivalTime);
   std::stringstream ss;
-  ss << from->getId();
-  if (from->getId() == "_ADTN_LIB_")
-      ss << " (" << m_config.getNodeId() << ")";
+  std::string from = "";
+  ss << from;
   return std::unique_ptr<BundleContainer>(
       new RouteReportingBC(ss.str(), arrivalTime, departureTime,
                            std::move(bundle)));
