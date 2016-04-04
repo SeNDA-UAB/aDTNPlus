@@ -89,11 +89,8 @@ std::vector<std::string> CodeDataCarrierBundleProcessor::checkForward(
           LOG(11) << "Cannot create code worker, reason: " << e.what();
         }
         m_parameters1 = nm->getData();
-        LOG(55) << "Neighbours in parameters: "
-            << m_parameters1["neighbours"].size();
         m_worker1.execute(m_parameters1);
         std::vector<std::string> result = m_worker1.getResult();
-        LOG(55) << "Neighbours after forward: " << result.size();
         return result;
       }
     }

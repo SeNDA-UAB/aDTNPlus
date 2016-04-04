@@ -35,6 +35,7 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Node/Executor/Worker.h"
 #include "Node/BundleProcessor/PluginAPI.h"
+#include "Utils/Logger.h"
 
 NEW_PLUGIN(ActiveForwardingBundleProcessor,
            "Active forwarding bundle processor", "1.0",
@@ -64,23 +65,13 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
           == MetadataTypes::FORWARDING_MEB) {
         std::shared_ptr<ForwardingMEB> fmeb = std::static_pointer_cast<
             ForwardingMEB>(meb);
-        std::string header = "#include <vector>\n"
-            "#include <string>\n"
-            "#include <algorithm>\n"
-            "#include \"adtnPlus/Json.h\"\n"
-            "extern \"C\" {std::vector<std::string> "
-            "activeForwardingAlgorithm("
-            "Json nodeState) {";
-        std::string footer = "}}";
-        std::string functionName = "activeForwardingAlgorithm";
-        std::string commandLine =
-            "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
-        Worker<std::vector<std::string>, Json> worker(
-            header, footer, functionName, commandLine, m_config.getCodesPath());
+        Worker<std::vector<std::string>, Json> worker(m_forwardHeader,
+                        m_footer, "f", m_commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
         worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
+        LOG(55) << "Result is: " << result.size();
         return result;
       }
     }

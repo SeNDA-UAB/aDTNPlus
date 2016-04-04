@@ -85,10 +85,10 @@ int main(int argc, char **argv) {
       Bundle b = Bundle(source, destination, message);
 
       // Code for Forwarding Metadata Extension Block
-      /*std::shared_ptr<ForwardingMEB> fmeb = std::make_shared<ForwardingMEB>(
+      std::shared_ptr<ForwardingMEB> fmeb = std::make_shared<ForwardingMEB>(
               ForwardingMEB("return std::vector<std::string>{\"node2\", "
-                  "\"node3\"};"));
-      b.addBlock(fmeb);*/
+                  "\"node3\"};", false));
+      b.addBlock(fmeb);
 
       // Code for Route Reporting Metadata Exension Block
       /*std::shared_ptr<RouteReportingMEB> rrm =
@@ -100,8 +100,8 @@ int main(int argc, char **argv) {
               RouteReportingMEB("node0", aTime, dTime));
       b.addBlock(rrm);*/
 
-      // Code for New Metadata Extension Block
-      std::string code = "auto it = find("
+      // Code for Code Data Carrier Metadata Extension Block
+      /*std::string code = "auto it = find("
           "info[\"neighbours\"].begin(), info[\"neighbours\"].end(), "
           "info[\"from\"]); info[\"neighbours\"].erase(it);"
           "return info[\"neighbours\"];";
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
       std::shared_ptr<CodeDataCarrierMEB> nm =
           std::make_shared<CodeDataCarrierMEB>(CodeDataCarrierMEB(
               code, data));
-      b.addBlock(nm);
+      b.addBlock(nm);*/
 
       sockaddr_in remoteAddr = { 0 };
       remoteAddr.sin_family = AF_INET;
@@ -127,7 +127,6 @@ int main(int argc, char **argv) {
           std::cout << "Cannot connect with node, reason: " << strerror(errno)
                     << std::endl;
         } else {
-          send(sock, source.c_str(), 1024, 0);
           std::string bundleRaw = b.toRaw();
           uint32_t bundleLength = bundleRaw.length();
           uint32_t nBundleLength = htonl(bundleLength);
