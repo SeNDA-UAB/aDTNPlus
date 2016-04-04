@@ -205,7 +205,7 @@ void BasicBundleProcessor::processBundle(
 }
 
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
-    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
+    std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
 }

@@ -71,8 +71,8 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param from The neighbour who has sent the bundle.
    * @param Bundle The bundle received.
    */
-  std::unique_ptr<BundleContainer> createBundleContainer(
-      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle);
+  virtual std::unique_ptr<BundleContainer> createBundleContainer(
+      std::unique_ptr<Bundle> Bundle);
   /**
    * Function that checks the possible dispatching apps.
    *

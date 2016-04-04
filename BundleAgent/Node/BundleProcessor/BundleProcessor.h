@@ -73,8 +73,8 @@ class BundleProcessor {
    * @param neighbourTable The neighbour table to check the neighbours.
    */
   virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-             std::shared_ptr<NeighbourTable> neighbourTable,
-             std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+                     std::shared_ptr<NeighbourTable> neighbourTable,
+                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
   /**
    * @brief Function that restores a bundle container from disk.
    *
@@ -167,7 +167,7 @@ class BundleProcessor {
    * @param Bundle The bundle received.
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
-      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle) = 0;
+      std::unique_ptr<Bundle> Bundle) = 0;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
