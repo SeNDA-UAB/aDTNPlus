@@ -31,6 +31,7 @@
 #include <string>
 #include <map>
 #include "Bundle/MetadataExtensionBlock.h"
+#include "ExternTools/json/json.hpp"
 
 class FrameworkExtension;
 
@@ -84,7 +85,13 @@ class FrameworkMEB : public MetadataExtensionBlock {
    *
    * @return The bundle state.
    */
-  std::string getBundleState();
+  nlohmann::json& getBundleState();
+  /**
+   * Function to set a new BundleState to the block.
+   *
+   * @param state The new state.
+   */
+  void setBundleState(nlohmann::json state);
   /**
    *
    */
@@ -106,11 +113,7 @@ class FrameworkMEB : public MetadataExtensionBlock {
   /**
    * Describes the state of the bundle.
    */
-  std::string m_bundleState;
-  /**
-   *
-   */
-  uint16_t m_nExtensions;
+  nlohmann::json m_bundleState;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_FRAMEWORKMEB_H_

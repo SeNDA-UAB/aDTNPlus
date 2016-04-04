@@ -86,7 +86,7 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleContainer The container with the bundle.
    * @return True if the lifetime has expired, false otherwise.
    */
-  bool checkLifetime(BundleContainer &bundleContainer);
+  virtual bool checkLifetime(BundleContainer &bundleContainer);
   /**
    * Function that checks the possible forwards.
    *
@@ -101,7 +101,7 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleContainer The container with the bundle.
    * @return True if the bundle is for us.
    */
-  bool checkDestination(BundleContainer &bundleContainer);
+  virtual bool checkDestination(BundleContainer &bundleContainer);
   /**
    * Function that checks the changes in the node state.
    *

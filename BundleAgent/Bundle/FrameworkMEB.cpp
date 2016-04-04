@@ -46,13 +46,12 @@ FrameworkMEB::FrameworkMEB(
   m_fwkId = fwkId;
   m_fwkExts = extensions;
   m_bundleState = state;
-  m_nExtensions = extensions.size();
   std::stringstream ss;
   m_metadataType = static_cast<uint8_t>(MetadataTypes::FRAMEWORK_MEB);
   ss << fwkId << std::to_string(static_cast<uint8_t>(extensions.size()));
   for (auto& ext : extensions) {
     ss << ext.second->getFwkExtId() << ext.second->getCodeLength()
-        << ext.second->getSwSrcCode();
+       << ext.second->getSwSrcCode();
   }
   ss << state;
   m_metadata = ss.str();
@@ -71,44 +70,49 @@ void FrameworkMEB::initFromRaw(const std::string& rawData) {
   try {
     std::stringstream ss(m_metadata);
     ss >> m_fwkId;
-    std::stringstream frameworkId;
-    frameworkId << m_fwkId;
-    int length = frameworkId.str().length();
+    std::stringstream size;
+    size << m_fwkId;
+    int length = size.str().length();
     std::string data = m_metadata.substr(length, m_metadata.size());
-    std::stringstream ss2(data);
-    ss2 >> m_nExtensions;
-    std::stringstream nExtensions;
-    nExtensions << m_nExtensions;
-    length = nExtensions.str().length();
-    int numExtensions = std::stoi(data.substr(0, length));
+    ss.str(data);
+    uint16_t numExtensions;
+    ss >> numExtensions;
+    size.clear();
+    size.str(std::string());
+    size << numExtensions;
+    length = size.str().length();
     data = data.substr(length, data.size());
-    std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-    while (numExtensions > 0) {
+    for (uint16_t i = 0; i < numExtensions; ++i) {
       uint8_t extensionId;
-      std::stringstream s(data);
-      s >> extensionId;
-      std::stringstream s2;
-      s2 << extensionId;
-      length = s2.str().length();
+      ss.str(data);
+      ss >> extensionId;
+      size.clear();
+      size.str(std::string());
+      size << extensionId;
+      length = size.str().length();
       data = data.substr(length, data.size());
-      std::stringstream s3(data);
+      ss.str(data);
       uint16_t codeLength;
-      s3 >> codeLength;
-      std::stringstream s4;
-      s4 << codeLength;
-      length = s4.str().length();
+      ss >> codeLength;
+      size.clear();
+      size.str(std::string());
+      size << codeLength;
+      length = size.str().length();
       std::string code = data.substr(length, codeLength);
       data = data.substr(length + codeLength, data.size());
       std::shared_ptr<FrameworkExtension> extension = std::shared_ptr<
           FrameworkExtension>(new FrameworkExtension(extensionId, code));
-      extensions.insert(
+      m_fwkExts.insert(
           std::pair<uint8_t, std::shared_ptr<FrameworkExtension>>(extensionId,
                                                                   extension));
-      numExtensions--;
     }
-    m_fwkExts = extensions;
-    m_bundleState = data;
-  } catch (const std::out_of_range& e) {
+    try {
+      m_bundleState = nlohmann::json::parse(data);
+    } catch (const std::invalid_argument &e) {
+      throw BlockConstructionException(
+          "[FrameworkMEB] Bad Bundle State format");
+    }
+  } catch (const std::out_of_range &e) {
     throw BlockConstructionException("[FrameworkMEB] Bad raw format");
   }
 }
@@ -118,6 +122,14 @@ FrameworkMEB::~FrameworkMEB() {
 
 std::string FrameworkMEB::toRaw() {
   LOG(39) << "Generating raw data from Framework MEB";
+  std::stringstream ss1;
+  ss1 << m_fwkId << std::to_string(static_cast<uint8_t>(m_fwkExts.size()));
+  for (auto &ext : m_fwkExts) {
+    ss1 << ext.second->getFwkExtId() << ext.second->getCodeLength()
+        << ext.second->getSwSrcCode();
+  }
+  ss1 << m_bundleState;
+  m_metadata = ss1.str();
   std::stringstream ss;
   ss << m_blockType;
   ss << SDNV::encode(m_procFlags.to_ulong());
@@ -132,16 +144,19 @@ uint8_t FrameworkMEB::getFwkId() {
   return m_fwkId;
 }
 
-std::map<uint8_t, std::shared_ptr<FrameworkExtension>>
-FrameworkMEB::getFwkExts() {
+std::map<uint8_t, std::shared_ptr<FrameworkExtension>> FrameworkMEB::getFwkExts() {
   return m_fwkExts;
 }
 
-std::string FrameworkMEB::getBundleState() {
+nlohmann::json& FrameworkMEB::getBundleState() {
   return m_bundleState;
 }
 
 std::shared_ptr<FrameworkExtension> FrameworkMEB::getFwkExt(uint8_t fwkExtId) {
   return m_fwkExts[fwkExtId];
+}
+
+void FrameworkMEB::setBundleState(nlohmann::json state) {
+  m_bundleState = state;
 }
 
