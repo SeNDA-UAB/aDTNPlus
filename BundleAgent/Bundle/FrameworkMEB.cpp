@@ -67,7 +67,7 @@ FrameworkMEB::FrameworkMEB(uint8_t fkwId)
   ss << m_fwkId << std::to_string(static_cast<uint8_t>(m_fwkExts.size()));
   for (auto& ext : m_fwkExts) {
     ss << ext.second->getFwkExtId() << ext.second->getCodeLength()
-        << ext.second->getSwSrcCode();
+       << ext.second->getSwSrcCode();
   }
   ss << m_bundleState;
   m_metadata = ss.str();
@@ -180,3 +180,22 @@ void FrameworkMEB::setBundleState(nlohmann::json state) {
   m_bundleState = state;
 }
 
+void FrameworkMEB::addExtension(uint8_t extId,
+                                std::string code) {
+  auto ext = std::make_shared<FrameworkExtension>(extId, code);
+  m_fwkExts[extId] = ext;
+}
+
+std::string FrameworkMEB::toString() {
+  std::stringstream ss;
+  ss << "Framework block:" << std::endl << MetadataExtensionBlock::toString()
+     << "\tFramework id: " << static_cast<int>(m_fwkId) << std::endl
+     << "\tBundle State: " << m_bundleState.dump(2) << std::endl
+     << "\tExtensions:" << std::endl;
+  for (auto it = m_fwkExts.begin(); it != m_fwkExts.end(); ++it) {
+    ss << "\t\tExtension id: " << static_cast<int>(it->second->getFwkExtId())
+       << std::endl << "\t\tExtension code: " << it->second->getSwSrcCode()
+       << std::endl;
+  }
+  return ss.str();
+}

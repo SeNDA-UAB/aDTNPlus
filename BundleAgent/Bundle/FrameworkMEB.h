@@ -96,6 +96,15 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> getFwkExts();
   /**
+   * Function to add a new extension to the block.
+   *
+   * If the extension already exist it will update the code.
+   *
+   * @param extId The extension id.
+   * @param code The code for the extension.
+   */
+  void addExtension(uint8_t extId, std::string code);
+  /**
    * Function to get the bundle state.
    *
    * @return The bundle state.
@@ -115,6 +124,12 @@ class FrameworkMEB : public MetadataExtensionBlock {
    *
    */
   std::shared_ptr<FrameworkExtension> getFwkExt(uint8_t fwkExtId);
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  private:
   /**

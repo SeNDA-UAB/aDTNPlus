@@ -65,8 +65,8 @@ class FirstADTNPlusFwk : public BundleProcessor {
 
   virtual void checkNodeStateChanges();
 
-  Worker<void, Json, nlohmann::json, nlohmann::json, BundleInfo,
-      Worker<void, Json, nlohmann::json, BundleInfo>> m_voidWorker;
+  Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
+      Worker<bool, Json, nlohmann::json, BundleInfo>> m_voidWorker;
 
   Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
       Worker<bool, Json, nlohmann::json, BundleInfo>> m_boolWorker;
@@ -75,9 +75,9 @@ class FirstADTNPlusFwk : public BundleProcessor {
       BundleInfo,
       Worker<std::vector<std::string>, Json, nlohmann::json, BundleInfo>> m_vectorWorker;
 
-  Worker<void, Json, nlohmann::json, BundleInfo> m_ext1DefaultWorker;
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext1DefaultWorker;
 
-  Worker<void, Json, nlohmann::json, BundleInfo> m_ext2DefaultWorker;
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext2DefaultWorker;
 
   Worker<bool, Json, nlohmann::json, BundleInfo> m_ext3DefaultWorker;
 
@@ -97,6 +97,7 @@ class FirstADTNPlusFwk : public BundleProcessor {
   static const std::string m_bigSignature;
   static const std::string m_littleSignature;
   static const std::string m_footer;
+  static const std::string m_voidFooter;
   static const std::string m_commandLine;
 };
 
