@@ -43,7 +43,7 @@ TEST(FrameworkMEBTest, FilledConstructor) {
   uint8_t metadata_type = static_cast<uint8_t>(MetadataTypes::FRAMEWORK_MEB);
   uint8_t fwkId = 1;
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = nlohmann::json();
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
@@ -89,7 +89,7 @@ TEST(FrameworkMEBTest, RawConstructor) {
   uint8_t fwkId = 1;
 
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = {"from", "this"};
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
@@ -127,7 +127,7 @@ TEST(FrameworkMEBTest, RawConstructor) {
 TEST(FrameworkMEBTest, Test) {
   uint8_t fwkId = 1;
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = nlohmann::json();
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
@@ -250,7 +250,7 @@ TEST(FrameworkMEBTest, Test) {
 TEST(FrameworkMEBTest, GetFwkExt) {
   uint8_t fwkId = 1;
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = {"this", 5};
 
   uint8_t fwkExtId = 2;
   std::string code = "code";

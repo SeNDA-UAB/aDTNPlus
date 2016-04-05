@@ -56,7 +56,15 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   FrameworkMEB(uint8_t fwkId, std::map<uint8_t,
                std::shared_ptr<FrameworkExtension>> extensions,
-               std::string state);
+               nlohmann::json state);
+  /**
+   * @brief Empty constuctor.
+   *
+   * Creates an empty FrameworkMEB with a given framework id.
+   *
+   * @param fkwId The id of the framework.
+   */
+  explicit FrameworkMEB(uint8_t fkwId);
   /**
    * @brief Raw constructor.
    *

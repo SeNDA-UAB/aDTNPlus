@@ -41,19 +41,35 @@
 FrameworkMEB::FrameworkMEB(
     uint8_t fwkId,
     std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions,
-    std::string state)
-    : MetadataExtensionBlock() {
-  m_fwkId = fwkId;
-  m_fwkExts = extensions;
-  m_bundleState = state;
+    nlohmann::json state)
+    : MetadataExtensionBlock(),
+      m_fwkId(fwkId),
+      m_fwkExts(extensions),
+      m_bundleState(state) {
   std::stringstream ss;
   m_metadataType = static_cast<uint8_t>(MetadataTypes::FRAMEWORK_MEB);
-  ss << fwkId << std::to_string(static_cast<uint8_t>(extensions.size()));
-  for (auto& ext : extensions) {
+  ss << m_fwkId << std::to_string(static_cast<uint8_t>(m_fwkExts.size()));
+  for (auto& ext : m_fwkExts) {
     ss << ext.second->getFwkExtId() << ext.second->getCodeLength()
        << ext.second->getSwSrcCode();
   }
-  ss << state;
+  ss << m_bundleState;
+  m_metadata = ss.str();
+}
+
+FrameworkMEB::FrameworkMEB(uint8_t fkwId)
+    : MetadataExtensionBlock(),
+      m_fwkId(fkwId),
+      m_fwkExts(),
+      m_bundleState() {
+  std::stringstream ss;
+  m_metadataType = static_cast<uint8_t>(MetadataTypes::FRAMEWORK_MEB);
+  ss << m_fwkId << std::to_string(static_cast<uint8_t>(m_fwkExts.size()));
+  for (auto& ext : m_fwkExts) {
+    ss << ext.second->getFwkExtId() << ext.second->getCodeLength()
+        << ext.second->getSwSrcCode();
+  }
+  ss << m_bundleState;
   m_metadata = ss.str();
 }
 

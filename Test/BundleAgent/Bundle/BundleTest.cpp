@@ -208,7 +208,7 @@ TEST(BundleTest, GetFrameworkExtension) {
 
   uint8_t fwkId = 1;
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = {"source", "me"};
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
