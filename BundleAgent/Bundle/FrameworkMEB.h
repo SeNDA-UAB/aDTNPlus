@@ -30,11 +30,18 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <stdexcept>
 #include "Bundle/MetadataExtensionBlock.h"
 #include "ExternTools/json/json.hpp"
 
 class FrameworkExtension;
 
+class ExtensionNotFoundException : public std::runtime_error {
+ public:
+  explicit ExtensionNotFoundException(const std::string &what)
+    : runtime_error(what) {
+  }
+};
 
 class FrameworkMEB : public MetadataExtensionBlock {
  public:

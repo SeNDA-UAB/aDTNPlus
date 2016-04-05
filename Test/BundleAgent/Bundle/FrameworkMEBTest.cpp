@@ -262,9 +262,7 @@ TEST(FrameworkMEBTest, GetFwkExt) {
 
   FrameworkMEB fmeb = FrameworkMEB(fwkId, extensions, state);
 
-  std::shared_ptr<FrameworkExtension> fext2;
-
   ASSERT_EQ(fmeb.getFwkExt(fwkExtId), ext);
-  ASSERT_EQ(fmeb.getFwkExt(fwkId), fext2);
+  ASSERT_THROW(fmeb.getFwkExt(fwkId), ExtensionNotFoundException);
 }
 

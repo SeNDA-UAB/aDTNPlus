@@ -153,7 +153,11 @@ nlohmann::json& FrameworkMEB::getBundleState() {
 }
 
 std::shared_ptr<FrameworkExtension> FrameworkMEB::getFwkExt(uint8_t fwkExtId) {
-  return m_fwkExts[fwkExtId];
+  auto it = m_fwkExts.find(fwkExtId);
+  if (it != m_fwkExts.end()) {
+    return it->second;
+  }
+  throw ExtensionNotFoundException("[FrameworkMEB] Extension not found");
 }
 
 void FrameworkMEB::setBundleState(nlohmann::json state) {
