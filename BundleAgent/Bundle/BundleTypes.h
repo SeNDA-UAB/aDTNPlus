@@ -72,8 +72,16 @@ enum class RoutingAlgorithms : uint8_t {
 };
 
 enum class FrameworksIds : uint8_t {
-  FWK_1 = 0x01,
-  FWK_2 = 0x02
+  FIRST_FRAMEWORK = 0x00,
+  FWK_2 = 0x01
+};
+
+enum class FirstFrameworkExtensionsIds : uint8_t {
+  CONTAINER_CREATION = 0x00,
+  CONTAINER_DELETION = 0x01,
+  DESTINATION = 0x02,
+  LIFETIME = 0x03,
+  FORWARD = 0x04
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

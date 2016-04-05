@@ -34,6 +34,9 @@
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
+#include "Bundle/BundleInfo.h"
 #include "Utils/Logger.h"
 #include "Node/AppListener/ListeningAppsTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
@@ -126,9 +129,9 @@ void FirstADTNPlusFwk::start(
       std::string defaultDestinationCode =
           m_nodeState["configuration"]["defaultCodes"]["destination"];
       std::string defaultBundleCreation =
-                m_nodeState["configuration"]["defaultCodes"]["creation"];
+          m_nodeState["configuration"]["defaultCodes"]["creation"];
       std::string defaultBundleDeletion =
-                m_nodeState["configuration"]["defaultCodes"]["deletion"];
+          m_nodeState["configuration"]["defaultCodes"]["deletion"];
       try {
         m_ext5DefaultWorker.generateFunction(defaultForwardingCode);
         m_ext4DefaultWorker.generateFunction(defaultLifeCode);
@@ -226,12 +229,54 @@ void FirstADTNPlusFwk::processBundle(
 
 std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     std::unique_ptr<Bundle> bundle) {
-  return std::unique_ptr<BundleContainer>(
+  std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
+  nlohmann::json bundleProcessState = bc->getState();
+  BundleInfo bi = BundleInfo(bc->getBundle());
+  try {
+    std::string code = bc->getBundle().getFwkExt(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
+        static_cast<uint8_t>(FirstFrameworkExtensionsIds::CONTAINER_CREATION))
+        ->getSwSrcCode();
+    m_voidWorker.generateFunction(code);
+    nlohmann::json bundleState = bc->getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
+    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+                         m_ext1DefaultWorker);
+  } catch (const std::runtime_error &e) {
+    try {
+      m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+    } catch (const WorkerException &e) {
+      LOG(11) << "[Extension 1] Cannot execute any code in "
+              "Bundle container creation.";
+    }
+  }
+  return std::move(bc);
 }
 
 bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
-  return false;
+  nlohmann::json bundleProcessState = bundleContainer.getState();
+  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  try {
+    std::string code = bundleContainer.getBundle().getFwkExt(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
+        static_cast<uint8_t>(FirstFrameworkExtensionsIds::DESTINATION))
+        ->getSwSrcCode();
+    m_boolWorker.generateFunction(code);
+    nlohmann::json bundleState = bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
+    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+                         m_ext3DefaultWorker);
+    return m_boolWorker.getResult();
+  } catch (const std::runtime_error &e) {
+    try {
+      m_ext3DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      return m_ext3DefaultWorker.getResult();
+    } catch (const WorkerException &e) {
+      LOG(11) << "[Extension 3] Cannot execute any code to check destination.";
+      return false;
+    }
+  }
 }
 
 std::vector<std::string> FirstADTNPlusFwk::checkDispatch(
@@ -246,11 +291,53 @@ std::vector<std::string> FirstADTNPlusFwk::checkDispatch(
 
 std::vector<std::string> FirstADTNPlusFwk::checkForward(
     BundleContainer &bundleContainer) {
-  return std::vector<std::string>();
+  nlohmann::json bundleProcessState = bundleContainer.getState();
+  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  try {
+    std::string code = bundleContainer.getBundle().getFwkExt(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
+        static_cast<uint8_t>(FirstFrameworkExtensionsIds::FORWARD))
+        ->getSwSrcCode();
+    m_vectorWorker.generateFunction(code);
+    nlohmann::json bundleState = bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
+    m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+                         m_ext5DefaultWorker);
+    return m_vectorWorker.getResult();
+  } catch (const std::runtime_error &e) {
+    try {
+      m_ext5DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      return m_ext5DefaultWorker.getResult();
+    } catch (const WorkerException &e) {
+      LOG(11) << "[Extension 5] Cannot execute any code to check forward.";
+      return std::vector<std::string>();
+    }
+  }
 }
 
 bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
-  return false;
+  nlohmann::json bundleProcessState = bundleContainer.getState();
+  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  try {
+    std::string code = bundleContainer.getBundle().getFwkExt(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
+        static_cast<uint8_t>(FirstFrameworkExtensionsIds::LIFETIME))
+        ->getSwSrcCode();
+    m_boolWorker.generateFunction(code);
+    nlohmann::json bundleState = bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
+    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+                         m_ext4DefaultWorker);
+    return m_boolWorker.getResult();
+  } catch (const std::runtime_error &e) {
+    try {
+      m_ext4DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      return m_ext4DefaultWorker.getResult();
+    } catch (const WorkerException &e) {
+      LOG(11) << "[Extension 4] Cannot execute any code to check lifetime.";
+      return false;
+    }
+  }
 }
 
 void FirstADTNPlusFwk::checkNodeStateChanges() {
