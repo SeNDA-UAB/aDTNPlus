@@ -343,7 +343,7 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
   BundleInfo bi = BundleInfo(bundleContainer.getBundle());
   try {
     LOG(55) << "Checking if bundle contains an extension of value: "
-                << static_cast<int>(FirstFrameworkExtensionsIds::LIFETIME);
+            << static_cast<int>(FirstFrameworkExtensionsIds::LIFETIME);
     std::string code = bundleContainer.getBundle().getFwkExt(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::LIFETIME))
@@ -365,6 +365,38 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
       return false;
     }
   }
+}
+
+void FirstADTNPlusFwk::discard(
+    std::unique_ptr<BundleContainer> bundleContainer) {
+  nlohmann::json &bundleProcessState = bundleContainer->getState();
+  BundleInfo bi = BundleInfo(bundleContainer->getBundle());
+  try {
+    LOG(55)
+        << "Checking if bundle contains an extension of value: "
+        << static_cast<int>(FirstFrameworkExtensionsIds::CONTAINER_DELETION);
+    std::string code = bundleContainer->getBundle().getFwkExt(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
+        static_cast<uint8_t>(FirstFrameworkExtensionsIds::CONTAINER_DELETION))
+        ->getSwSrcCode();
+    m_voidWorker.generateFunction(code);
+    nlohmann::json &bundleState = bundleContainer->getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
+    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+                         m_ext2DefaultWorker);
+    m_voidWorker.getResult();
+  } catch (const std::runtime_error &e) {
+    LOG(51) << "The code in the bundle has not been executed, : " << e.what();
+    try {
+      LOG(55) << "Trying to execute the default code.";
+      m_ext2DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext2DefaultWorker.getResult();
+    } catch (const WorkerException &e) {
+      LOG(11) << "[Extension 2] Cannot execute any code in "
+              "Bundle container deletion.";
+    }
+  }
+  BundleProcessor::discard(std::move(bundleContainer));
 }
 
 void FirstADTNPlusFwk::checkNodeStateChanges() {

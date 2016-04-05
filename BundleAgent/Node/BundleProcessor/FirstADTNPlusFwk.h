@@ -65,6 +65,8 @@ class FirstADTNPlusFwk : public BundleProcessor {
 
   virtual void checkNodeStateChanges();
 
+  virtual void discard(std::unique_ptr<BundleContainer> bundleContainer);
+
   Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
       Worker<bool, Json, nlohmann::json, BundleInfo>> m_voidWorker;
 
