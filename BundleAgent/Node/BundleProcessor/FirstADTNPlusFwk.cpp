@@ -81,7 +81,8 @@ FirstADTNPlusFwk::FirstADTNPlusFwk()
           m_header
               + stringFormat(m_bigSignature, "std::vector<std::string>",
                              "std::vector<std::string>"),
-          m_footer, "f", m_commandLine, "./"),
+          stringFormat(m_footer, "std::vector<std::string>()"), "f",
+          m_commandLine, "./"),
       m_ext1DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
                           stringFormat(m_footer, "true"), "f", m_commandLine,
                           "./"),
