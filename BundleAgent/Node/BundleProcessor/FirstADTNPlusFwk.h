@@ -192,10 +192,6 @@ class FirstADTNPlusFwk : public BundleProcessor {
    */
   static const std::string m_footer;
   /**
-   * Variable that holds the footer for the "void" workers.
-   */
-  static const std::string m_voidFooter;
-  /**
    * Variable that holds the command line for the workers.
    */
   static const std::string m_commandLine;

@@ -51,6 +51,7 @@ const std::string FirstADTNPlusFwk::m_header = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
     "#include <cstdlib>\n"
+    "#include <ctime>\n"
     "#include \"Bundle/BundleInfo.h\"\n"
     "#include \"adtnPlus/Json.h\"\n"
     "#include \"adtnPlus/Worker.h\"\n"
@@ -67,33 +68,37 @@ const std::string FirstADTNPlusFwk::m_bigSignature =
         "}};";
 const std::string FirstADTNPlusFwk::m_littleSignature =
     "%s f(Json ns, nlohmann::json bps, BundleInfo bi) {\n";
-const std::string FirstADTNPlusFwk::m_footer = "}}";
-const std::string FirstADTNPlusFwk::m_voidFooter = "return true;}}";
+const std::string FirstADTNPlusFwk::m_footer = "return %s;}}";
 const std::string FirstADTNPlusFwk::m_commandLine =
     "g++ -w -fPIC -shared -std=c++14 %s -o %s 2>&1";
 
 FirstADTNPlusFwk::FirstADTNPlusFwk()
     : m_voidWorker(m_header + stringFormat(m_bigSignature, "bool", "bool"),
-                   m_voidFooter, "f", m_commandLine, "./"),
+                   stringFormat(m_footer, "true"), "f", m_commandLine, "./"),
       m_boolWorker(m_header + stringFormat(m_bigSignature, "bool", "bool"),
-                   m_footer, "f", m_commandLine, "./"),
+                   stringFormat(m_footer, "true"), "f", m_commandLine, "./"),
       m_vectorWorker(
           m_header
               + stringFormat(m_bigSignature, "std::vector<std::string>",
                              "std::vector<std::string>"),
           m_footer, "f", m_commandLine, "./"),
       m_ext1DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
-                          m_voidFooter, "f", m_commandLine, "./"),
+                          stringFormat(m_footer, "true"), "f", m_commandLine,
+                          "./"),
       m_ext2DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
-                          m_voidFooter, "f", m_commandLine, "./"),
+                          stringFormat(m_footer, "true"), "f", m_commandLine,
+                          "./"),
       m_ext3DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
-                          m_footer, "f", m_commandLine, "./"),
+                          stringFormat(m_footer, "false"), "f", m_commandLine,
+                          "./"),
       m_ext4DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
-                          m_footer, "f", m_commandLine, "./"),
+                          stringFormat(m_footer, "false"), "f", m_commandLine,
+                          "./"),
       m_ext5DefaultWorker(
           m_header
               + stringFormat(m_littleSignature, "std::vector<std::string>"),
-          m_footer, "f", m_commandLine, "./") {
+          stringFormat(m_footer, "std::vector<std::string>()"), "f",
+          m_commandLine, "./") {
 }
 
 FirstADTNPlusFwk::~FirstADTNPlusFwk() {
@@ -322,7 +327,8 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
     m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
                            m_ext5DefaultWorker);
-    return m_vectorWorker.getResult();
+    auto result = m_vectorWorker.getResult();
+    return result;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
