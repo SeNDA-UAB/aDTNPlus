@@ -54,7 +54,18 @@ class BasicBundleProcessor : public BundleProcessor {
    * Destructor of the class.
    */
   virtual ~BasicBundleProcessor();
-
+  /**
+   * @brief Function that starts all the process.
+   *
+   * This function will start the process Bundles and receive Bundles process.
+   *
+   * The parameters are the configuration, the bundle queue, the neighbour table
+   * and the listening apps table.
+   *
+   * @param config The object holding all the configuration.
+   * @param bundleQueue The queue that will hold all the bundles.
+   * @param neighbourTable The neighbour table to check the neighbours.
+   */
   virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
                      std::shared_ptr<NeighbourTable> neighbourTable,
                      std::shared_ptr<ListeningAppsTable> listeningAppsTable);
@@ -69,7 +80,6 @@ class BasicBundleProcessor : public BundleProcessor {
   /**
    * Function that creates a bundle container.
    *
-   * @param from The neighbour who has sent the bundle.
    * @param Bundle The bundle received.
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(

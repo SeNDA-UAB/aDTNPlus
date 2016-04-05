@@ -201,6 +201,7 @@ class Worker {
   }
   /**
    * This function gets the function and runs it, with the given parameters.
+   * This function executes the worker function asynchronously.
    * @param params The parameters to pass to the function.
    */
   void execute(Args &... params) {
@@ -217,6 +218,7 @@ class Worker {
   }
   /**
    * This function gets the result of the called function in execute(T1).
+   * This function blocks until the result is given.
    * @return The result that the function returned.
    */
   T getResult() {
