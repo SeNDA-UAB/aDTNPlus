@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SeNDA
+ * Copyright (c) 2016 SeNDA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,45 +15,45 @@
  *
  */
 /**
- * FILE BasicBundleProcessor.h
+ * FILE Framework1Processor.h
  * AUTHOR Blackcatn13
- * DATE Dec 17, 2015
+ * DATE Apr 4, 2016
  * VERSION 1
  *
  */
-#ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
-#define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
+#ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_FIRSTADTNPLUSFWK_H_
+#define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_FIRSTADTNPLUSFWK_H_
 
 #include <memory>
 #include <vector>
 #include <string>
-
 #include "Utils/Json.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/Executor/Worker.h"
+#include "ExternTools/json/json.hpp"
 
 class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
 class ListeningAppsTable;
-class Neighbour;
 class BundleInfo;
 
 /**
- * CLASS BasicBundleProcessor
- * This class is an specification of the BundleProcessor.
+ * CLASS FirstADTNPlusFwk
+ * This class is an specification of the BundleProcessor, who defines a framework
+ * and a number of points where code can be executed.
  */
-class BasicBundleProcessor : public BundleProcessor {
+class FirstADTNPlusFwk : public BundleProcessor {
  public:
   /**
-   * @brief Generates a BasicBundleProcessor.
+   * @brief Generates a FirstADTNPlusFwk.
    */
-  BasicBundleProcessor();
+  FirstADTNPlusFwk();
   /**
    * Destructor of the class.
    */
-  virtual ~BasicBundleProcessor();
+  virtual ~FirstADTNPlusFwk();
   /**
    * @brief Function that starts all the process.
    *
@@ -70,7 +70,7 @@ class BasicBundleProcessor : public BundleProcessor {
                      std::shared_ptr<NeighbourTable> neighbourTable,
                      std::shared_ptr<ListeningAppsTable> listeningAppsTable);
 
- protected:
+ private:
   /**
    * Function that processes one given bundle container.
    *
@@ -121,17 +121,51 @@ class BasicBundleProcessor : public BundleProcessor {
    */
   virtual void checkNodeStateChanges();
   /**
-   * Worker to execute default forwarding code.
+   * @brief Function that discards a bundle container.
+   *
+   * This function discards an eliminates a bundle from the node.
+   *
+   * @param bundleContainer The bundle container to discard.
    */
-  Worker<std::vector<std::string>, Json> m_forwardWorker;
+  virtual void discard(std::unique_ptr<BundleContainer> bundleContainer);
   /**
-   * Worker to execute the default lifetime code.
+   * Worker to execute the void functions.
+   * Like a void worker cannot be created, a bool one with an always return
+   * true is used.
    */
-  Worker<bool, Json, BundleInfo> m_lifeWorker;
+  Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
+      Worker<bool, Json, nlohmann::json, BundleInfo>> m_voidWorker;
   /**
-   * Worker to execute the default destination code.
+   * Worker to execute the bool functions.
    */
-  Worker<bool, Json, BundleInfo> m_destinationWorker;
+  Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
+      Worker<bool, Json, nlohmann::json, BundleInfo>> m_boolWorker;
+  /**
+   * Worker to execute the functions that return a vector of strings.
+   */
+  Worker<std::vector<std::string>, Json, nlohmann::json, nlohmann::json,
+      BundleInfo,
+      Worker<std::vector<std::string>, Json, nlohmann::json, BundleInfo>> m_vectorWorker;
+  /**
+   * Worker for the default function in the extension 1 (BundleContainer creation)
+   */
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext1DefaultWorker;
+  /**
+   * Worker for the default function in the extension 2 (BundleContainer deletion)
+   */
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext2DefaultWorker;
+  /**
+   * Worker for the default function in the extension 3 (Check Destination)
+   */
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext3DefaultWorker;
+  /**
+   * Worker for the default function in the extension 4 (Check Lifetime)
+   */
+  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext4DefaultWorker;
+  /**
+   * Worker for the default function in the extension 5 (Check Forward)
+   */
+  Worker<std::vector<std::string>, Json, nlohmann::json, BundleInfo> m_ext5DefaultWorker;
   /**
    * Variable that holds the parameters used in the processor calls.
    */
@@ -140,12 +174,31 @@ class BasicBundleProcessor : public BundleProcessor {
    * Variable that holds the old parameters to check what changed.
    */
   Json m_oldNodeState;
-
-  static const std::string m_forwardHeader;
-  static const std::string m_lifeHeader;
-  static const std::string m_destinationHeader;
+  /**
+   * Variable that holds the common header for all the workers.
+   */
+  static const std::string m_header;
+  /**
+   * Variable that holds the function signature of the workers that have a worker
+   * as parameter.
+   */
+  static const std::string m_bigSignature;
+  /**
+   * Variable that holds the function signature of the default workers.
+   */
+  static const std::string m_littleSignature;
+  /**
+   * Variable that holds the footer for the worker.
+   */
   static const std::string m_footer;
+  /**
+   * Variable that holds the footer for the "void" workers.
+   */
+  static const std::string m_voidFooter;
+  /**
+   * Variable that holds the command line for the workers.
+   */
   static const std::string m_commandLine;
 };
 
-#endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BASICBUNDLEPROCESSOR_H_
+#endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_FIRSTADTNPLUSFWK_H_

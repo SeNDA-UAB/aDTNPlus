@@ -30,10 +30,18 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <stdexcept>
 #include "Bundle/MetadataExtensionBlock.h"
+#include "ExternTools/json/json.hpp"
 
 class FrameworkExtension;
 
+class ExtensionNotFoundException : public std::runtime_error {
+ public:
+  explicit ExtensionNotFoundException(const std::string &what)
+    : runtime_error(what) {
+  }
+};
 
 class FrameworkMEB : public MetadataExtensionBlock {
  public:
@@ -48,7 +56,15 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   FrameworkMEB(uint8_t fwkId, std::map<uint8_t,
                std::shared_ptr<FrameworkExtension>> extensions,
-               std::string state);
+               nlohmann::json state);
+  /**
+   * @brief Empty constuctor.
+   *
+   * Creates an empty FrameworkMEB with a given framework id.
+   *
+   * @param fkwId The id of the framework.
+   */
+  explicit FrameworkMEB(uint8_t fkwId);
   /**
    * @brief Raw constructor.
    *
@@ -80,11 +96,26 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> getFwkExts();
   /**
+   * Function to add a new extension to the block.
+   *
+   * If the extension already exist it will update the code.
+   *
+   * @param extId The extension id.
+   * @param code The code for the extension.
+   */
+  void addExtension(uint8_t extId, std::string code);
+  /**
    * Function to get the bundle state.
    *
    * @return The bundle state.
    */
-  std::string getBundleState();
+  nlohmann::json& getBundleState();
+  /**
+   * Function to set a new BundleState to the block.
+   *
+   * @param state The new state.
+   */
+  void setBundleState(nlohmann::json state);
   /**
    * @biref Parses a Framework Metadata Extension Block from raw.
    *
@@ -100,6 +131,12 @@ class FrameworkMEB : public MetadataExtensionBlock {
    * @return A pointer to the Framework Extension whose id is fwkExtId.
    */
   std::shared_ptr<FrameworkExtension> getFwkExt(uint8_t fwkExtId);
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information.
+   */
+  std::string toString();
 
  private:
   /**
@@ -113,11 +150,7 @@ class FrameworkMEB : public MetadataExtensionBlock {
   /**
    * Describes the state of the bundle.
    */
-  std::string m_bundleState;
-  /**
-   * The number of extensions of the framework.
-   */
-  uint16_t m_nExtensions;
+  nlohmann::json m_bundleState;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_FRAMEWORKMEB_H_

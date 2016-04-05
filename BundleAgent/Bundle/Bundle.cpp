@@ -216,32 +216,33 @@ std::string Bundle::toString() {
   return ss.str();
 }
 
-std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(
-    uint8_t fwkId, uint8_t fwkExtId) {
-  std::shared_ptr<FrameworkExtension> fext;
-  std::vector<std::shared_ptr<Block>> blocks = m_blocks;
-  blocks.erase(blocks.begin());
-  for (std::shared_ptr<Block> block : m_blocks) {
-    std::shared_ptr<CanonicalBlock> cb =
-        std::static_pointer_cast<CanonicalBlock>(block);
-    if (static_cast<CanonicalBlockTypes>(cb->getBlockType()) ==
-        CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
-      std::shared_ptr<MetadataExtensionBlock> meb =
-          std::static_pointer_cast<MetadataExtensionBlock>(cb);
-      if (static_cast<MetadataTypes>(meb->getMetadataType()) ==
-          MetadataTypes::FRAMEWORK_MEB) {
-        std::shared_ptr<FrameworkMEB> fmeb =
-            std::static_pointer_cast<FrameworkMEB>(meb);
+std::shared_ptr<FrameworkMEB> Bundle::getFwk(uint8_t fwkId) {
+  auto it = m_blocks.begin();
+  for (++it; it != m_blocks.end(); ++it) {
+    auto cb = std::static_pointer_cast<CanonicalBlock>(*it);
+    if (static_cast<CanonicalBlockTypes>(cb->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      auto meb = std::static_pointer_cast<MetadataExtensionBlock>(cb);
+      if (static_cast<MetadataTypes>(meb->getMetadataType())
+          == MetadataTypes::FRAMEWORK_MEB) {
+        auto fmeb = std::static_pointer_cast<FrameworkMEB>(meb);
         if (fmeb->getFwkId() == fwkId) {
-          fext = fmeb->getFwkExt(fwkExtId);
+          return fmeb;
         }
       }
     }
   }
-  if (fext != NULL) {
-    return fext;
-  } else {
-    throw FrameworkNotFounException(
-          "[Bundle] Framework extension not found.");
+  throw FrameworkNotFoundException("[Bundle] Framework not found.");
+}
+
+std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(uint8_t fwkId,
+                                                      uint8_t fwkExtId) {
+  try {
+    auto fmeb = getFwk(fwkId);
+    return fmeb->getFwkExt(fwkExtId);
+  } catch (const ExtensionNotFoundException &e) {
+    throw FrameworkNotFoundException("[Bundle] Framework extension not found.");
+  } catch (const FrameworkNotFoundException &e) {
+    throw e;
   }
 }

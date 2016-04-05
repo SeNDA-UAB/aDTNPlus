@@ -208,7 +208,7 @@ TEST(BundleTest, GetFrameworkExtension) {
 
   uint8_t fwkId = 1;
   std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
-  std::string state = "state";
+  nlohmann::json state = {"source", "me"};
 
   uint8_t fwkExtId = 2;
   std::string code = "code";
@@ -229,13 +229,13 @@ TEST(BundleTest, GetFrameworkExtension) {
 
   Bundle b2 = Bundle("Source", "Destination", "This is a payload");
 
-  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId), FrameworkNotFounException);
+  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId), FrameworkNotFoundException);
 
   b2.addBlock(fmeb);
   uint8_t fwkId2 = 3;
   uint8_t fwkExtId2 = 4;
 
-  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId2), FrameworkNotFounException);
-  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId), FrameworkNotFounException);
-  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId2), FrameworkNotFounException);
+  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId2), FrameworkNotFoundException);
+  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId), FrameworkNotFoundException);
+  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId2), FrameworkNotFoundException);
 }

@@ -110,7 +110,7 @@ class BundleProcessor {
    *
    * @param bundleContainer The bundle container to discard.
    */
-  void discard(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual void discard(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * @brief Function that restores a bundle container.
    *
