@@ -38,6 +38,7 @@ class BundleContainer;
 class NeighbourTable;
 class ListeningAppsTable;
 class Neighbour;
+class BundleInfo;
 
 /**
  * CLASS BasicBundleProcessor
@@ -116,11 +117,11 @@ class BasicBundleProcessor : public BundleProcessor {
   /**
    * Worker to execute the default lifetime code.
    */
-  Worker<bool, Json, Bundle> m_lifeWorker;
+  Worker<bool, Json, BundleInfo> m_lifeWorker;
   /**
    * Worker to execute the default destination code.
    */
-  Worker<bool, Json, Bundle> m_destinationWorker;
+  Worker<bool, Json, BundleInfo> m_destinationWorker;
   /**
    * Variable that holds the parameters used in the processor calls.
    */

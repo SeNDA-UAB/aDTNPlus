@@ -35,6 +35,7 @@
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Bundle/BundleInfo.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
@@ -55,21 +56,19 @@ const std::string BasicBundleProcessor::m_forwardHeader = "#include <vector>\n"
     "#include <cstdlib>\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
-    " std::vector<std::string> f(Json nodeState) {";
+    " std::vector<std::string> f(Json ns) {";
 const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
-    "#include \"Bundle/Bundle.h\"\n"
-    "#include \"Bundle/PrimaryBlock.h\"\n"
+    "#include \"Bundle/BundleInfo.h\"\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     "const uint64_t g_timeFrom2000 = 946684800;"
-    "bool f(Json nodeState, Bundle bundle) {";
+    "bool f(Json ns, BundleInfo bi) {";
 const std::string BasicBundleProcessor::m_destinationHeader =
     "#include <string>\n"
         "#include \"adtnPlus/Json.h\"\n"
-        "#include \"Bundle/Bundle.h\"\n"
-        "#include \"Bundle/PrimaryBlock.h\"\n"
+        "#include \"Bundle/BundleInfo.h\"\n"
         "extern \"C\" {"
-        "bool f(Json nodeState, Bundle bundle) {";
+        "bool f(Json ns, BundleInfo bi) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
@@ -212,7 +211,8 @@ std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
 
 bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
   try {
-    m_destinationWorker.execute(m_nodeState, bundleContainer.getBundle());
+    BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+    m_destinationWorker.execute(m_nodeState, bi);
     return m_destinationWorker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what();
@@ -245,7 +245,8 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
   try {
-    m_lifeWorker.execute(m_nodeState, bundleContainer.getBundle());
+    BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+    m_lifeWorker.execute(m_nodeState, bi);
     return m_lifeWorker.getResult();
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot create code worker, reason: " << e.what();
