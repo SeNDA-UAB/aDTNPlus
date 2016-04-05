@@ -54,7 +54,13 @@ class CodeDataCarrierBundleProcessor : public BasicBundleProcessor {
 
 
   static const std::string m_header1;
+  /**
+   * Variable that holds the parameters contained in the bundle
+   */
   nlohmann::json m_parameters1;
+  /**
+   * Worker to exectue the code contained in the bundle.
+   */
   Worker<std::vector<std::string>, nlohmann::json> m_worker1;
 };
 

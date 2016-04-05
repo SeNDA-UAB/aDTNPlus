@@ -58,7 +58,13 @@ class FrameworkExtension {
    * @return The code to execute instead of the default.
    */
   std::string getSwSrcCode();
-
+  /**
+   * Function that checks if two FrameworkExtensions are the same.
+   *
+   * @param b A FrameworExtension
+   * @return A boolean value describing if the FrameworkExtension is equal
+   * to the given one.
+   */
   bool operator ==(const FrameworkExtension &b) const;
 
  private:

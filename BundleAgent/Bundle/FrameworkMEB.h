@@ -86,11 +86,18 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   std::string getBundleState();
   /**
+   * @biref Parses a Framework Metadata Extension Block from raw.
    *
+   * This function initializes a Framework Metadata Extension Block from raw.
+   *
+   * @param rawData Raw data to parse.
    */
   void initFromRaw(const std::string& rawData);
   /**
+   * Function to get a framework extension by its id.
    *
+   * @param fwkExtId The extension id.
+   * @return A pointer to the Framework Extension whose id is fwkExtId.
    */
   std::shared_ptr<FrameworkExtension> getFwkExt(uint8_t fwkExtId);
 
@@ -108,7 +115,7 @@ class FrameworkMEB : public MetadataExtensionBlock {
    */
   std::string m_bundleState;
   /**
-   *
+   * The number of extensions of the framework.
    */
   uint16_t m_nExtensions;
 };

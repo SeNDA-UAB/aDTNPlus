@@ -71,7 +71,6 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
         worker.generateFunction(code);
         worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
-        LOG(55) << "Result is: " << result.size();
         return result;
       }
     }
