@@ -39,6 +39,8 @@
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/BundleTypes.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
                        std::string recvIp)
@@ -125,6 +127,16 @@ std::string adtnSocket::recv() {
 void adtnSocket::send(std::string destination, std::string message) {
   try {
     Bundle b = Bundle(m_nodeName, destination, message);
+    if (m_frameworkExtensions.size() > 0) {
+      for (auto it = m_frameworkExtensions.begin();
+          it != m_frameworkExtensions.end(); ++it) {
+        auto framework = std::make_shared<FrameworkMEB>(it->first);
+        for (auto ext = it->second.begin(); ext != it->second.end(); ++ext) {
+          framework->addExtension(ext->first, ext->second);
+        }
+        m_blocksToAdd.push_back(framework);
+      }
+    }
     for (auto c : m_blocksToAdd) {
       b.addBlock(c);
     }
@@ -193,7 +205,27 @@ std::string adtnSocket::getRouteReporting() {
       }
     }
   } else {
-    throw adtnSocketException("No bundle has been received yet.");
+    throw adtnMissingBundleException("No bundle has been received yet.");
   }
   throw adtnSocketException("No route report block is present in the bundle.");
+}
+
+void adtnSocket::addFrameworkExtension(uint8_t frameworkId, uint8_t extensionId,
+                                       std::string code) {
+  m_frameworkExtensions[frameworkId][extensionId] = code;
+}
+
+std::string adtnSocket::getBundleState(uint8_t frameworkId) {
+  if (m_lastBundle != nullptr) {
+    try {
+      auto framework = m_lastBundle->getFwk(frameworkId);
+      return framework->getBundleState().dump(2);
+    } catch (const FrameworkNotFoundException &e) {
+      throw adtnSocketException(
+          "No framework block with id " + std::to_string(frameworkId)
+              + " is present in the bundle.");
+    }
+  } else {
+    throw adtnMissingBundleException("No bundle has been received yet.");
+  }
 }

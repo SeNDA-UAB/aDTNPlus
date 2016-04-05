@@ -156,7 +156,6 @@ void FirstADTNPlusFwk::start(
 void FirstADTNPlusFwk::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
-  LOG(1) << bundleContainer->toString();
   LOG(55) << "Checking destination node.";
   if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
