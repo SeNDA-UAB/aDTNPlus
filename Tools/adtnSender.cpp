@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <map>
 #include "adtnSocket.h"
 
 static void help(std::string program_name) {
@@ -56,16 +57,6 @@ int main(int argc, char **argv) {
   std::map<FirstFrameworkExtensionsIds, std::string> files;
   std::string destination = "";
   std::string message = "";
-  std::string creationCode = "";
-  std::string creationFile = "";
-  std::string deletionCode = "";
-  std::string deletionFile = "";
-  std::string destinationCode = "";
-  std::string destinationFile = "";
-  std::string lifetimeCode = "";
-  std::string lifetimeFile = "";
-  std::string forwardCode = "";
-  std::string forwardFile = "";
 
   static struct option long_options[] = { { "listeningIP", required_argument, 0,
       'i' }, { "port", required_argument, 0, 'p' }, { "destination",
@@ -158,6 +149,9 @@ int main(int argc, char **argv) {
       s.addFrameworkExtension(
           static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
           static_cast<uint8_t>(it->first), code);
+      codeFile.close();
+    } else {
+      std::cout << "Cannot open the file " << it->second << std::endl;
     }
   }
   try {
