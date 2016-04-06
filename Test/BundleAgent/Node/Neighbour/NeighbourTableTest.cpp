@@ -69,26 +69,29 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   sleep(1);
   nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40102));
   auto neighbours = nt->getValues();
-  ASSERT_EQ(3, neighbours.size());
+  ASSERT_EQ(static_cast<size_t>(3), neighbours.size());
   ASSERT_EQ(40100, nt->getValue("node100")->getNodePort());
   ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
   nt->clean(2);
   neighbours.clear();
   neighbours = nt->getValues();
-  ASSERT_EQ(2, neighbours.size());
-  ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
-  ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
+  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
+  ASSERT_EQ(static_cast<uint16_t>(40101),
+            nt->getValue("node101")->getNodePort());
+  ASSERT_EQ(static_cast<uint16_t>(40102),
+            nt->getValue("node102")->getNodePort());
   nt->clean(1);
   neighbours.clear();
   nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40105));
   neighbours = nt->getValues();
-  ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ(40105, nt->getValue("node102")->getNodePort());
+  ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
+  ASSERT_EQ(static_cast<uint16_t>(40105),
+            nt->getValue("node102")->getNodePort());
   neighbours.clear();
   nt->update(std::make_shared<Neighbour>("node102", "192.168.1.102", 40105));
   neighbours = nt->getValues();
-  ASSERT_EQ(1, neighbours.size());
+  ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
   ASSERT_EQ("192.168.1.102", nt->getValue("node102")->getNodeAddress());
   delete nt;
 }

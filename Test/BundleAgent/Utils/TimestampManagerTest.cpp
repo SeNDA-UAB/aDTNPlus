@@ -56,9 +56,9 @@ TEST(TimestampManager, TimestampSequece) {
   std::pair<uint64_t, uint64_t> pair3 = tm1->getTimestamp();
   EXPECT_EQ(pair1.first, pair2.first);
   EXPECT_EQ(pair1.first, pair3.first);
-  EXPECT_EQ(0, pair1.second);
-  EXPECT_EQ(1, pair2.second);
-  EXPECT_EQ(2, pair3.second);
+  EXPECT_EQ(static_cast<uint64_t>(0), pair1.second);
+  EXPECT_EQ(static_cast<uint64_t>(1), pair2.second);
+  EXPECT_EQ(static_cast<uint64_t>(2), pair3.second);
   sleep(1);
   pair2 = tm1->getTimestamp();
   pair3 = tm1->getTimestamp();
