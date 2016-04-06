@@ -6,58 +6,55 @@
 ''' aDTNPlus user-defined service.
 '''
 
-import os
-import shutil
-
 from core.service import CoreService, addservice
-from core.misc.ipaddr import IPv4Prefix, IPv6Prefix
 from core.misc.utils import *
 from core.constants import *
 
 class AdtnPlus(CoreService):
-	''' This is the aDTNPlus user-defined service. 
-	'''
-	# a unique name is required, without spaces
-	_name = "aDTNPlus"
-	# you can create your own group here
-	_group = "Utility"
-	# list of other services this service depends on
-	_depends = ()
-	# per-node directories
-	_dirs = ()
-	# generated files (without a full path this file goes in the node's dir,
-	#  e.g. /tmp/pycore.12345/n1.conf/)
-	_configs = ('adtnPlus/adtn.ini', 'adtnPlus/NodeState.json', 'plugins.sh', 'adtnPlus-startup.sh', 'adtnPlus-shutdown.sh',)
-	# this controls the starting order vs other enabled services
-	_startindex = 50
-	# list of startup commands, also may be generated during startup
-	_startup = ('sh plugins.sh', 'sh adtnPlus-startup.sh',)
-	# list of shutdown commands
-	_shutdown = ('sh adtnPlus-shutdown',)
+    '''This is the aDTNPlus user-defined service.
+    '''
+    # a unique name is required, without spaces
+    _name = "aDTNPlus"
+    # you can create your own group here
+    _group = "Utility"
+    # list of other services this service depends on
+    _depends = ()
+    # per-node directories
+    _dirs = ()
+    # generated files (without a full path this file goes in the node's dir,
+    #  e.g. /tmp/pycore.12345/n1.conf/)
+    _configs = ('adtnPlus/adtn.ini', 'adtnPlus/NodeState.json', 'plugins.sh',
+                'adtnPlus-startup.sh', 'adtnPlus-shutdown.sh',)
+    # this controls the starting order vs other enabled services
+    _startindex = 50
+    # list of startup commands, also may be generated during startup
+    _startup = ('sh plugins.sh', 'sh adtnPlus-startup.sh',)
+    # list of shutdown commands
+    _shutdown = ('sh adtnPlus-shutdown',)
 
-	@classmethod
-	def generateconfig(cls, node, filename, services):
-		''' 
-		'''
-		if filename == "adtnPlus/adtn.ini":
-			return cls.generateconfigadtn(node, filename, services)
-		elif filename == "adtnPlus/NodeState.json":
-			return cls.generatenodeState(node, filename, services)
-		elif filename == "plugins.sh":
-			return cls.generatestartupplugin(node, filename, services)
-		elif filename == "adtnPlus-startup.sh":
-			return cls.generatestartupadtnstartup(node, filename, services)
-		elif filename == "adtnPlus-shutdown.sh":
-			return cls.generateshutdownadtnshutdown(node, filename, services)
-		else: 
-			return ""
+    @classmethod
+    def generateconfig(cls, node, filename, services):
+        '''This method calls the functions for every defined config file.
+        '''
+        if filename == "adtnPlus/adtn.ini":
+            return cls.generateconfigadtn(node, filename, services)
+        elif filename == "adtnPlus/NodeState.json":
+            return cls.generatenodeState(node, filename, services)
+        elif filename == "plugins.sh":
+            return cls.generatestartupplugin(node, filename, services)
+        elif filename == "adtnPlus-startup.sh":
+            return cls.generatestartupadtnstartup(node, filename, services)
+        elif filename == "adtnPlus-shutdown.sh":
+            return cls.generateshutdownadtnshutdown(node, filename, services)
+        else:
+            return ""
 
-	@classmethod
-	def generateconfigadtn(cls, node, filename, services):
-		for ifc in node.netifs():
-				nodeip = ifc.addrlist[0].split("/")[0]
-				break
-		return """\
+    @classmethod
+    def generateconfigadtn(cls, node, filename, services):
+        for ifc in node.netifs():
+                nodeip = ifc.addrlist[0].split("/")[0]
+                break
+        return """\
 # This file contains the configuration of the aDTNPlus.
 
 [Node]
@@ -65,7 +62,7 @@ class AdtnPlus(CoreService):
 nodeId : %s
 # IP of this node to receive bundles.
 nodeAddress : %s
-# Port of this node to receive bundles. 
+# Port of this node to receive bundles.
 nodePort : 40000
 # Clean the previous bundles
 clean : false
@@ -100,11 +97,11 @@ level : 21
 timeout : 10
 
 [BundleProcess]
-# Path to save the bundles, it has to exist and the application has to have 
+# Path to save the bundles, it has to exist and the application has to have
 # permissions in the folder.
 dataPath : %s/adtnPlus/Bundles/
 # Bundle process shared library name to use in this node.
-bundleProcessName : %s/adtnPlus/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so 
+bundleProcessName : %s/adtnPlus/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so
 # Path to save the generated codes, it has to exist and the application has to
 # have permissions in the folder.
 codePath : %s/adtnPlus/Codes/
@@ -118,12 +115,12 @@ listenerPort : 50000
 [NodeState]
 # Default node state path
 path : %s/adtnPlus/NodeState.json
-""" % (node.name, nodeip, node.nodedir, node.nodedir, node.nodedir, node.nodedir, nodeip, node.nodedir)
+""" % (node.name, nodeip, node.nodedir, node.nodedir,
+            node.nodedir, node.nodedir, nodeip, node.nodedir)
 
-
-	@classmethod
-	def generatenodeState(cls, node, filename, services):
-		return r"""
+    @classmethod
+    def generatenodeState(cls, node, filename, services):
+        return r"""
 {
   "configuration" : {
     "defaultCodes" : {
@@ -143,23 +140,22 @@ path : %s/adtnPlus/NodeState.json
 }
 """ % (node.name)
 
-
-	@classmethod
-	def generatestartupplugin(cls, node, filename, services):
-		return """\
+    @classmethod
+    def generatestartupplugin(cls, node, filename, services):
+        return """\
 #! /bin/bash
 NODEDIR=%s
 mkdir -p $NODEDIR/adtnPlus/Plugins
 
 localPath=/var/lib/adtnPlus/Plugins/
 if [ -d $localPath ]; then
-	cp /var/lib/adtnPlus/Plugins/* $NODEDIR/adtnPlus/Plugins/
+    cp /var/lib/adtnPlus/Plugins/* $NODEDIR/adtnPlus/Plugins/
 fi
 """ % (node.nodedir)
 
-	@classmethod
-	def generatestartupadtnstartup(cls, node, filename, services):
-		return """\
+    @classmethod
+    def generatestartupadtnstartup(cls, node, filename, services):
+        return """\
 #! /bin/bash
 # auto-generated by adtnPlus user-defined service.
 
@@ -171,11 +167,10 @@ sleep 2
 # launch aDTNPlus platform service
 BundleAgent $CFGPATH &
 """ % (node.nodedir + "/adtnPlus/adtn.ini")
-		
 
-	@classmethod
-	def generateshutdownadtnshutdown(cls, node, filename, services):
-		return """\
+    @classmethod
+    def generateshutdownadtnshutdown(cls, node, filename, services):
+        return """\
 #! /bin/bash
 # auto-generated by adtnPlus user-defined service.
 
@@ -187,7 +182,5 @@ sleep 3
 rm -fr adtnPlus
 """
 
-
 # this line is required to add the above class to the list of available services
 addservice(AdtnPlus)
-
