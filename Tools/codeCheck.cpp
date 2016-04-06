@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
         "%s f(Json ns, json bps, BundleInfo bi) {\n";
     const std::string m_footer = "return %s;}}";
     const std::string m_commandLine =
-        "g++ -w -fPIC -shared -std=c++14 %s -o %s 2>&1";
+        "g++ -w -fPIC -shared -std=c++14 %s -o %s -lpthread 2>&1";
 
     Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
         Worker<bool, Json, nlohmann::json, BundleInfo>> m_voidWorker(
