@@ -35,18 +35,41 @@
 #include "adtnSocket.h"
 
 static void help(std::string program_name) {
-  std::cout << program_name << " is part of the SeNDA aDTNPlus platform\n"
-            << "Usage: " << program_name << " -i '127.0.0.1' -p '50000'"
-            << " -d 'node2:50' -m 'This is a message for node2.'\n"
-            << "Required options:\n"
-            << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
-            << "   [-p | --port] port\t\t\tPort where the node is listening.\n"
-            << "   [-d | --destination] destination node\t\t\t"
-            << "Which node is the destination.\n"
-            << "   [-m | --message] message to send\t\t\tThe message to send.\n"
-            << "Supported options:\n"
-            << "   [-h | --help]\t\t\t\tShows this help message.\n"
-            << std::endl;
+  std::cout
+      << program_name
+      << " is part of the SeNDA aDTNPlus platform\n"
+      << "Usage: "
+      << program_name
+      << " -i '127.0.0.1' -p '50000'"
+      << " -d 'node2:50' -m 'This is a message for node2.'\n"
+      << "Required options:\n"
+      << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
+      << "   [-p | --port] port\t\t\t\tPort where the node is listening.\n"
+      << "   [-d | --destination] destination node\t"
+      << "Which node is the destination.\n"
+      << "   [-m | --message] message to send\t\tThe message to send.\n"
+      << "Supported options:\n"
+      << "   [-c | --create] creation code\t\tAdds the code to the "
+      "CONTAINER_CREATION extension.\n"
+      << "   [-C | --createFile] creation code in file\tAdds the code from "
+      "the file to the CONTAINER_CREATION extension.\n"
+      << "   [-e | --del] deletion code\t\t\tAdds the code to the "
+      "CONTAINER_DELETION extension.\n"
+      << "   [-E | --delFile] deletion code in file\tAdds the code from the "
+          "file to the CONTAINER_DELETION extension.\n"
+      << "   [-t | --dest] destination code\t\tAdds the code to the "
+          "DESTINATION extension.\n"
+      << "   [-T | --destFile] destination code file\tAdds the code from the "
+          "file to the DESTINATION extension.\n"
+      << "   [-l | --life] lifetime code\t\t\tAdds the code to the "
+          "LIFETIME extension.\n"
+      << "   [-L | --lifeFile] lifetime code file\t\tAdds the code from the file "
+          "to the LIFETIME extension.\n"
+      << "   [-f | --fwd] forward code\t\t\tAdds the code to the "
+          "FORWARD extension.\n"
+      << "   [-F | --fwdFile] forward code file\t\tAdds the code from the file "
+          "to the FORWARD extension.\n"
+      << "   [-h | --help]\t\t\t\tShows this help message.\n" << std::endl;
 }
 
 int main(int argc, char **argv) {
