@@ -34,12 +34,22 @@
 static void help(std::string program_name) {
   std::cout
       << program_name << " is part of the SeNDA aDTNPlus platform\n"
-      << "Usage: " << program_name << " -i '127.0.0.1' -p '50000' -a '50'\n"
+      << "Usage: \n"
+      << "\t\tWith code: " << program_name << " -c \"bs[\\\"visited\\\"] = "
+          "ns[\\\"id\\\"];\" -t c\n"
+      << "\t\tWith file: " << program_name << " -c pathToCode -f -t e\n"
       << "Required options:\n"
-      << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
-      << "   [-p | --port] port\t\t\tPort where the node is listening.\n"
-      << "   [-a | --appId] ApplicationID\t\t\tWhat appId we want to listen.\n"
+      << "   [-c | --code] code or file if -f flag\tThe code to test or the name of the file.\n"
+      << "   [-t | --type] type of the code\t\tWitch type of code is:\n"
+          "\t\t\t\t\t\t\t    Type\t\tFlag\n"
+          "\t\t\t\t\t\t\t----------------------------\n"
+          "\t\t\t\t\t\t\tCONTAINER_CREATION\t c\n"
+      "\t\t\t\t\t\t\tCONATINER_DELETION\t e\n"
+      "\t\t\t\t\t\t\tDESTINATION\t\t t\n"
+      "\t\t\t\t\t\t\tLIFETIME\t\t l\n"
+      "\t\t\t\t\t\t\tFORWARD\t\t\t f\n"
       << "Supported options:\n"
+      << "   [-f | --file] flag for file\t\t\tIf the flag is present the code is going to be processed as a filename.\n"
       << "   [-h | --help]\t\t\t\tShows this help message.\n" << std::endl;
 }
 

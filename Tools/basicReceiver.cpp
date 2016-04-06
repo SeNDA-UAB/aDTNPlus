@@ -38,7 +38,7 @@ static void help(std::string program_name) {
       << "Usage: " << program_name << " -i '127.0.0.1' -p '50000' -a '50'\n"
       << "Required options:\n"
       << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
-      << "   [-p | --port] port\t\t\tPort where the node is listening.\n"
+      << "   [-p | --port] port\t\t\t\tPort where the node is listening.\n"
       << "   [-a | --appId] ApplicationID\t\t\tWhat appId we want to listen.\n"
       << "Supported options:\n"
       << "   [-h | --help]\t\t\t\tShows this help message.\n" << std::endl;

@@ -37,9 +37,10 @@ static void help(std::string program_name) {
       << "Usage: " << program_name << " -i '127.0.0.1' -p '50000' -a '50'\n"
       << "Required options:\n"
       << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
-      << "   [-p | --port] port\t\t\tPort where the node is listening.\n"
+      << "   [-p | --port] port\t\t\t\tPort where the node is listening.\n"
       << "   [-a | --appId] ApplicationID\t\t\tWhat appId we want to listen.\n"
       << "Supported options:\n"
+      << "   [-v | --printState]\t\t\t\tPrints the last bundle state received.\n"
       << "   [-h | --help]\t\t\t\tShows this help message.\n" << std::endl;
 }
 
@@ -52,8 +53,8 @@ int main(int argc, char **argv) {
 
   static struct option long_options[] = { { "listeningIP", required_argument, 0,
       'i' }, { "port", required_argument, 0, 'p' }, { "appId",
-      required_argument, 0, 'a' }, { "printState", no_argument, 0, 'v' }, {
-      "help", no_argument, 0, 'h' }, { 0, 0, 0, 0 } };
+  required_argument, 0, 'a' }, { "printState", no_argument, 0, 'v' }, { "help",
+      no_argument, 0, 'h' }, { 0, 0, 0, 0 } };
 
   while ((opt = getopt_long(argc, argv, "i:p:a:vh", long_options, &option_index))) {
     switch (opt) {
