@@ -180,13 +180,13 @@ TEST(WorkerTest, MultipleParameters2) {
   neighbours.push_back("THE_SOURCE");
   neighbours.push_back("THE_DESTINATION");
   neighbours.push_back("THE_FINAL");
-  ASSERT_EQ(neighbours.size(), 5);
+  ASSERT_EQ(neighbours.size(), static_cast<size_t>(5));
 
   Worker<std::vector<std::string>, std::vector<std::string>,
   std::string> w(header, footer, functionName, commandLine, "./");
   w.generateFunction(code);
   w.execute(neighbours, source);
   std::vector<std::string> result = w.getResult();
-  ASSERT_EQ(result.size(), 4);
+  ASSERT_EQ(result.size(), static_cast<size_t>(4));
 }
 
