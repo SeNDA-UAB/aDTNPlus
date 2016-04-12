@@ -39,7 +39,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
@@ -91,7 +91,7 @@ BasicBundleProcessor::~BasicBundleProcessor() {
 void BasicBundleProcessor::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());

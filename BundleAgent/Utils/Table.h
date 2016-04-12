@@ -31,6 +31,7 @@
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
+#include "Node/EndpointListener/Endpoint.h"
 
 class TableException : public std::runtime_error {
  public:
@@ -79,7 +80,8 @@ class Table {
     keys.reserve(m_values.size());
     std::transform(
         m_values.begin(), m_values.end(), std::back_inserter(keys),
-        [](const typename std::map<std::string, std::shared_ptr<T>>::value_type &pair) {
+        [](const typename std::map<std::string,
+            std::shared_ptr<T>>::value_type &pair) {
           return pair.first;
         });
     mutex.unlock();

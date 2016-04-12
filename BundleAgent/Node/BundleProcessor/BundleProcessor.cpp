@@ -42,8 +42,8 @@
 #include "Node/Neighbour/Neighbour.h"
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
-#include "Node/AppListener/ListeningAppsTable.h"
-#include "Node/AppListener/App.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
+#include "Node/EndpointListener/Endpoint.h"
 #include "Bundle/Bundle.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/PayloadBlock.h"
@@ -59,7 +59,7 @@ BundleProcessor::~BundleProcessor() {
 void BundleProcessor::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   m_config = config;
   m_bundleQueue = bundleQueue;
   m_neighbourTable = neighbourTable;
@@ -243,7 +243,7 @@ void BundleProcessor::dispatch(Bundle bundle,
       destinations.begin(), destinations.end(),
       [this, payload, payloadSize] (std::string &appId) {
         try {
-          std::shared_ptr<App> app = m_listeningAppsTable->getValue(appId);
+          std::shared_ptr<Endpoint> app = m_listeningAppsTable->getValue(appId);
           send(app->getSocket(), &payloadSize, sizeof(payloadSize), 0);
           send(app->getSocket(), payload.c_str(), payloadSize, 0);
           LOG(17) << "Send the payload: " << payload << " to the appId: "

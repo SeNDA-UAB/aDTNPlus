@@ -19,10 +19,10 @@
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the tests of the App class.
+ * This file contains the tests of the Endpoint class.
  */
 
-#include "Node/AppListener/App.h"
+#include "Node/EndpointListener/Endpoint.h"
 #include "gtest/gtest.h"
 
 /**
@@ -30,10 +30,10 @@
  * Generate a app and check the fields.
  */
 TEST(AppTest, Constructor) {
-  App a = App("node100", "192.168.1.2", 40000, 1);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 1);
   ASSERT_EQ("node100", a.getId());
-  ASSERT_EQ("192.168.1.2", a.getAppAddress());
-  ASSERT_EQ(40000, a.getAppPort());
+  ASSERT_EQ("192.168.1.2", a.getAddress());
+  ASSERT_EQ(40000, a.getPort());
 }
 
 /**
@@ -42,11 +42,11 @@ TEST(AppTest, Constructor) {
  * After that update the app and check that the activity time is 0.
  */
 TEST(AppTest, Activity) {
-  App a = App("node100", "192.168.1.2", 40000, 2);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 2);
   ASSERT_EQ(0, a.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, a.getElapsedActivityTime());
-  a.update(std::make_shared<App>("node100", "192.168.1.2", 40000, 2));
+  a.update(std::make_shared<Endpoint>("node100", "192.168.1.2", 40000, 2));
   ASSERT_EQ(0, a.getElapsedActivityTime());
 }
 
@@ -55,10 +55,10 @@ TEST(AppTest, Activity) {
  * Check if two apps are equals.
  */
 TEST(AppTest, Equality) {
-  App a = App("node100", "192.168.1.2", 40000, 3);
-  App a1 = App("node100", "192.168.1.2", 40000, 3);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 3);
+  Endpoint a1 = Endpoint("node100", "192.168.1.2", 40000, 3);
   ASSERT_TRUE(a1 == a);
-  a = App("node101", "192.168.1.2", 40000, 5);
+  a = Endpoint("node101", "192.168.1.2", 40000, 5);
   ASSERT_FALSE(a1 == a);
 }
 

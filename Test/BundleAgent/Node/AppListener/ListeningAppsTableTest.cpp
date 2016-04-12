@@ -19,16 +19,16 @@
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the tests of the ListeningAppsTable class.
+ * This file contains the tests of the ListeningEndpointsTable class.
  */
 
 #include <string>
 #include <map>
 #include <memory>
 #include <vector>
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "gtest/gtest.h"
-#include "Node/AppListener/App.h"
+#include "Node/EndpointListener/Endpoint.h"
 
 /**
  * Check the add and remove options.
@@ -38,8 +38,8 @@
  * Get the apps again, and check that now the app is out.
  */
 TEST(ListeningAppsTableTest, AddAndRemove) {
-  ListeningAppsTable* lat = new ListeningAppsTable();
-  lat->update(std::make_shared<App>("100", "192.168.1.1", 40000, 1));
+  ListeningEndpointsTable* lat = new ListeningEndpointsTable();
+  lat->update(std::make_shared<Endpoint>("100", "192.168.1.1", 40000, 1));
   // Get the neighbours
   auto apps = lat->getValues();
   // Check neighbour
@@ -61,34 +61,34 @@ TEST(ListeningAppsTableTest, AddAndRemove) {
  * Make the same as the previous test, but with more apps.
  */
 TEST(ListeningAppsTableTest, AddAndRemoveMore) {
-  ListeningAppsTable* lat = new ListeningAppsTable();
-  lat->update(std::make_shared<App>("100", "192.168.1.1", 40100, 1));
+  ListeningEndpointsTable* lat = new ListeningEndpointsTable();
+  lat->update(std::make_shared<Endpoint>("100", "192.168.1.1", 40100, 1));
   sleep(1);
-  lat->update(std::make_shared<App>("101", "192.168.1.1", 40101, 2));
+  lat->update(std::make_shared<Endpoint>("101", "192.168.1.1", 40101, 2));
   sleep(1);
-  lat->update(std::make_shared<App>("102", "192.168.1.1", 40102, 3));
+  lat->update(std::make_shared<Endpoint>("102", "192.168.1.1", 40102, 3));
   auto apps = lat->getValues();
   ASSERT_EQ(static_cast<size_t>(3), apps.size());
-  ASSERT_EQ(40100, lat->getValue("100")->getAppPort());
-  ASSERT_EQ(40101, lat->getValue("101")->getAppPort());
-  ASSERT_EQ(40102, lat->getValue("102")->getAppPort());
+  ASSERT_EQ(40100, lat->getValue("100")->getPort());
+  ASSERT_EQ(40101, lat->getValue("101")->getPort());
+  ASSERT_EQ(40102, lat->getValue("102")->getPort());
   lat->clean(2);
   apps.clear();
   apps = lat->getValues();
   ASSERT_EQ(static_cast<size_t>(2), apps.size());
-  ASSERT_EQ(static_cast<uint16_t>(40101), lat->getValue("101")->getAppPort());
-  ASSERT_EQ(static_cast<uint16_t>(40102), lat->getValue("102")->getAppPort());
+  ASSERT_EQ(static_cast<uint16_t>(40101), lat->getValue("101")->getPort());
+  ASSERT_EQ(static_cast<uint16_t>(40102), lat->getValue("102")->getPort());
   lat->clean(1);
   apps.clear();
-  lat->update(std::make_shared<App>("102", "192.168.1.1", 40105, 3));
+  lat->update(std::make_shared<Endpoint>("102", "192.168.1.1", 40105, 3));
   apps = lat->getValues();
   ASSERT_EQ(static_cast<size_t>(1), apps.size());
-  ASSERT_EQ(static_cast<uint16_t>(40105), lat->getValue("102")->getAppPort());
+  ASSERT_EQ(static_cast<uint16_t>(40105), lat->getValue("102")->getPort());
   apps.clear();
-  lat->update(std::make_shared<App>("102", "192.168.1.102", 40105, 3));
+  lat->update(std::make_shared<Endpoint>("102", "192.168.1.102", 40105, 3));
   apps = lat->getValues();
   ASSERT_EQ(static_cast<size_t>(1), apps.size());
-  ASSERT_EQ("192.168.1.102", lat->getValue("102")->getAppAddress());
+  ASSERT_EQ("192.168.1.102", lat->getValue("102")->getAddress());
   delete lat;
 }
 
