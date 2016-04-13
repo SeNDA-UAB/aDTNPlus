@@ -68,7 +68,7 @@ adtnSocket::~adtnSocket() {
     delete m_lastBundle;
 }
 
-void adtnSocket::connect(int appId) {
+void adtnSocket::connect(std::string appId) {
   std::string ip = m_listeningIp == "" ? m_nodeIp : m_listeningIp;
   sockaddr_in remoteAddr = { 0 };
   remoteAddr.sin_family = AF_INET;
@@ -87,14 +87,17 @@ void adtnSocket::connect(int appId) {
       throw adtnSocketException(ss.str());
     } else {
       uint8_t type = htons(0);
-      uint32_t appIdn = htonl(appId);
+      // uint32_t appIdn = htonl(appId);
       int writed = ::send(m_recvSocket, &type, sizeof(type), 0);
       if (writed < 0) {
         std::stringstream ss;
         ss << "Cannot write to socket, reason: " << strerror(errno);
         throw adtnSocketException(ss.str());
       } else {
-        writed = ::send(m_recvSocket, &appIdn, sizeof(appIdn), 0);
+        uint32_t appIdLength = appId.length();
+        uint32_t nAppId = htonl(appIdLength);
+        writed = ::send(m_recvSocket, &nAppId, sizeof(nAppId), 0);
+        writed = ::send(m_recvSocket, appId.c_str(), appIdLength, 0);
         if (writed < 0) {
           std::stringstream ss;
           ss << "Cannot write to socket, reason: " << strerror(errno);

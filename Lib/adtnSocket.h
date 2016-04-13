@@ -98,7 +98,7 @@ class adtnSocket {
    *
    * @param appId The appId to register.
    */
-  void connect(int appId);
+  void connect(std::string appId);
   /**
    * @brief Receives a message from the node.
    *
