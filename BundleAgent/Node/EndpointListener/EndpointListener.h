@@ -19,7 +19,7 @@
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the App listener class.
+ * This file contains the Endpoint listener class.
  */
 #ifndef BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_
 #define BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_
@@ -31,7 +31,7 @@
 
 /**
  * CLASS EndpointListener
- * This class implements the App listener system.
+ * This class implements the Endpoint listener system.
  * A socket will be listening for incoming connections, this connections are
  * used to subscribe for receiving them.
  *
@@ -39,7 +39,7 @@
  * This messages has the following format:
  *
  * an uint8_t with the value 0.
- * an int with the App value.
+ * an string with the endpoint value.
  *
  * The connection will be maintained open, an used
  * when a bundle is received and dispatched to the application.
@@ -59,10 +59,10 @@ class EndpointListener {
    * This will create a EndpointListener object using the values in the Config.
    *
    * @param config Config with the parameters.
-   * @param listeningAppsTable a listeningAppsTable.
+   * @param listeningEndpointsTable a listeningEndpointsTable.
    */
   EndpointListener(Config config,
-              std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
+              std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable);
   /**
    * Destructor of the class.
    */
@@ -74,7 +74,7 @@ class EndpointListener {
    */
   Config m_config;
   /**
-   * The Listening Apps table reference.
+   * The Listening Endpoints table reference.
    */
   std::shared_ptr<ListeningEndpointsTable> m_listeningEndpointsTable;
 
@@ -82,9 +82,9 @@ class EndpointListener {
   /**
    * Function to start the listening socket.
    */
-  void listenApps();
+  void listenEndpoints();
   /**
-   * Function that gets the app to listen.
+   * Function that gets the Endpoint to listen.
    */
   void startListening(int sock);
 };

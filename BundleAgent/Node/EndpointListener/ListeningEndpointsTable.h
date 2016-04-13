@@ -36,7 +36,7 @@
 
 /**
  * CLASS ListeningEndpointsTable
- * This class contains all the listening apps.
+ * This class contains all the listening Endpoints.
  */
 class ListeningEndpointsTable : public Table<Endpoint> {
  public:
@@ -49,10 +49,10 @@ class ListeningEndpointsTable : public Table<Endpoint> {
    */
   virtual ~ListeningEndpointsTable();
   /**
-   * @brief Clean all the apps that have expired.
+   * @brief Clean all the Endpoints that have expired.
    *
-   * This function deletes all the apps that have been expired.
-   * This means all the apps that have a last activity value greater that
+   * This function deletes all the Endpoints that have been expired.
+   * This means all the Endpoints that have a last activity value greater that
    * the expirationTime.
    *
    * @param expirationTime Minimum time to expire a neighbour.

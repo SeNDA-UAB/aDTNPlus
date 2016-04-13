@@ -35,19 +35,19 @@
 #include "Utils/globals.h"
 
 EndpointListener::EndpointListener(Config config,
-                   std::shared_ptr<ListeningEndpointsTable> listeningAppsTable)
+                   std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
     : m_config(config),
-      m_listeningEndpointsTable(listeningAppsTable) {
-  std::thread t = std::thread(&EndpointListener::listenApps, this);
+      m_listeningEndpointsTable(listeningEndpointsTable) {
+  std::thread t = std::thread(&EndpointListener::listenEndpoints, this);
   t.detach();
-  LOG(68) << "Creating App listener.";
+  LOG(68) << "Creating Endpoint listener.";
 }
 
 EndpointListener::~EndpointListener() {
 }
 
-void EndpointListener::listenApps() {
-  LOG(17) << "Creating Listening Apps thread.";
+void EndpointListener::listenEndpoints() {
+  LOG(17) << "Creating Listening Endpoints thread.";
   sockaddr_in listenAddr = { 0 };
   listenAddr.sin_family = AF_INET;
   listenAddr.sin_port = htons(m_config.getListenerPort());
@@ -55,7 +55,7 @@ void EndpointListener::listenApps() {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock == -1) {
     // Stop the application
-    LOG(1) << "Cannot create socket into listenApps thread, reason: "
+    LOG(1) << "Cannot create socket into listenEndpoints thread, reason: "
            << strerror(errno);
     g_stop = true;
   } else {
@@ -101,7 +101,7 @@ void EndpointListener::listenApps() {
     }
     close(sock);
   }
-  LOG(17) << "Exit App Listener thread.";
+  LOG(17) << "Exit Endpoint Listener thread.";
   g_stopped++;
 }
 
@@ -119,20 +119,17 @@ void EndpointListener::startListening(int sock) {
   uint8_t type = 100;
   int receivedSize = recv(sock, &type, sizeof(type), 0);
   if (type == 0) {
-    LOG(17) << "Someone asked to add an AppId";
+    LOG(17) << "Someone asked to add an EndpointId";
     uint32_t eid = 0;
 
     receivedSize = recv(sock, &eid, sizeof(eid), 0);
     eid = ntohl(eid);
-    LOG(1) << "Received endpoint id of length: " << eid;
     char* buffer = new char[eid];
     uint32_t receivedLength = 0;
     while (receivedLength < eid) {
-      LOG(1) << "Receiving endpoint id ";
       receivedSize = recv(sock, buffer + receivedLength,
                       eid - receivedLength, 0);
 
-      LOG(1) << "Bytes readed: " << receivedSize;
       if (receivedSize == -1) {
         LOG(1) << "Error receiving bundle from "
             << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
@@ -145,10 +142,8 @@ void EndpointListener::startListening(int sock) {
       }
       receivedLength += receivedSize;
     }
-    LOG(1) << "Enpoint correctly recived";
     std::string endpointId = std::string(buffer, eid);
-    LOG(1) << "Endpoint id is: " << endpointId;
-    if (receivedSize != eid) {
+    if (static_cast<uint32_t>(receivedSize) != eid) {
       if (receivedSize == 0) {
         LOG(1) << "Error receiving bundle length from "
                << inet_ntoa(bundleSrc.sin_addr)

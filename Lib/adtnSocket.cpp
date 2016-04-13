@@ -87,7 +87,6 @@ void adtnSocket::connect(std::string appId) {
       throw adtnSocketException(ss.str());
     } else {
       uint8_t type = htons(0);
-      // uint32_t appIdn = htonl(appId);
       int writed = ::send(m_recvSocket, &type, sizeof(type), 0);
       if (writed < 0) {
         std::stringstream ss;

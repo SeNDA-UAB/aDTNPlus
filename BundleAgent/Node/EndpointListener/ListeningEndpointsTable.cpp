@@ -36,13 +36,13 @@ ListeningEndpointsTable::~ListeningEndpointsTable() {
 }
 
 void ListeningEndpointsTable::clean(int expirationTime) {
-  LOG(62) << "Cleaning apps that have bben out for more than "
+  LOG(62) << "Cleaning endpoints that have bben out for more than "
           << expirationTime;
   mutex.lock();
   for (std::map<std::string, std::shared_ptr<Endpoint>>::iterator it =
       m_values.begin(); it != m_values.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(17) << "App " << (*it).second->getId() << "has disappeared";
+      LOG(17) << "Endpoint " << (*it).second->getId() << "has disappeared";
       it = m_values.erase(it);
     } else {
       ++it;

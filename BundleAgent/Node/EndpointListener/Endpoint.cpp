@@ -28,15 +28,15 @@
 #include <chrono>
 #include "Utils/Logger.h"
 
-Endpoint::Endpoint(const std::string &appId, const std::string &appAddress,
-         const uint16_t &appPort, const int &socket)
-    : m_id(appId),
-      m_address(appAddress),
-      m_port(appPort),
+Endpoint::Endpoint(const std::string &endpointId, const std::string &endpointAddress,
+         const uint16_t &endpointPort, const int &socket)
+    : m_id(endpointId),
+      m_address(endpointAddress),
+      m_port(endpointPort),
       m_socket(socket),
       m_lastActivity(std::chrono::steady_clock::now()) {
-  LOG(69) << "Creating new app from parameters [appId: " << appId
-          << "][appAddress: " << appAddress << "][appPort: " << appPort << "]";
+  LOG(69) << "Creating new endpoint from parameters [endpointId: " << endpointId
+          << "][endpointAddress: " << endpointAddress << "][endpointPort: " << endpointPort << "]";
 }
 
 Endpoint::~Endpoint() {
@@ -50,19 +50,19 @@ int Endpoint::getElapsedActivityTime() {
       / std::chrono::nanoseconds::period::den;
 }
 
-void Endpoint::update(std::shared_ptr<Endpoint> app) {
-  LOG(69) << "Updating app last activity time to now";
-  m_address = app->getAddress();
-  m_port = app->getPort();
+void Endpoint::update(std::shared_ptr<Endpoint> endpoint) {
+  LOG(69) << "Updating endpoint last activity time to now";
+  m_address = endpoint->getAddress();
+  m_port = endpoint->getPort();
   m_lastActivity = std::chrono::steady_clock::now();
-  m_socket = app->getSocket();
+  m_socket = endpoint->getSocket();
 }
 
-bool Endpoint::operator ==(const Endpoint &app) const {
-  bool equals = m_id == app.m_id;
-  equals &= m_address == app.m_address;
-  equals &= m_port == app.m_port;
-  equals &= m_socket == app.m_socket;
+bool Endpoint::operator ==(const Endpoint &endpoint) const {
+  bool equals = m_id == endpoint.m_id;
+  equals &= m_address == endpoint.m_address;
+  equals &= m_port == endpoint.m_port;
+  equals &= m_socket == endpoint.m_socket;
   return equals;
 }
 

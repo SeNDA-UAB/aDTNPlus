@@ -31,38 +31,38 @@
 
 /**
  * CLASS Endpoint.
- * This class contains the information of one app.
+ * This class contains the information of one endpoint.
  */
 class Endpoint {
  public:
   /**
    * @brief Generates a Endpoint with the given values.
    *
-   * Generates an Endpoint with a app id, an IP address and a port.
+   * Generates an Endpoint with a endpoint id, an IP address and a port.
    *
-   * @param appId the identifier of the app.
-   * @param appAddress the IP of the app.
-   * @param appPort the port of the app.
+   * @param endpointId the identifier of the endpoint.
+   * @param endpointAddress the IP of the endpoint.
+   * @param endpointPort the port of the endpoint.
    */
-  Endpoint(const std::string &appId, const std::string &appAddress,
-      const uint16_t &appPort, const int &socket);
+  Endpoint(const std::string &endpointId, const std::string &endpointAddress,
+      const uint16_t &endpointPort, const int &socket);
   /**
    * Destructor of the class.
    */
   virtual ~Endpoint();
   /**
-   * Gets the app id.
-   * @return The app id.
+   * Gets the endpoint id.
+   * @return The endpoint id.
    */
   std::string getId();
   /**
-   * Gets the app IP address.
-   * @return The app IP address.
+   * Gets the endpoint IP address.
+   * @return The endpoint IP address.
    */
   std::string getAddress();
   /**
-   * Gets the app port.
-   * @return The app port.
+   * Gets the endpoint port.
+   * @return The endpoint port.
    */
   uint16_t getPort();
   /**
@@ -78,28 +78,28 @@ class Endpoint {
   int getElapsedActivityTime();
   /**
    * This functionupdates the last activity
-   * @param appAddress IP address of the app.
-   * @param appPort port of the app.
+   * @param endpointAddress IP address of the endpoint.
+   * @param endpointPort port of the endpoint.
    */
-  void update(std::shared_ptr<Endpoint> app);
+  void update(std::shared_ptr<Endpoint> endpoint);
   /**
    * Equality operator overload.
-   * @param app to compare
-   * @return True if the apps are equals.
+   * @param endpoint to compare
+   * @return True if the endpoints are equals.
    */
-  bool operator==(const Endpoint &app) const;
+  bool operator==(const Endpoint &endpoint) const;
 
  private:
   /**
-   * Identifier of the app.
+   * Identifier of the endpoint.
    */
   std::string m_id;
   /**
-   * Ip address of the app.
+   * Ip address of the endpoint.
    */
   std::string m_address;
   /**
-   * Port of the app.
+   * Port of the endpoint.
    */
   uint16_t m_port;
   /**
@@ -107,7 +107,7 @@ class Endpoint {
    */
   int m_socket;
   /**
-   * Time of the last activity of the app.
+   * Time of the last activity of the endpoint.
    */
   std::chrono::steady_clock::time_point m_lastActivity;
 };
