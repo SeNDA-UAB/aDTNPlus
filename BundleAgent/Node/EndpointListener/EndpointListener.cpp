@@ -157,9 +157,9 @@ void EndpointListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningEndpointsTable->update(
-          std::make_shared<Endpoint>(endpointId, "",
-                                     0, sock));
+      m_listeningEndpointsTable->update(endpointId,
+          Endpoint(endpointId, "", 0, sock));
+      LOG(1) << "Registered endpoint: " << endpointId;
     }
   }
 }

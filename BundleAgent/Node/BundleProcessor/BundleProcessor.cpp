@@ -243,11 +243,14 @@ void BundleProcessor::dispatch(Bundle bundle,
       destinations.begin(), destinations.end(),
       [this, payload, payloadSize] (std::string &appId) {
         try {
-          std::shared_ptr<Endpoint> app = m_listeningAppsTable->getValue(appId);
-          send(app->getSocket(), &payloadSize, sizeof(payloadSize), 0);
-          send(app->getSocket(), payload.c_str(), payloadSize, 0);
-          LOG(17) << "Send the payload: " << payload << " to the appId: "
-          << appId;
+          std::vector<Endpoint> endpoints =
+              m_listeningAppsTable->getValue(appId);
+          for (auto endpoint : endpoints) {
+            send(endpoint.getSocket(), &payloadSize, sizeof(payloadSize), 0);
+            send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
+            LOG(17) << "Send the payload: " << payload << " to the appId: "
+                << appId;
+          }
         } catch (const TableException &e) {
           LOG(10) << "Error getting appId, reason: " << e.what();
           throw;

@@ -32,13 +32,19 @@
 #include <vector>
 #include <stdexcept>
 #include "Node/EndpointListener/Endpoint.h"
-#include "Utils/Table.h"
+
+class TableException2 : public std::runtime_error {
+ public:
+  explicit TableException2(const std::string &what)
+      : runtime_error(what) {
+  }
+};
 
 /**
  * CLASS ListeningEndpointsTable
  * This class contains all the listening Endpoints.
  */
-class ListeningEndpointsTable : public Table<Endpoint> {
+class ListeningEndpointsTable {
  public:
   /**
    * Constructor of the ListeningEndpointsTable.
@@ -58,6 +64,39 @@ class ListeningEndpointsTable : public Table<Endpoint> {
    * @param expirationTime Minimum time to expire a neighbour.
    */
   void clean(int expirationTime);
+  /**
+   * @brief Updates the value in the table.
+   *
+   * This function updates the given value.
+   * If the value is not present in the table, this function adds the new value.
+   *
+   * @param value The value to check.
+   */
+  void update(std::string endpointId, Endpoint endpoint);
+
+  /**
+   * Function to get a list of all the id's in the Table.
+   *
+   * @return a vector with the current values id's.
+   */
+  std::vector<std::string> getValues();
+  /**
+   * Function to get the information of the given name.
+   *
+   * @param name the id of the value.
+   * @return a T pointer if exists, else throws a TableException.
+   */
+  std::vector<Endpoint> getValue(const std::string &name);
+
+ protected:
+  /**
+   * Map with the neighbours.
+   */
+  std::map<std::string, std::vector<Endpoint>> m_values;
+  /**
+   * Mutex for the map.
+   */
+  std::mutex mutex;
 };
 
 #endif  // BUNDLEAGENT_NODE_ENDPOINTLISTENER_LISTENINGENDPOINTSTABLE_H_
