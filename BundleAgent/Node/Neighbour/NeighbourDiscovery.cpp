@@ -92,7 +92,8 @@ void NeighbourDiscovery::sendBeacons() {
       // Create the beacon with our information.
       LOG(64) << "Sending beacons to " << m_config.getDiscoveryAddress() << ":"
               << m_config.getDiscoveryPort();
-      Beacon b = Beacon(nodeId, nodeAddress, nodePort);
+      Beacon b = Beacon(nodeId, nodeAddress, nodePort,
+                        std::vector<std::string>());
       int sleepTime = m_config.getDiscoveryPeriod();
       g_startedThread++;
       while (!g_stop.load()) {
