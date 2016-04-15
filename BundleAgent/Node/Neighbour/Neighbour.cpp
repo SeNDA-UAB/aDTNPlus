@@ -29,12 +29,14 @@
 #include "Utils/Logger.h"
 
 Neighbour::Neighbour(const std::string &nodeId, const std::string &nodeAddress,
-                     const uint16_t &nodePort)
+                     const uint16_t &nodePort, std::vector<std::string> endpoints)
     : m_nodeId(nodeId),
       m_nodeAddress(nodeAddress),
       m_nodePort(nodePort),
+      m_endpoints(endpoints),
       m_lastActivity(std::chrono::steady_clock::now()) {
-  LOG(69) << "Creating new neighbour from parameters [nodeId: " << nodeId
+  LOG(69)  << "Creating new neighbour from parameters [nodeId: " << nodeId
+
           << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
           << "]";
 }
@@ -50,18 +52,11 @@ int Neighbour::getElapsedActivityTime() {
       / std::chrono::nanoseconds::period::den;
 }
 
-/*void Neighbour::update(const std::string &nodeAddress,
-                       const uint16_t &nodePort) {
-  LOG(69) << "Updating neighbour last activity time to now";
-  m_nodeAddress = nodeAddress;
-  m_nodePort = nodePort;
-  m_lastActivity = std::chrono::steady_clock::now();
-}*/
-
 void Neighbour::update(std::shared_ptr<Neighbour> neighbour) {
   LOG(69) << "Updating neighbour last activity time to now";
   m_nodeAddress = neighbour->getNodeAddress();
   m_nodePort = neighbour->getNodePort();
+  m_endpoints = neighbour->getEndpoints();
   m_lastActivity = std::chrono::steady_clock::now();
 }
 
@@ -69,6 +64,7 @@ bool Neighbour::operator ==(const Neighbour &neighbour) const {
   bool equals = m_nodeId == neighbour.m_nodeId;
   equals &= m_nodeAddress == neighbour.m_nodeAddress;
   equals &= m_nodePort == neighbour.m_nodePort;
+  equals &= m_endpoints == neighbour.m_endpoints;
   return equals;
 }
 
@@ -82,4 +78,8 @@ std::string Neighbour::getNodeAddress() {
 
 uint16_t Neighbour::getNodePort() {
   return m_nodePort;
+}
+
+std::vector<std::string> Neighbour::getEndpoints() {
+  return m_endpoints;
 }

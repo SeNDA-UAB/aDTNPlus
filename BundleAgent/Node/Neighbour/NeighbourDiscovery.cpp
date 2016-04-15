@@ -31,6 +31,7 @@
 #include <cstring>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <stdexcept>
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/Neighbour/Beacon.h"
@@ -188,7 +189,8 @@ void NeighbourDiscovery::receiveBeacons() {
                   m_neighbourTable->update(std::make_shared<Neighbour>(
                           b.getNodeId(),
                           b.getNodeAddress(),
-                          b.getNodePort()));
+                          b.getNodePort(),
+                          std::vector<std::string>()));
                 }).detach();
               }
             } else if (recvLength == -1) {

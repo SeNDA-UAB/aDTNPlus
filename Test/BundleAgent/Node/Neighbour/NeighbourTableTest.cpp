@@ -40,7 +40,7 @@
  */
 TEST(NeighbourTableTest, AddAndRemove) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40000));
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40000, std::vector<std::string>()));
   // Get the neighbours
   auto neighbours = nt->getValues();
   // Check neighbour
@@ -53,7 +53,7 @@ TEST(NeighbourTableTest, AddAndRemove) {
   ASSERT_EQ("node100", node->getId());
   neighbours.clear();
   neighbours = nt->getValues();
-  ASSERT_THROW(nt->getValue("node100"), TableException);
+  ASSERT_THROW(nt->getValue("node100"), NeighbourTableException);
   delete nt;
 }
 
@@ -63,11 +63,11 @@ TEST(NeighbourTableTest, AddAndRemove) {
  */
 TEST(NeighbourTableTest, AddAndRemoveMore) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40100));
+  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40100, std::vector<std::string>()));
   sleep(1);
-  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 40101));
+  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 40101, std::vector<std::string>()));
   sleep(1);
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40102));
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40102, std::vector<std::string>()));
   auto neighbours = nt->getValues();
   ASSERT_EQ(static_cast<size_t>(3), neighbours.size());
   ASSERT_EQ(40100, nt->getValue("node100")->getNodePort());
@@ -83,13 +83,13 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
             nt->getValue("node102")->getNodePort());
   nt->clean(1);
   neighbours.clear();
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40105));
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40105, std::vector<std::string>()));
   neighbours = nt->getValues();
   ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
   ASSERT_EQ(static_cast<uint16_t>(40105),
             nt->getValue("node102")->getNodePort());
   neighbours.clear();
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.102", 40105));
+  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.102", 40105, std::vector<std::string>()));
   neighbours = nt->getValues();
   ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
   ASSERT_EQ("192.168.1.102", nt->getValue("node102")->getNodeAddress());

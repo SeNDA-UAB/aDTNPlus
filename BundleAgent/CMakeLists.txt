@@ -11,12 +11,13 @@ set(LIB_SOURCES_CPP
   Node/BundleQueue/RouteReportingBC.cpp
 )
 
+list(REMOVE_ITEM LIB_SOURCES_CPP Utils/Json.cpp)
+
 set(INCLUDE_DIRS ../BundleAgent)
 include_directories(${INCLUDE_DIRS})
 
 set(BUNDLE_LIB_NAME Bundle_lib)
 add_library(${BUNDLE_LIB_NAME} SHARED ${LIB_SOURCES_CPP} ${LIB_SOURCES_C})
-
 unset(LIB_SOURCES_CPP)
 unset(LIB_SOURCES_C)
 add_subdirectory(Node)
