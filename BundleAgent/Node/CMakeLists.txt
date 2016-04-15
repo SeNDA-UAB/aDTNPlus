@@ -1,4 +1,4 @@
-add_subdirectory(AppListener)
+add_subdirectory(EndpointListener)
 add_subdirectory(BundleProcessor)
 add_subdirectory(BundleQueue)
 add_subdirectory(Executor)

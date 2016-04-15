@@ -30,8 +30,8 @@
 #include "Node/Neighbour/NeighbourDiscovery.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
-#include "Node/AppListener/ListeningAppsTable.h"
-#include "Node/AppListener/AppListener.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
+#include "Node/EndpointListener/EndpointListener.h"
 
 class PluginInfo;
 
@@ -78,11 +78,11 @@ class Node {
   /**
    * Variable that holds the app listener.
    */
-  std::shared_ptr<AppListener> m_appListener;
+  std::shared_ptr<EndpointListener> m_appListener;
   /**
    * Variable that holds the listening apps table.
    */
-  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  std::shared_ptr<ListeningEndpointsTable> m_listeningAppsTable;
   /**
    * Variable that holds the bundle process library handle.
    */

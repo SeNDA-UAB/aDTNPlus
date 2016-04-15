@@ -15,14 +15,14 @@
  *
  */
 /**
- * FILE AppListener.cpp
+ * FILE EndpointListener.cpp
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the implementation of the AppListener class.
+ * This file contains the implementation of the EndpointListener class.
  */
 
-#include "Node/AppListener/AppListener.h"
+#include "Node/EndpointListener/EndpointListener.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -30,23 +30,24 @@
 #include <unistd.h>
 #include <memory>
 #include <thread>
+#include <string>
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
-AppListener::AppListener(Config config,
-                         std::shared_ptr<ListeningAppsTable> listeningAppsTable)
+EndpointListener::EndpointListener(Config config,
+                   std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
     : m_config(config),
-      m_listeningAppsTable(listeningAppsTable) {
-  std::thread t = std::thread(&AppListener::listenApps, this);
+      m_listeningEndpointsTable(listeningEndpointsTable) {
+  std::thread t = std::thread(&EndpointListener::listenEndpoints, this);
   t.detach();
-  LOG(68) << "Creating App listener.";
+  LOG(68) << "Creating Endpoint listener.";
 }
 
-AppListener::~AppListener() {
+EndpointListener::~EndpointListener() {
 }
 
-void AppListener::listenApps() {
-  LOG(17) << "Creating Listening Apps thread.";
+void EndpointListener::listenEndpoints() {
+  LOG(17) << "Creating Listening Endpoints thread.";
   sockaddr_in listenAddr = { 0 };
   listenAddr.sin_family = AF_INET;
   listenAddr.sin_port = htons(m_config.getListenerPort());
@@ -54,7 +55,7 @@ void AppListener::listenApps() {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock == -1) {
     // Stop the application
-    LOG(1) << "Cannot create socket into listenApps thread, reason: "
+    LOG(1) << "Cannot create socket into listenEndpoints thread, reason: "
            << strerror(errno);
     g_stop = true;
   } else {
@@ -93,18 +94,18 @@ void AppListener::listenApps() {
               continue;
             }
             LOG(80) << "Connection received.";
-            std::thread(&AppListener::startListening, this, newsock).detach();
+            std::thread(&EndpointListener::startListening, this, newsock).detach();
           }
         }
       }
     }
     close(sock);
   }
-  LOG(17) << "Exit App Listener thread.";
+  LOG(17) << "Exit Endpoint Listener thread.";
   g_stopped++;
 }
 
-void AppListener::startListening(int sock) {
+void EndpointListener::startListening(int sock) {
   LOG(69) << "Processing new connection";
   sockaddr_in bundleSrc = { 0 };
   socklen_t bundleSrcLength = sizeof(bundleSrc);
@@ -118,10 +119,31 @@ void AppListener::startListening(int sock) {
   uint8_t type = 100;
   int receivedSize = recv(sock, &type, sizeof(type), 0);
   if (type == 0) {
-    LOG(17) << "Someone asked to add an AppId";
-    uint32_t appId = 0;
-    receivedSize = recv(sock, &appId, sizeof(appId), 0);
-    if (receivedSize != sizeof(appId)) {
+    LOG(17) << "Someone asked to add an EndpointId";
+    uint32_t eid = 0;
+
+    receivedSize = recv(sock, &eid, sizeof(eid), 0);
+    eid = ntohl(eid);
+    char* buffer = new char[eid];
+    uint32_t receivedLength = 0;
+    while (receivedLength < eid) {
+      receivedSize = recv(sock, buffer + receivedLength,
+                      eid - receivedLength, 0);
+
+      if (receivedSize == -1) {
+        LOG(1) << "Error receiving bundle from "
+            << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
+            << strerror(errno);
+        break;
+      } else if (receivedSize == 0) {
+        LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
+            << " closed the connection.";
+        break;
+      }
+      receivedLength += receivedSize;
+    }
+    std::string endpointId = std::string(buffer, eid);
+    if (static_cast<uint32_t>(receivedSize) != eid) {
       if (receivedSize == 0) {
         LOG(1) << "Error receiving bundle length from "
                << inet_ntoa(bundleSrc.sin_addr)
@@ -135,8 +157,9 @@ void AppListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningAppsTable->update(
-          std::make_shared<App>(std::to_string(ntohl(appId)), "", 0, sock));
+      m_listeningEndpointsTable->update(endpointId,
+          Endpoint(endpointId, "", 0, sock));
+      LOG(1) << "Registered endpoint: " << endpointId;
     }
   }
 }

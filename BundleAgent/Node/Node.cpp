@@ -68,10 +68,10 @@ Node::Node(std::string filename) {
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
-  m_listeningAppsTable = std::shared_ptr<ListeningAppsTable>(
-      new ListeningAppsTable());
-  m_appListener = std::shared_ptr<AppListener>(
-      new AppListener(m_config, m_listeningAppsTable));
+  m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
+      new ListeningEndpointsTable());
+  m_appListener = std::shared_ptr<EndpointListener>(
+      new EndpointListener(m_config, m_listeningAppsTable));
 
   m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_LAZY);
   if (!m_handle) {

@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   int opt = -1, option_index = 0;
   std::string ip = "";
   int port = -1;
-  int appId = -1;
+  std::string appId = "";
 
   static struct option long_options[] = {
       { "listeningIP", required_argument, 0, 'i' },
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
         port = std::atoi(optarg);
         break;
       case 'a':
-        appId = std::atoi(optarg);
+        appId = std::string(optarg);
         break;
       case 'h':
         help(std::string(argv[0]));
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     if (opt == -1)
       break;
   }
-  if (ip == "" || port == -1 || appId == -1) {
+  if (ip == "" || port == -1 || appId == "") {
     help(std::string(argv[0]));
     exit(0);
   }

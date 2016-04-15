@@ -38,7 +38,7 @@
 #include "Bundle/FrameworkExtension.h"
 #include "Bundle/BundleInfo.h"
 #include "Utils/Logger.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
 
@@ -114,7 +114,7 @@ FirstADTNPlusFwk::~FirstADTNPlusFwk() {
 void FirstADTNPlusFwk::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());

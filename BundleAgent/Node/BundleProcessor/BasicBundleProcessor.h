@@ -36,7 +36,7 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-class ListeningAppsTable;
+class ListeningEndpointsTable;
 class Neighbour;
 class BundleInfo;
 
@@ -68,7 +68,7 @@ class BasicBundleProcessor : public BundleProcessor {
    */
   virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
                      std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
  protected:
   /**
