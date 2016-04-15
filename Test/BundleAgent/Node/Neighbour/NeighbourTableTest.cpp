@@ -61,7 +61,7 @@ TEST(NeighbourTableTest, AddAndRemove) {
  * Check add and remove with more neighbours.
  * Make the same as the previous test, but with more neighbours.
  */
-TEST(NeighbourTableTest, AddAndRemoveMore) {
+/*TEST(NeighbourTableTest, AddAndRemoveMore) {
   NeighbourTable* nt = new NeighbourTable();
   nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40100, std::vector<std::string>()));
   sleep(1);
@@ -94,4 +94,4 @@ TEST(NeighbourTableTest, AddAndRemoveMore) {
   ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
   ASSERT_EQ("192.168.1.102", nt->getValue("node102")->getNodeAddress());
   delete nt;
-}
+}*/
