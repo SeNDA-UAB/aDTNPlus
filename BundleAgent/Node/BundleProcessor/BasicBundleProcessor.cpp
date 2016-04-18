@@ -28,6 +28,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -95,7 +96,7 @@ void BasicBundleProcessor::start(
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
-  m_nodeState.start(m_neighbourTable);
+  m_nodeState.start(std::bind(&NeighbourTable::getValues, m_neighbourTable));
   m_forwardWorker.setPath(m_config.getCodesPath());
   m_lifeWorker.setPath(m_config.getCodesPath());
   m_destinationWorker.setPath(m_config.getCodesPath());

@@ -11,8 +11,6 @@ set(LIB_SOURCES_CPP
   Node/BundleQueue/RouteReportingBC.cpp
 )
 
-list(REMOVE_ITEM LIB_SOURCES_CPP Utils/Json.cpp)
-
 set(INCLUDE_DIRS ../BundleAgent)
 include_directories(${INCLUDE_DIRS})
 

@@ -69,13 +69,6 @@ class Beacon {
    */
   std::string getRaw();
 
-  /**
-   * Max size of a beacon.
-   * This is taking the max size of the nodeId of 1023 bytes, and the size
-   * of the ip address and the port.
-   */
-  static const int MAX_BEACON_SIZE = 1050;
-
   std::string getNodeAddress() const;
 
   std::string getNodeId() const;

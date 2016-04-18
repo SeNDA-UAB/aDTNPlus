@@ -23,7 +23,6 @@
  */
 
 #include "Node/EndpointListener/ListeningEndpointsTable.h"
-#include <iostream>
 #include <string>
 #include <map>
 #include <vector>
@@ -39,8 +38,8 @@ ListeningEndpointsTable::~ListeningEndpointsTable() {
 void ListeningEndpointsTable::clean(int expirationTime) {
   LOG(62) << "Cleaning endpoints that have been out for more than "
           << expirationTime;
-  for (std::map<std::string, std::vector<Endpoint>>::iterator it =
-      m_values.begin(); it != m_values.end(); ++it) {
+  for (std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
+      .begin(); it != m_values.end(); ++it) {
     int i = 0;
     for (Endpoint endpoint : it->second) {
       if (endpoint.getElapsedActivityTime() >= expirationTime) {
@@ -58,20 +57,20 @@ void ListeningEndpointsTable::clean(int expirationTime) {
 
 void ListeningEndpointsTable::update(std::string endpointId,
                                      Endpoint endpoint) {
-  typename std::map<std::string, std::vector<Endpoint>>::iterator it
-    = m_values.find(endpointId);
+  typename std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
+      .find(endpointId);
   if (it != m_values.end()) {
     m_values[endpointId].push_back(endpoint);
   } else {
-    std::vector<Endpoint> endpoints{endpoint};
+    std::vector<Endpoint> endpoints { endpoint };
     m_values[endpointId] = endpoints;
   }
 }
 
 std::vector<std::string> ListeningEndpointsTable::getValues() {
   std::vector<std::string> keys;
-  for (std::map<std::string, std::vector<Endpoint>>::iterator it =
-      m_values.begin(); it != m_values.end(); ++it) {
+  for (std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
+      .begin(); it != m_values.end(); ++it) {
     keys.push_back(it->first);
   }
   return keys;
@@ -79,9 +78,9 @@ std::vector<std::string> ListeningEndpointsTable::getValues() {
 
 std::vector<Endpoint> ListeningEndpointsTable::getValue(
     const std::string &name) {
-    auto it = m_values.find(name);
-    if (it != m_values.end())
-      return it->second;
-    else
-      throw TableException2("Value not found.");
-  }
+  auto it = m_values.find(name);
+  if (it != m_values.end())
+    return it->second;
+  else
+    throw TableException("Value not found.");
+}

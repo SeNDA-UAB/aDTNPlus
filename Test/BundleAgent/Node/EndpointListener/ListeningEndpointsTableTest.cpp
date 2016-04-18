@@ -54,7 +54,7 @@ TEST(ListeningEndpointsTableTest, AddAndRemove) {
   ASSERT_EQ("app1", endpoint[0].getId());
   endpoints.clear();
   endpoints = lat->getValues();
-  ASSERT_THROW(lat->getValue("endpoint1"), TableException2);
+  ASSERT_THROW(lat->getValue("endpoint1"), TableException);
   delete lat;
 }
 

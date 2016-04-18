@@ -33,9 +33,9 @@
 #include <stdexcept>
 #include "Node/EndpointListener/Endpoint.h"
 
-class TableException2 : public std::runtime_error {
+class TableException : public std::runtime_error {
  public:
-  explicit TableException2(const std::string &what)
+  explicit TableException(const std::string &what)
       : runtime_error(what) {
   }
 };

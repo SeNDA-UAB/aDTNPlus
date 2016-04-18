@@ -26,9 +26,9 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+#include <functional>
 #include "ExternTools/json/json.hpp"
-
-class NeighbourTable;
 
 /**
  * CLASS Json
@@ -52,7 +52,7 @@ class Json : public nlohmann::json {
    * Function that adds the necessary classes to pass the information to the user.
    * @param neighbourTable The neighbour table to pass the neighbours.
    */
-  void start(std::shared_ptr<NeighbourTable> neighbourTable);
+  void start(std::function<std::vector<std::string>(void)> neighboursFunction);
   /**
    * Returns the element asked by the key.
    *
@@ -69,7 +69,7 @@ class Json : public nlohmann::json {
   /**
    * Variable that holds the neighbour table.
    */
-  std::shared_ptr<NeighbourTable> m_neighbourTable;
+  std::function<std::vector<std::string>(void)> m_neighboursFunction;
 };
 
 #endif  // BUNDLEAGENT_UTILS_JSON_H_

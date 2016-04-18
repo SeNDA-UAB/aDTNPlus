@@ -65,11 +65,11 @@ Node::Node(std::string filename) {
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
-  m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
-      new NeighbourDiscovery(m_config, m_neighbourTable));
-  m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
-      new ListeningEndpointsTable());
+        new ListeningEndpointsTable());
+  m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
+      new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
+  m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
 
