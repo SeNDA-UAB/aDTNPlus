@@ -33,14 +33,18 @@ Json::~Json() {
 }
 
 void Json::start(
-    std::function<std::vector<std::string>(void)> neighboursFunction) {
+    std::function<std::vector<std::string>(void)> neighboursFunction,
+    std::function<std::vector<std::string>(void)> endpointsFunction) {
   m_neighboursFunction = std::move(neighboursFunction);
+  m_endpointsFunction = std::move(endpointsFunction);
 }
 
 Json::reference Json::operator[](const typename object_t::key_type &key) {
   reference r = nlohmann::json::operator[](key);
   if (key == "neighbours") {
     r = nlohmann::json(m_neighboursFunction());
+  } else if (key == "endpoints") {
+    r = nlohmann::json(m_endpointsFunction());
   }
   return r;
 }

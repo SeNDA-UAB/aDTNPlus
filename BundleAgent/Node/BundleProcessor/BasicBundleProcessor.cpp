@@ -96,7 +96,9 @@ void BasicBundleProcessor::start(
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
-  m_nodeState.start(std::bind(&NeighbourTable::getValues, m_neighbourTable));
+  m_nodeState.start(
+      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_forwardWorker.setPath(m_config.getCodesPath());
   m_lifeWorker.setPath(m_config.getCodesPath());
   m_destinationWorker.setPath(m_config.getCodesPath());

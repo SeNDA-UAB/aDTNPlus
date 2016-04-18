@@ -121,7 +121,9 @@ void FirstADTNPlusFwk::start(
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
-  m_nodeState.start(std::bind(&NeighbourTable::getValues, m_neighbourTable));
+  m_nodeState.start(
+      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_voidWorker.setPath(m_config.getCodesPath());
   m_boolWorker.setPath(m_config.getCodesPath());
   m_vectorWorker.setPath(m_config.getCodesPath());
