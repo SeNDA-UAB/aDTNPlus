@@ -27,6 +27,8 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <functional>
+#include <iostream>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -38,7 +40,7 @@
 #include "Bundle/FrameworkExtension.h"
 #include "Bundle/BundleInfo.h"
 #include "Utils/Logger.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
 
@@ -50,6 +52,7 @@ const std::string FirstADTNPlusFwk::m_header = "#include <vector>\n"
     "#include <stdexcept>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
+    "#include <iostream>\n"
     "#include <cstdlib>\n"
     "#include <ctime>\n"
     "#include \"Bundle/BundleInfo.h\"\n"
@@ -114,11 +117,13 @@ FirstADTNPlusFwk::~FirstADTNPlusFwk() {
 void FirstADTNPlusFwk::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
-  m_nodeState.start(m_neighbourTable);
+  m_nodeState.start(
+      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_voidWorker.setPath(m_config.getCodesPath());
   m_boolWorker.setPath(m_config.getCodesPath());
   m_vectorWorker.setPath(m_config.getCodesPath());
@@ -315,6 +320,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkDispatch(
 std::vector<std::string> FirstADTNPlusFwk::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Checking forward.";
+  std::vector<std::string> neighbours = m_neighbourTable->getValues();
   nlohmann::json &bundleProcessState = bundleContainer.getState();
   BundleInfo bi = BundleInfo(bundleContainer.getBundle());
   try {
@@ -329,14 +335,19 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
     m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
                            m_ext5DefaultWorker);
-    auto result = m_vectorWorker.getResult();
-    return result;
+    std::vector<std::string> result = m_vectorWorker.getResult();
+    std::vector<std::string> forward = m_neighbourTable->getMinNeighbours(
+        result);
+    return forward;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
       m_ext5DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
-      return m_ext5DefaultWorker.getResult();
+      std::vector<std::string> result = m_ext5DefaultWorker.getResult();
+      std::vector<std::string> forward = m_neighbourTable->getMinNeighbours(
+          result);
+      return forward;
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 5] Cannot execute any code to check forward.";
       return std::vector<std::string>();

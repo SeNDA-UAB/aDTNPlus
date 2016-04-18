@@ -50,7 +50,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/RouteReportingMEB.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Utils/Logger.h"
 #include "Node/BundleProcessor/PluginAPI.h"

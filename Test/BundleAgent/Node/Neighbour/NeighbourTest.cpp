@@ -30,7 +30,7 @@
  * Generate a neighbour and check the fields.
  */
 TEST(NeighbourTest, Constructor) {
-  Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
+  Neighbour n = Neighbour("node100", "192.168.1.2", 40000, std::vector<std::string>());
   ASSERT_EQ("node100", n.getId());
   ASSERT_EQ("192.168.1.2", n.getNodeAddress());
   ASSERT_EQ(40000, n.getNodePort());
@@ -42,11 +42,11 @@ TEST(NeighbourTest, Constructor) {
  * After that update the neighbour and check that the activity time is 0.
  */
 TEST(NeighbourTest, Activity) {
-  Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
+  Neighbour n = Neighbour("node100", "192.168.1.2", 40000, std::vector<std::string>());
   ASSERT_EQ(0, n.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, n.getElapsedActivityTime());
-  n.update(std::make_shared<Neighbour>("node100", "192.168.1.2", 40000));
+  n.update(std::make_shared<Neighbour>("node100", "192.168.1.2", 40000, std::vector<std::string>()));
   ASSERT_EQ(0, n.getElapsedActivityTime());
 }
 
@@ -55,9 +55,9 @@ TEST(NeighbourTest, Activity) {
  * Check if two nodes are equals.
  */
 TEST(NeighbourTest, Equality) {
-  Neighbour n = Neighbour("node100", "192.168.1.2", 40000);
-  Neighbour n1 = Neighbour("node100", "192.168.1.2", 40000);
+  Neighbour n = Neighbour("node100", "192.168.1.2", 40000, std::vector<std::string>());
+  Neighbour n1 = Neighbour("node100", "192.168.1.2", 40000, std::vector<std::string>());
   ASSERT_TRUE(n1 == n);
-  n = Neighbour("node101", "192.168.1.2", 40000);
+  n = Neighbour("node101", "192.168.1.2", 40000, std::vector<std::string>());
   ASSERT_FALSE(n1 == n);
 }

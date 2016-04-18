@@ -15,22 +15,22 @@
  *
  */
 /**
- * FILE Table.h
+ * FILE ListeningEndpointsTable.h
  * AUTHOR Blackcatn13
- * DATE Feb 1, 2016
+ * DATE Jan 19, 2016
  * VERSION 1
- * This is a table template class.
+ * This file contains the ListeningEndpointsTable class.
  */
-#ifndef BUNDLEAGENT_UTILS_TABLE_H_
-#define BUNDLEAGENT_UTILS_TABLE_H_
+#ifndef BUNDLEAGENT_NODE_ENDPOINTLISTENER_LISTENINGENDPOINTSTABLE_H_
+#define BUNDLEAGENT_NODE_ENDPOINTLISTENER_LISTENINGENDPOINTSTABLE_H_
 
-#include <memory>
-#include <string>
 #include <map>
+#include <string>
+#include <cstdint>
 #include <mutex>
-#include <stdexcept>
+#include <memory>
 #include <vector>
-#include <algorithm>
+#include <stdexcept>
 #include "Node/EndpointListener/Endpoint.h"
 
 class TableException : public std::runtime_error {
@@ -40,15 +40,30 @@ class TableException : public std::runtime_error {
   }
 };
 
-template<class T>
-class Table {
+/**
+ * CLASS ListeningEndpointsTable
+ * This class contains all the listening Endpoints.
+ */
+class ListeningEndpointsTable {
  public:
-  Table() {
-  }
-
-  virtual ~Table() {
-  }
-
+  /**
+   * Constructor of the ListeningEndpointsTable.
+   */
+  ListeningEndpointsTable();
+  /**
+   * Destructor of the class.
+   */
+  virtual ~ListeningEndpointsTable();
+  /**
+   * @brief Clean all the Endpoints that have expired.
+   *
+   * This function deletes all the Endpoints that have been expired.
+   * This means all the Endpoints that have a last activity value greater that
+   * the expirationTime.
+   *
+   * @param expirationTime Minimum time to expire a neighbour.
+   */
+  void clean(int expirationTime);
   /**
    * @brief Updates the value in the table.
    *
@@ -57,60 +72,31 @@ class Table {
    *
    * @param value The value to check.
    */
-  void update(std::shared_ptr<T> value) {
-    mutex.lock();
-    typename std::map<std::string, std::shared_ptr<T>>::iterator it = m_values
-        .find(value->getId());
-    if (it != m_values.end()) {
-      m_values[value->getId()]->update(value);
-    } else {
-      m_values[value->getId()] = value;
-    }
-    mutex.unlock();
-  }
+  void update(std::string endpointId, Endpoint endpoint);
 
   /**
    * Function to get a list of all the id's in the Table.
    *
    * @return a vector with the current values id's.
    */
-  std::vector<std::string> getValues() {
-    std::vector<std::string> keys;
-    mutex.lock();
-    keys.reserve(m_values.size());
-    std::transform(
-        m_values.begin(), m_values.end(), std::back_inserter(keys),
-        [](const typename std::map<std::string,
-            std::shared_ptr<T>>::value_type &pair) {
-          return pair.first;
-        });
-    mutex.unlock();
-    return keys;
-  }
-
+  std::vector<std::string> getValues();
   /**
    * Function to get the information of the given name.
    *
    * @param name the id of the value.
    * @return a T pointer if exists, else throws a TableException.
    */
-  std::shared_ptr<T> getValue(const std::string &name) {
-    auto it = m_values.find(name);
-    if (it != m_values.end())
-      return it->second;
-    else
-      throw TableException("Value not found.");
-  }
+  std::vector<Endpoint> getValue(const std::string &name);
 
  protected:
   /**
    * Map with the neighbours.
    */
-  std::map<std::string, std::shared_ptr<T>> m_values;
+  std::map<std::string, std::vector<Endpoint>> m_values;
   /**
    * Mutex for the map.
    */
   std::mutex mutex;
 };
 
-#endif  // BUNDLEAGENT_UTILS_TABLE_H_
+#endif  // BUNDLEAGENT_NODE_ENDPOINTLISTENER_LISTENINGENDPOINTSTABLE_H_

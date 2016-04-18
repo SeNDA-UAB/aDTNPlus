@@ -32,6 +32,8 @@
 #include "Node/Config.h"
 #include "Node/Neighbour/NeighbourTable.h"
 
+class ListeningEndpointsTable;
+
 /**
  * CLASS NeighbourDiscovery
  * This class implements the neighbour discovery system.
@@ -64,8 +66,9 @@ class NeighbourDiscovery {
    * @param config Config with the parameters.
    * @param neighbourTable a neighbourTable.
    */
-  explicit NeighbourDiscovery(Config config,
-                              std::shared_ptr<NeighbourTable> neighbourTable);
+  explicit NeighbourDiscovery(
+      Config config, std::shared_ptr<NeighbourTable> neighbourTable,
+      std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable);
   /**
    * Destructor of the class.
    */
@@ -84,6 +87,8 @@ class NeighbourDiscovery {
    * The neighbour table reference.
    */
   std::shared_ptr<NeighbourTable> m_neighbourTable;
+
+  std::shared_ptr<ListeningEndpointsTable> m_listeningEndpointsTable;
 
  private:
   /**

@@ -37,18 +37,99 @@ NeighbourTable::NeighbourTable() {
 NeighbourTable::~NeighbourTable() {
 }
 
+void NeighbourTable::update(std::shared_ptr<Neighbour> neighbour) {
+  m_mutex.lock();
+  auto it = m_neigbours.find(neighbour->getId());
+  if (it != m_neigbours.end()) {
+    auto newEndpoints = neighbour->getEndpoints();
+    auto oldEndpoints = it->second->getEndpoints();
+    if (newEndpoints.size() != oldEndpoints.size()
+        || !std::equal(newEndpoints.begin(), newEndpoints.end(),
+                       oldEndpoints.begin())) {
+      std::vector<std::string> oldDiff(oldEndpoints.size());
+      std::set_difference(oldEndpoints.begin(), oldEndpoints.end(),
+                          newEndpoints.begin(), newEndpoints.end(),
+                          oldDiff.begin());
+      remove(oldDiff, neighbour->getId());
+      std::vector<std::string> newDiff(newEndpoints.size());
+      std::set_difference(newEndpoints.begin(), newEndpoints.end(),
+                          oldEndpoints.begin(), oldEndpoints.end(),
+                          newDiff.begin());
+      insert(newDiff, neighbour->getId());
+    }
+    it->second->update(neighbour);
+  } else {
+    m_neigbours[neighbour->getId()] = neighbour;
+    insert(neighbour->getEndpoints(), neighbour->getId());
+  }
+  m_mutex.unlock();
+}
+
+std::vector<std::string> NeighbourTable::getValues() {
+  std::vector<std::string> keys;
+  m_mutex.lock();
+  keys.reserve(m_endpoints.size());
+  std::transform(m_endpoints.begin(), m_endpoints.end(),
+                 std::back_inserter(keys),
+                 [](const typename std::unordered_map<std::string,
+                     std::unordered_set<std::string>>::value_type &pair) {
+                   return pair.first;
+                 });
+  m_mutex.unlock();
+  return keys;
+}
+
+std::shared_ptr<Neighbour> NeighbourTable::getValue(const std::string &name) {
+  auto it = m_neigbours.find(name);
+  if (it != m_neigbours.end())
+    return it->second;
+  else
+    throw NeighbourTableException("Value not found.");
+}
+
+std::vector<std::string> NeighbourTable::getMinNeighbours(
+    std::vector<std::string> endpoints) {
+  std::vector<std::string> neighbours;
+  m_mutex.lock();
+  for (auto endpoint : endpoints) {
+    neighbours.insert(neighbours.begin(), m_endpoints[endpoint].begin(),
+                      m_endpoints[endpoint].end());
+  }
+  m_mutex.unlock();
+  std::unique(neighbours.begin(), neighbours.end());
+  return neighbours;
+}
+
 void NeighbourTable::clean(int expirationTime) {
   LOG(62) << "Cleaning neighbours that have been out for more than "
           << expirationTime;
-  mutex.lock();
-  for (std::map<std::string, std::shared_ptr<Neighbour>>::iterator it = m_values
-      .begin(); it != m_values.end();) {
+  m_mutex.lock();
+  for (auto it = m_neigbours.begin(); it != m_neigbours.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
       LOG(17) << "Neighbour " << (*it).second->getId() << " has disappeared";
-      it = m_values.erase(it);
+      remove(it->second->getEndpoints(), it->second->getId());
+      it = m_neigbours.erase(it);
     } else {
       ++it;
     }
   }
-  mutex.unlock();
+  m_mutex.unlock();
+}
+
+void NeighbourTable::insert(std::vector<std::string> endpoints,
+                            std::string neighbour) {
+  for (auto endpoint : endpoints) {
+    m_endpoints[endpoint].insert(neighbour);
+  }
+}
+
+void NeighbourTable::remove(std::vector<std::string> endpoints,
+                            std::string neighbour) {
+  for (auto endpoint : endpoints) {
+    if (m_endpoints[endpoint].size() != 1) {
+      m_endpoints[endpoint].erase(neighbour);
+    } else {
+      m_endpoints.erase(endpoint);
+    }
+  }
 }

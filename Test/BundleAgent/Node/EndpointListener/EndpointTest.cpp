@@ -15,50 +15,50 @@
 *
 */
 /**
- * FILE AppTest.cpp
+ * FILE EndpointTest.cpp
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the tests of the App class.
+ * This file contains the tests of the Endpoint class.
  */
 
-#include "Node/AppListener/App.h"
+#include "Node/EndpointListener/Endpoint.h"
 #include "gtest/gtest.h"
 
 /**
- * Check the app constructor.
- * Generate a app and check the fields.
+ * Check the endpoint constructor.
+ * Generate a endpoint and check the fields.
  */
-TEST(AppTest, Constructor) {
-  App a = App("node100", "192.168.1.2", 40000, 1);
+TEST(EndpointTest, Constructor) {
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 1);
   ASSERT_EQ("node100", a.getId());
-  ASSERT_EQ("192.168.1.2", a.getAppAddress());
-  ASSERT_EQ(40000, a.getAppPort());
+  ASSERT_EQ("192.168.1.2", a.getAddress());
+  ASSERT_EQ(40000, a.getPort());
 }
 
 /**
  * Check the activity time.
- * Create the app and sleep, the activity time must be the same.
- * After that update the app and check that the activity time is 0.
+ * Create the endpoint and sleep, the activity time must be the same.
+ * After that update the endpoint and check that the activity time is 0.
  */
-TEST(AppTest, Activity) {
-  App a = App("node100", "192.168.1.2", 40000, 2);
+TEST(EndpointTest, Activity) {
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 2);
   ASSERT_EQ(0, a.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, a.getElapsedActivityTime());
-  a.update(std::make_shared<App>("node100", "192.168.1.2", 40000, 2));
+  a.update(std::make_shared<Endpoint>("node100", "192.168.1.2", 40000, 2));
   ASSERT_EQ(0, a.getElapsedActivityTime());
 }
 
 /**
  * Check equality.
- * Check if two apps are equals.
+ * Check if two endpoints are equals.
  */
-TEST(AppTest, Equality) {
-  App a = App("node100", "192.168.1.2", 40000, 3);
-  App a1 = App("node100", "192.168.1.2", 40000, 3);
+TEST(EndpointTest, Equality) {
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 3);
+  Endpoint a1 = Endpoint("node100", "192.168.1.2", 40000, 3);
   ASSERT_TRUE(a1 == a);
-  a = App("node101", "192.168.1.2", 40000, 5);
+  a = Endpoint("node101", "192.168.1.2", 40000, 5);
   ASSERT_FALSE(a1 == a);
 }
 

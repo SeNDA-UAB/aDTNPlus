@@ -28,6 +28,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -39,7 +40,7 @@
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
@@ -91,11 +92,13 @@ BasicBundleProcessor::~BasicBundleProcessor() {
 void BasicBundleProcessor::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
-  m_nodeState.start(m_neighbourTable);
+  m_nodeState.start(
+      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_forwardWorker.setPath(m_config.getCodesPath());
   m_lifeWorker.setPath(m_config.getCodesPath());
   m_destinationWorker.setPath(m_config.getCodesPath());
@@ -235,7 +238,8 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
     m_forwardWorker.execute(m_nodeState);
-    return m_forwardWorker.getResult();
+    auto result = m_forwardWorker.getResult();
+    return m_neighbourTable->getMinNeighbours(result);
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing flooding.";

@@ -34,7 +34,7 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-class ListeningAppsTable;
+class ListeningEndpointsTable;
 class Neighbour;
 
 class ForwardException : public std::runtime_error {
@@ -74,7 +74,7 @@ class BundleProcessor {
    */
   virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
                      std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
   /**
    * @brief Function that restores a bundle container from disk.
    *
@@ -134,7 +134,7 @@ class BundleProcessor {
   /**
    * Variable that holds the listening apps table.
    */
-  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  std::shared_ptr<ListeningEndpointsTable> m_listeningAppsTable;
 
  private:
   /**
