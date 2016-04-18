@@ -236,7 +236,8 @@ std::vector<std::string> BasicBundleProcessor::checkForward(
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   try {
     m_forwardWorker.execute(m_nodeState);
-    return m_forwardWorker.getResult();
+    auto result = m_forwardWorker.getResult();
+    return m_neighbourTable->getMinNeighbours(result);
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
             << " Executing flooding.";
