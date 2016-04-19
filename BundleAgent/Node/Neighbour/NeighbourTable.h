@@ -55,13 +55,35 @@ class NeighbourTable {
    * Destructor of the class.
    */
   virtual ~NeighbourTable();
-
+  /**
+   * @brief Updates the value in the table.
+   *
+   * This function updates the given value.
+   * If the value is not present in the table, this function adds the new value.
+   *
+   * @param neighbour The neighbour to check.
+   */
   void update(std::shared_ptr<Neighbour> neighbour);
-
+  /**
+   * Returns a list with all the endpoints in the table.
+   *
+   * @return a vector with the current endpoints.
+   */
   std::vector<std::string> getValues();
-
+  /**
+   * Returns the neighbour given a name.
+   *
+   * @param name The id of the neighbour.
+   * @return The neighbour.
+   */
   std::shared_ptr<Neighbour> getValue(const std::string &name);
-
+  /**
+   * Returns a list containing the minimum group that holds all the given
+   * endpoints.
+   *
+   * @param endpoints The endpoints to generate the group.
+   * @return All the nodes that compose that group.
+   */
   std::vector<std::string> getMinNeighbours(std::vector<std::string> endpoints);
   /**
    * @brief Clean all the neighbours that have expired.
@@ -75,12 +97,38 @@ class NeighbourTable {
   void clean(int expirationTime);
 
  private:
-
+  /**
+   * Function that inserts the given endpoints with the given neighbour id.
+   *
+   * If the endpoint exists, it will append the neighbour to it's lists, otherwise
+   * it will create the new endpoint.
+   *
+   * @param endpoints The list of endpoints to insert.
+   * @param neigbour The neighbour id.
+   */
   void insert(std::vector<std::string> endpoints, std::string neigbour);
+  /**
+   * Function that removes from the given endpoints the given neighbour id.
+   *
+   * If the neighbour is the last one in the given endpoint, the endpoint is removed
+   * from the list, otherwise only the given neighbour is removed.
+   *
+   * @param endpoints The list of endpoints to remove.
+   * @param neigbour The neighbour id.
+   */
   void remove(std::vector<std::string> endpoints, std::string neigbour);
-
+  /**
+   * Mutex for the maps.
+   */
   std::mutex m_mutex;
+  /**
+   * Map that holds the endpoints, it uses the endpoint as key, and points
+   * to a vector with the neighbours id's that have announced the endpoint.
+   */
   std::unordered_map<std::string, std::unordered_set<std::string>> m_endpoints;
+  /**
+   * Map that holds the neighbours.
+   */
   std::unordered_map<std::string, std::shared_ptr<Neighbour>> m_neigbours;
 };
 
