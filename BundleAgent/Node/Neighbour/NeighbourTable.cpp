@@ -96,7 +96,9 @@ std::vector<std::string> NeighbourTable::getMinNeighbours(
                       m_endpoints[endpoint].end());
   }
   m_mutex.unlock();
-  std::unique(neighbours.begin(), neighbours.end());
+  std::sort(neighbours.begin(), neighbours.end());
+  auto last = std::unique(neighbours.begin(), neighbours.end());
+  neighbours.erase(last, neighbours.end());
   return neighbours;
 }
 
