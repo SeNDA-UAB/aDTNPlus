@@ -30,10 +30,10 @@
 #include <functional>
 #include "ExternTools/json/json.hpp"
 
-
 template<class ContainerT>
 inline void tokenize(const std::string& str, ContainerT& tokens,
-              const std::string& delimiters = " ", bool trimEmpty = false) {
+                     const std::string& delimiters = " ",
+                     bool trimEmpty = false) {
   std::string::size_type pos, lastPos = 0;
 
   using value_type = typename ContainerT::value_type;
@@ -91,8 +91,12 @@ class Json : public nlohmann::json {
   reference getReadAndWrite(std::vector<std::string> tokens, reference ref);
 
  protected:
+
+  bool tokensEquals(const std::vector<std::string>& tokensA,
+                    const std::vector<std::string>& tokensB);
+
   nlohmann::json m_newJson;
-  nlohmann::json m_baseReference;
+  nlohmann::json& m_baseReference;
 };
 
 #endif  // BUNDLEAGENT_UTILS_JSON_H_

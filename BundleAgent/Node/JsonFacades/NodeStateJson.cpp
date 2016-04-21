@@ -46,6 +46,15 @@ void NodeStateJson::start(
   m_endpointsFunction = std::move(endpointsFunction);
 }
 
+NodeStateJson& NodeStateJson::operator=(basic_json other) {
+  nlohmann::json::operator=(other);
+}
+
+NodeStateJson& NodeStateJson::operator=(const NodeStateJson& other) {
+  nlohmann::json::operator=(other);
+  m_baseReference = other.m_baseReference;
+}
+
 NodeStateJson::reference NodeStateJson::operator()(const std::string &key) {
   std::vector<std::string> tokens;
   tokenize(key, tokens, ".");

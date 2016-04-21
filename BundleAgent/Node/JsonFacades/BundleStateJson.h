@@ -27,13 +27,25 @@
 #include <vector>
 #include <string>
 #include "Utils/Json.h"
+#include "Bundle/Bundle.h"
 
 class BundleStateJson : public Json {
  public:
-  BundleStateJson();
+  explicit BundleStateJson(Bundle &bundle);
   virtual ~BundleStateJson();
 
   virtual reference operator()(const std::string &key);
+  // BundleStateJson& operator=(basic_json other);
+  BundleStateJson& operator=(nlohmann::json& other);
+
+ private:
+  static const std::vector<std::string> m_bundleId;
+  static const std::vector<std::string> m_bundleDestination;
+  static const std::vector<std::string> m_bundleSource;
+  static const std::vector<std::string> m_bundleTimestampValue;
+  static const std::vector<std::string> m_bundleTimestampSequence;
+  static const std::vector<std::string> m_bundleLifetime;
+  Bundle m_bundle;
 };
 
 #endif  // BUNDLEAGENT_NODE_JSONFACADES_BUNDLESTATEJSON_H_

@@ -59,3 +59,9 @@ Json::reference Json::getReadOnly(const std::vector<std::string> tokens) {
   m_newJson = aux;
   return m_newJson;
 }
+
+bool Json::tokensEquals(const std::vector<std::string>& tokensA,
+                        const std::vector<std::string>& tokensB) {
+  return std::equal(tokensA.begin(), tokensA.end(), tokensB.begin(),
+                    tokensB.end());
+}

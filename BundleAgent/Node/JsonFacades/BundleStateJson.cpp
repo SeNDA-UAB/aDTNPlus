@@ -25,15 +25,60 @@
 #include "Node/JsonFacades/BundleStateJson.h"
 #include <vector>
 #include <string>
+#include "Bundle/PrimaryBlock.h"
 
-BundleStateJson::BundleStateJson() {
+const std::vector<std::string> BundleStateJson::m_bundleId = { "id" };
+const std::vector<std::string> BundleStateJson::m_bundleDestination = {
+    "destination" };
+const std::vector<std::string> BundleStateJson::m_bundleSource = { "source" };
+const std::vector<std::string> BundleStateJson::m_bundleTimestampValue = {
+    "timestamp", "value" };
+const std::vector<std::string> BundleStateJson::m_bundleTimestampSequence = {
+    "timestamp", "seq" };
+const std::vector<std::string> BundleStateJson::m_bundleLifetime =
+    { "lifetime" };
+
+BundleStateJson::BundleStateJson(Bundle &bundle)
+    : m_bundle(bundle) {
 }
 
 BundleStateJson::~BundleStateJson() {
 }
 
+/*BundleStateJson& BundleStateJson::operator=(basic_json other) {
+  nlohmann::json::operator=(other);
+}*/
+
+BundleStateJson& BundleStateJson::operator=(nlohmann::json& other) {
+  nlohmann::json::operator=(other);
+  m_baseReference = other;
+}
+
+
 BundleStateJson::reference BundleStateJson::operator()(const std::string &key) {
   std::vector<std::string> tokens;
   tokenize(key, tokens, ".");
-  return getReadAndWrite(tokens, m_baseReference);
+  if (tokensEquals(tokens, m_bundleId)) {
+    m_newJson = nlohmann::json(m_bundle.getId());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_bundleDestination)) {
+    m_newJson = nlohmann::json(m_bundle.getPrimaryBlock()->getDestination());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_bundleSource)) {
+    m_newJson = nlohmann::json(m_bundle.getPrimaryBlock()->getSource());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_bundleTimestampValue)) {
+    m_newJson = nlohmann::json(
+        m_bundle.getPrimaryBlock()->getCreationTimestamp());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_bundleTimestampSequence)) {
+    m_newJson = nlohmann::json(
+        m_bundle.getPrimaryBlock()->getCreationTimestampSeqNumber());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_bundleLifetime)) {
+    m_newJson = nlohmann::json(m_bundle.getPrimaryBlock()->getLifetime());
+    return m_newJson;
+  } else {
+    return getReadAndWrite(tokens, m_baseReference);
+  }
 }

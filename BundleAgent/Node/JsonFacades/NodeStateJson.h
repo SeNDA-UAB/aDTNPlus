@@ -34,6 +34,9 @@ class NodeStateJson : public Json {
   NodeStateJson();
   virtual ~NodeStateJson();
 
+  NodeStateJson& operator=(basic_json other);
+  NodeStateJson& operator=(const NodeStateJson& other);
+
   void start(std::function<std::vector<std::string>(void)> neighboursFunction,
              std::function<std::vector<std::string>(void)> endpointsFunction);
 
