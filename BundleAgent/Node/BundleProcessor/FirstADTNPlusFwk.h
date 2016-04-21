@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include "Utils/Json.h"
+#include "Node/JsonFacades/NodeStateJson.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/Executor/Worker.h"
 #include "ExternTools/json/json.hpp"
@@ -169,11 +170,11 @@ class FirstADTNPlusFwk : public BundleProcessor {
   /**
    * Variable that holds the parameters used in the processor calls.
    */
-  Json m_nodeState;
+  NodeStateJson m_nodeState;
   /**
    * Variable that holds the old parameters to check what changed.
    */
-  Json m_oldNodeState;
+  NodeStateJson m_oldNodeState;
   /**
    * Variable that holds the common header for all the workers.
    */

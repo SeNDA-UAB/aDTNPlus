@@ -62,8 +62,8 @@ const std::string FirstADTNPlusFwk::m_header = "#include <vector>\n"
     "const uint64_t g_timeFrom2000 = 946684800;\n"
     "using json = nlohmann::json;\n";
 const std::string FirstADTNPlusFwk::m_bigSignature =
-    "%s f(Json ns, json bs, json bps, BundleInfo bi,"
-        " Worker<%s, Json, json, BundleInfo> worker) {\n"
+    "%s f(Json& ns, json bs, json bps, BundleInfo bi,"
+        " Worker<%s, Json&, json, BundleInfo> worker) {\n"
         "auto super = [&]() {try{\n"
         "worker.execute(ns, bps, bi);\n"
         "return worker.getResult();\n"
@@ -71,7 +71,7 @@ const std::string FirstADTNPlusFwk::m_bigSignature =
         "throw e;\n"
         "}};";
 const std::string FirstADTNPlusFwk::m_littleSignature =
-    "%s f(Json ns, json bps, BundleInfo bi) {\n";
+    "%s f(Json& ns, json bps, BundleInfo bi) {\n";
 const std::string FirstADTNPlusFwk::m_footer = "return %s;}}";
 const std::string FirstADTNPlusFwk::m_commandLine =
     "g++ -w -fPIC -shared -std=c++14 %s -o %s -lpthread 2>&1";
@@ -349,7 +349,8 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
           result);
       return forward;
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 5] Cannot execute any code to check forward.";
+      LOG(11) << "[Extension 5] Cannot execute any code to check forward."
+              << e.what();
       return std::vector<std::string>();
     }
   }

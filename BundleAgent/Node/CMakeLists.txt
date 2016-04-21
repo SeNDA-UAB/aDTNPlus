@@ -1,5 +1,5 @@
 add_subdirectory(EndpointListener)
-add_subdirectory(BundleProcessor)
+add_subdirectory(JsonFacades)
 add_subdirectory(BundleQueue)
 add_subdirectory(Executor)
 add_subdirectory(Neighbour)

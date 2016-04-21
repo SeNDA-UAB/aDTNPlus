@@ -38,6 +38,7 @@
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
+#include "Node/JsonFacades/NodeStateJson.h"
 
 std::vector<std::string> getBundlesInFolder(std::string folder) {
   DIR *dir = NULL;
@@ -73,7 +74,7 @@ Node::Node(std::string filename) {
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
 
-  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_LAZY);
+  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {
     LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
            << " reason: " << dlerror();

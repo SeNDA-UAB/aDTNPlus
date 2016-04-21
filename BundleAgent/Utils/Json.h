@@ -30,6 +30,32 @@
 #include <functional>
 #include "ExternTools/json/json.hpp"
 
+
+template<class ContainerT>
+inline void tokenize(const std::string& str, ContainerT& tokens,
+              const std::string& delimiters = " ", bool trimEmpty = false) {
+  std::string::size_type pos, lastPos = 0;
+
+  using value_type = typename ContainerT::value_type;
+  using size_type = typename ContainerT::size_type;
+
+  while (true) {
+    pos = str.find_first_of(delimiters, lastPos);
+    if (pos == std::string::npos) {
+      pos = str.length();
+      if (pos != lastPos || !trimEmpty)
+        tokens.push_back(
+            value_type(str.data() + lastPos, (size_type) pos - lastPos));
+      break;
+    } else {
+      if (pos != lastPos || !trimEmpty)
+        tokens.push_back(
+            value_type(str.data() + lastPos, (size_type) pos - lastPos));
+    }
+    lastPos = pos + 1;
+  }
+}
+
 /**
  * CLASS Json
  * This class works as middleware between a json library and our processor.
@@ -49,12 +75,6 @@ class Json : public nlohmann::json {
    */
   virtual ~Json();
   /**
-   * Function that adds the necessary classes to pass the information to the user.
-   * @param neighbourTable The neighbour table to pass the neighbours.
-   */
-  void start(std::function<std::vector<std::string>(void)> neighboursFunction,
-             std::function<std::vector<std::string>(void)> endpointsFunction);
-  /**
    * Returns the element asked by the key.
    *
    * This function acts as middleware between the library and the custom information.
@@ -64,17 +84,15 @@ class Json : public nlohmann::json {
    * @param key The key to get the element.
    * @return A reference to the key element.
    */
-  reference operator[](const typename object_t::key_type &key);
+  virtual reference operator()(const std::string &key);
 
- private:
-  /**
-   * Variable that holds a function to the neighbour table.
-   */
-  std::function<std::vector<std::string>(void)> m_neighboursFunction;
-  /**
-   * Variable that holds a function to the endpoints table.
-   */
-  std::function<std::vector<std::string>(void)> m_endpointsFunction;
+  reference getReadOnly(const std::vector<std::string> tokens);
+
+  reference getReadAndWrite(std::vector<std::string> tokens, reference ref);
+
+ protected:
+  nlohmann::json m_newJson;
+  nlohmann::json m_baseReference;
 };
 
 #endif  // BUNDLEAGENT_UTILS_JSON_H_

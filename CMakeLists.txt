@@ -11,10 +11,10 @@ endif()
   
 enable_testing()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_CXX_FLAGS_PROFILE ${CMAKE_CXX_FLAGS} "-ggdb -Wall -std=c++11 -lpthread --coverage")
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_FLAGS_PROFILE ${CMAKE_CXX_FLAGS} "-ggdb -Wall -std=c++14 -lpthread --coverage")
+add_compile_options(-std=c++14)
 
 add_subdirectory(BundleAgent)
 add_subdirectory(Lib)

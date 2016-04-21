@@ -57,19 +57,19 @@ const std::string BasicBundleProcessor::m_forwardHeader = "#include <vector>\n"
     "#include <cstdlib>\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
-    " std::vector<std::string> f(Json ns) {";
+    " std::vector<std::string> f(Json& ns) {";
 const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
     "#include \"Bundle/BundleInfo.h\"\n"
     "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
     "const uint64_t g_timeFrom2000 = 946684800;"
-    "bool f(Json ns, BundleInfo bi) {";
+    "bool f(Json& ns, BundleInfo bi) {";
 const std::string BasicBundleProcessor::m_destinationHeader =
     "#include <string>\n"
         "#include \"adtnPlus/Json.h\"\n"
         "#include \"Bundle/BundleInfo.h\"\n"
         "extern \"C\" {"
-        "bool f(Json ns, BundleInfo bi) {";
+        "bool f(Json& ns, BundleInfo bi) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";

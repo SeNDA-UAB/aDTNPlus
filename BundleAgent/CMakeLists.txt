@@ -67,7 +67,8 @@ add_library(aDTNPlus_CodeDataCarrierBundleProcessor MODULE
 
 add_library(aDTNPlus_FirstFwkBundleProcessor MODULE
   Node/BundleProcessor/BundleProcessor.cpp 
-  Node/BundleProcessor/FirstADTNPlusFwk.cpp 
+  Node/BundleProcessor/FirstADTNPlusFwk.cpp
+  Node/JsonFacades/NodeStateJson.cpp
 )
 
 # Configure adtn.ini: change node id, and default bundle path
