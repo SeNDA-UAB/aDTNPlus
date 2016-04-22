@@ -29,22 +29,76 @@
 #include "Utils/Json.h"
 #include "Bundle/Bundle.h"
 
+/**
+ * CLASS BunldeStateJson
+ * Thi class works as the facade that defines all the entries for the
+ * BundleState json.
+ */
 class BundleStateJson : public Json {
  public:
+  /**
+   * Constructor.
+   *
+   * @param bundle The bundle that will be used when asking information.
+   */
   explicit BundleStateJson(Bundle &bundle);
+  /**
+   * Destructor of the class.
+   */
   virtual ~BundleStateJson();
-
+  /**
+   * Returns the asked by the key.
+   *
+   * This overloaded method, defines 6 paths:
+   *  1. "id" (R) -> returns the id of the bundle.
+   *  2. "destination" (R) -> returns the destination of the bundle.
+   *  3. "source" (R) -> returns the source of the bundle.
+   *  4. "timestamp.value" (R) -> returns the timestamp value.
+   *  5. "timestamp.seq" (R) -> returns the timestamps' sequence number
+   *  6. "lifetime" (R) -> returns the lifetime of the bundle.
+   *
+   *  (R) -> read only
+   *  (RW) -> read and write
+   *
+   * @param key The key to get the element.
+   * @return A reference to the key element.
+   */
   virtual reference operator()(const std::string &key);
-
+  /**
+   * Copy operator, it will change the underlying json to the given one.
+   * @param other The json to take.
+   * @return A reference to this BundleStateJson.
+   */
   BundleStateJson& operator=(nlohmann::json& other);
 
  private:
+  /**
+   * Variable that holds the tokens for the id path.
+   */
   static const std::vector<std::string> m_bundleId;
+  /**
+   * Variable that holds the tokens for the destination path.
+   */
   static const std::vector<std::string> m_bundleDestination;
+  /**
+   * Variable that holds the tokens for the source path.
+   */
   static const std::vector<std::string> m_bundleSource;
+  /**
+   * Variable that holds the tokens for the timestamp value path.
+   */
   static const std::vector<std::string> m_bundleTimestampValue;
+  /**
+   * Variable that holds the tokens for the timestamp sequence path.
+   */
   static const std::vector<std::string> m_bundleTimestampSequence;
+  /**
+   * Variable that holds the tokens for the lifetime path.
+   */
   static const std::vector<std::string> m_bundleLifetime;
+  /**
+   * Variable that holds the bundle used when asked any of the given paths.
+   */
   Bundle m_bundle;
 };
 

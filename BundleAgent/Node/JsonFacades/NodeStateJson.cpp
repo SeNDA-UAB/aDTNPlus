@@ -59,12 +59,10 @@ NodeStateJson& NodeStateJson::operator=(const NodeStateJson& other) {
 NodeStateJson::reference NodeStateJson::operator()(const std::string &key) {
   std::vector<std::string> tokens;
   tokenize(key, tokens, ".");
-  if (std::equal(tokens.begin(), tokens.end(), m_neighboursToken.begin(),
-                 m_neighboursToken.end())) {
+  if (tokensEquals(tokens, m_neighboursToken)) {
     m_newJson = nlohmann::json(m_neighboursFunction());
     return m_newJson;
-  } else if (std::equal(tokens.begin(), tokens.end(), m_endpointsToken.begin(),
-                        m_endpointsToken.end())) {
+  } else if (tokensEquals(tokens, m_endpointsToken)) {
     m_newJson = nlohmann::json(m_endpointsFunction());
     return m_newJson;
   } else {
