@@ -90,6 +90,8 @@ class Json : public nlohmann::json {
 
   reference getReadAndWrite(std::vector<std::string> tokens, reference ref);
 
+  reference getBaseReference();
+
  protected:
 
   bool tokensEquals(const std::vector<std::string>& tokensA,

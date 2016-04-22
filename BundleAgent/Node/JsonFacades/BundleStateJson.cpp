@@ -45,15 +45,10 @@ BundleStateJson::BundleStateJson(Bundle &bundle)
 BundleStateJson::~BundleStateJson() {
 }
 
-/*BundleStateJson& BundleStateJson::operator=(basic_json other) {
-  nlohmann::json::operator=(other);
-}*/
-
 BundleStateJson& BundleStateJson::operator=(nlohmann::json& other) {
-  nlohmann::json::operator=(other);
   m_baseReference = other;
+  return *this;
 }
-
 
 BundleStateJson::reference BundleStateJson::operator()(const std::string &key) {
   std::vector<std::string> tokens;

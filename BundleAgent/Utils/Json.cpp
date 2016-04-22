@@ -60,6 +60,10 @@ Json::reference Json::getReadOnly(const std::vector<std::string> tokens) {
   return m_newJson;
 }
 
+Json::reference Json::getBaseReference() {
+  return m_baseReference;
+}
+
 bool Json::tokensEquals(const std::vector<std::string>& tokensA,
                         const std::vector<std::string>& tokensB) {
   return std::equal(tokensA.begin(), tokensA.end(), tokensB.begin(),

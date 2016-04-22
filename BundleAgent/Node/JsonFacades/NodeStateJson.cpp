@@ -48,11 +48,12 @@ void NodeStateJson::start(
 
 NodeStateJson& NodeStateJson::operator=(basic_json other) {
   nlohmann::json::operator=(other);
+  return *this;
 }
 
 NodeStateJson& NodeStateJson::operator=(const NodeStateJson& other) {
-  nlohmann::json::operator=(other);
   m_baseReference = other.m_baseReference;
+  return *this;
 }
 
 NodeStateJson::reference NodeStateJson::operator()(const std::string &key) {

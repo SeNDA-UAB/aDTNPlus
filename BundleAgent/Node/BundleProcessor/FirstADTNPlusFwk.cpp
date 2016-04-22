@@ -264,6 +264,9 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext1DefaultWorker);
     m_voidWorker.getResult();
+    bc->getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
@@ -294,7 +297,11 @@ bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
     m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext3DefaultWorker);
-    return m_boolWorker.getResult();
+    bool destination = m_boolWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
+    return destination;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
@@ -337,6 +344,9 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
     m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState,
                            m_ext5DefaultWorker);
     std::vector<std::string> result = m_vectorWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
     std::vector<std::string> forward = m_neighbourTable->getMinNeighbours(
         result);
     return forward;
@@ -373,7 +383,11 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
     m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext4DefaultWorker);
-    return m_boolWorker.getResult();
+    bool life = m_boolWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
+    return life;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {

@@ -35,7 +35,7 @@ class BundleStateJson : public Json {
   virtual ~BundleStateJson();
 
   virtual reference operator()(const std::string &key);
-  // BundleStateJson& operator=(basic_json other);
+
   BundleStateJson& operator=(nlohmann::json& other);
 
  private:
