@@ -28,6 +28,7 @@
 #include <vector>
 #include <string>
 #include "Utils/Json.h"
+#include "Node/JsonFacades/NodeStateJson.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/Executor/Worker.h"
 #include "ExternTools/json/json.hpp"
@@ -66,9 +67,10 @@ class FirstADTNPlusFwk : public BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                     std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
+  virtual void start(
+      Config config, std::shared_ptr<BundleQueue> bundleQueue,
+      std::shared_ptr<NeighbourTable> neighbourTable,
+      std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
  private:
   /**
@@ -133,47 +135,46 @@ class FirstADTNPlusFwk : public BundleProcessor {
    * Like a void worker cannot be created, a bool one with an always return
    * true is used.
    */
-  Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
-      Worker<bool, Json, nlohmann::json, BundleInfo>> m_voidWorker;
+  Worker<bool, Json, Json, nlohmann::json,
+      Worker<bool, Json, nlohmann::json, Json>> m_voidWorker;
   /**
    * Worker to execute the bool functions.
    */
-  Worker<bool, Json, nlohmann::json, nlohmann::json, BundleInfo,
-      Worker<bool, Json, nlohmann::json, BundleInfo>> m_boolWorker;
+  Worker<bool, Json, Json, nlohmann::json,
+      Worker<bool, Json, nlohmann::json, Json>> m_boolWorker;
   /**
    * Worker to execute the functions that return a vector of strings.
    */
-  Worker<std::vector<std::string>, Json, nlohmann::json, nlohmann::json,
-      BundleInfo,
-      Worker<std::vector<std::string>, Json, nlohmann::json, BundleInfo>> m_vectorWorker;
+  Worker<std::vector<std::string>, Json, Json, nlohmann::json,
+      Worker<std::vector<std::string>, Json, nlohmann::json, Json>> m_vectorWorker;
   /**
    * Worker for the default function in the extension 1 (BundleContainer creation)
    */
-  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext1DefaultWorker;
+  Worker<bool, Json, nlohmann::json, Json> m_ext1DefaultWorker;
   /**
    * Worker for the default function in the extension 2 (BundleContainer deletion)
    */
-  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext2DefaultWorker;
+  Worker<bool, Json, nlohmann::json, Json> m_ext2DefaultWorker;
   /**
    * Worker for the default function in the extension 3 (Check Destination)
    */
-  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext3DefaultWorker;
+  Worker<bool, Json, nlohmann::json, Json> m_ext3DefaultWorker;
   /**
    * Worker for the default function in the extension 4 (Check Lifetime)
    */
-  Worker<bool, Json, nlohmann::json, BundleInfo> m_ext4DefaultWorker;
+  Worker<bool, Json, nlohmann::json, Json> m_ext4DefaultWorker;
   /**
    * Worker for the default function in the extension 5 (Check Forward)
    */
-  Worker<std::vector<std::string>, Json, nlohmann::json, BundleInfo> m_ext5DefaultWorker;
+  Worker<std::vector<std::string>, Json, nlohmann::json, Json> m_ext5DefaultWorker;
   /**
    * Variable that holds the parameters used in the processor calls.
    */
-  Json m_nodeState;
+  NodeStateJson m_nodeState;
   /**
    * Variable that holds the old parameters to check what changed.
    */
-  Json m_oldNodeState;
+  NodeStateJson m_oldNodeState;
   /**
    * Variable that holds the common header for all the workers.
    */

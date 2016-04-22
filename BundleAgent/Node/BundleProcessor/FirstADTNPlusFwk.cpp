@@ -43,6 +43,7 @@
 #include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
+#include "Node/JsonFacades/BundleStateJson.h"
 
 NEW_PLUGIN(FirstADTNPlusFwk, "First active DTN framework", "1.0",
            "This processor allows to implement up to 5 functions.")
@@ -62,16 +63,16 @@ const std::string FirstADTNPlusFwk::m_header = "#include <vector>\n"
     "const uint64_t g_timeFrom2000 = 946684800;\n"
     "using json = nlohmann::json;\n";
 const std::string FirstADTNPlusFwk::m_bigSignature =
-    "%s f(Json ns, json bs, json bps, BundleInfo bi,"
-        " Worker<%s, Json, json, BundleInfo> worker) {\n"
+    "%s f(Json& ns, Json& bs, json bps,"
+        " Worker<%s, Json&, json, Json&> worker) {\n"
         "auto super = [&]() {try{\n"
-        "worker.execute(ns, bps, bi);\n"
+        "worker.execute(ns, bps, bs);\n"
         "return worker.getResult();\n"
         "} catch (const WorkerException &e) {\n"
         "throw e;\n"
         "}};";
 const std::string FirstADTNPlusFwk::m_littleSignature =
-    "%s f(Json ns, json bps, BundleInfo bi) {\n";
+    "%s f(Json& ns, json bps, Json& bs) {\n";
 const std::string FirstADTNPlusFwk::m_footer = "return %s;}}";
 const std::string FirstADTNPlusFwk::m_commandLine =
     "g++ -w -fPIC -shared -std=c++14 %s -o %s -lpthread 2>&1";
@@ -248,7 +249,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
   std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
   nlohmann::json &bundleProcessState = bc->getState();
-  BundleInfo bi = BundleInfo(bc->getBundle());
+  BundleStateJson bundleState(bc->getBundle());
   try {
     LOG(55)
         << "Checking if bundle contains an extension of value: "
@@ -258,16 +259,19 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::CONTAINER_CREATION))
         ->getSwSrcCode();
     m_voidWorker.generateFunction(code);
-    nlohmann::json &bundleState = bc->getBundle().getFwk(
+    bundleState = bc->getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext1DefaultWorker);
     m_voidWorker.getResult();
+    bc->getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext1DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 1] Cannot execute any code in "
@@ -280,7 +284,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
 bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
   LOG(55) << "Checking destination.";
   nlohmann::json &bundleProcessState = bundleContainer.getState();
-  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  BundleStateJson bundleState(bundleContainer.getBundle());
   try {
     LOG(55) << "Checking if bundle contains an extension of value: "
             << static_cast<int>(FirstFrameworkExtensionsIds::DESTINATION);
@@ -289,16 +293,20 @@ bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::DESTINATION))
         ->getSwSrcCode();
     m_boolWorker.generateFunction(code);
-    nlohmann::json &bundleState = bundleContainer.getBundle().getFwk(
+    bundleState = bundleContainer.getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext3DefaultWorker);
-    return m_boolWorker.getResult();
+    bool destination = m_boolWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
+    return destination;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      m_ext3DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext3DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       return m_ext3DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 3] Cannot execute any code to check destination.";
@@ -322,7 +330,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
   LOG(55) << "Checking forward.";
   std::vector<std::string> neighbours = m_neighbourTable->getValues();
   nlohmann::json &bundleProcessState = bundleContainer.getState();
-  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  BundleStateJson bundleState(bundleContainer.getBundle());
   try {
     LOG(55) << "Checking if bundle contains an extension of value: "
             << static_cast<int>(FirstFrameworkExtensionsIds::FORWARD);
@@ -331,11 +339,14 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::FORWARD))
         ->getSwSrcCode();
     m_vectorWorker.generateFunction(code);
-    nlohmann::json &bundleState = bundleContainer.getBundle().getFwk(
+    bundleState = bundleContainer.getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+    m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState,
                            m_ext5DefaultWorker);
     std::vector<std::string> result = m_vectorWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
     std::vector<std::string> forward = m_neighbourTable->getMinNeighbours(
         result);
     return forward;
@@ -343,13 +354,14 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      m_ext5DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext5DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       std::vector<std::string> result = m_ext5DefaultWorker.getResult();
       std::vector<std::string> forward = m_neighbourTable->getMinNeighbours(
           result);
       return forward;
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 5] Cannot execute any code to check forward.";
+      LOG(11) << "[Extension 5] Cannot execute any code to check forward."
+              << e.what();
       return std::vector<std::string>();
     }
   }
@@ -358,7 +370,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
 bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
   LOG(55) << "Checking lifetime.";
   nlohmann::json &bundleProcessState = bundleContainer.getState();
-  BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+  BundleStateJson bundleState(bundleContainer.getBundle());
   try {
     LOG(55) << "Checking if bundle contains an extension of value: "
             << static_cast<int>(FirstFrameworkExtensionsIds::LIFETIME);
@@ -367,16 +379,20 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::LIFETIME))
         ->getSwSrcCode();
     m_boolWorker.generateFunction(code);
-    nlohmann::json &bundleState = bundleContainer.getBundle().getFwk(
+    bundleState = bundleContainer.getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext4DefaultWorker);
-    return m_boolWorker.getResult();
+    bool life = m_boolWorker.getResult();
+    bundleContainer.getBundle().getFwk(
+        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
+        bundleState.getBaseReference());
+    return life;
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      m_ext4DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext4DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       return m_ext4DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 4] Cannot execute any code to check lifetime.";
@@ -388,7 +404,7 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
 void FirstADTNPlusFwk::discard(
     std::unique_ptr<BundleContainer> bundleContainer) {
   nlohmann::json &bundleProcessState = bundleContainer->getState();
-  BundleInfo bi = BundleInfo(bundleContainer->getBundle());
+  BundleStateJson bundleState(bundleContainer->getBundle());
   try {
     LOG(55)
         << "Checking if bundle contains an extension of value: "
@@ -398,16 +414,16 @@ void FirstADTNPlusFwk::discard(
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::CONTAINER_DELETION))
         ->getSwSrcCode();
     m_voidWorker.generateFunction(code);
-    nlohmann::json &bundleState = bundleContainer->getBundle().getFwk(
+    bundleState = bundleContainer->getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState, bi,
+    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext2DefaultWorker);
     m_voidWorker.getResult();
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      m_ext2DefaultWorker.execute(m_nodeState, bundleProcessState, bi);
+      m_ext2DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext2DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 2] Cannot execute any code in "

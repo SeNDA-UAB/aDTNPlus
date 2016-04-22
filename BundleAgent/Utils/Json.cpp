@@ -26,25 +26,46 @@
 #include <vector>
 #include "Json.h"
 
-Json::Json() {
+Json::Json()
+    : m_newJson(),
+      m_baseReference(*this) {
 }
 
 Json::~Json() {
 }
 
-void Json::start(
-    std::function<std::vector<std::string>(void)> neighboursFunction,
-    std::function<std::vector<std::string>(void)> endpointsFunction) {
-  m_neighboursFunction = std::move(neighboursFunction);
-  m_endpointsFunction = std::move(endpointsFunction);
+Json::reference Json::operator()(const std::string &key) {
+  std::vector<std::string> tokens;
+  tokenize(key, tokens, ".");
+  return getReadAndWrite(tokens, m_baseReference);
 }
 
-Json::reference Json::operator[](const typename object_t::key_type &key) {
-  reference r = nlohmann::json::operator[](key);
-  if (key == "neighbours") {
-    r = nlohmann::json(m_neighboursFunction());
-  } else if (key == "endpoints") {
-    r = nlohmann::json(m_endpointsFunction());
+Json::reference Json::getReadAndWrite(std::vector<std::string> tokens,
+                                      reference ref) {
+  if (tokens.size() > 0) {
+    auto key = tokens.front();
+    tokens.erase(tokens.begin());
+    return getReadAndWrite(tokens, ref[key]);
   }
-  return r;
+  return ref;
+}
+
+Json::reference Json::getReadOnly(const std::vector<std::string> tokens) {
+  m_newJson = m_baseReference;
+  nlohmann::json aux = m_newJson;
+  for (auto k : tokens) {
+    aux = aux[k];
+  }
+  m_newJson = aux;
+  return m_newJson;
+}
+
+Json::reference Json::getBaseReference() {
+  return m_baseReference;
+}
+
+bool Json::tokensEquals(const std::vector<std::string>& tokensA,
+                        const std::vector<std::string>& tokensB) {
+  return std::equal(tokensA.begin(), tokensA.end(), tokensB.begin(),
+                    tokensB.end());
 }
