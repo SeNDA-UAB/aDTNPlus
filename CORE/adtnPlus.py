@@ -125,8 +125,8 @@ path : %s/adtnPlus/NodeState.json
   "configuration" : {
     "defaultCodes" : {
       "forwarding" : "auto neighbours = ns(\"neighbours\"); std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() %% neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;",
-      "lifetime" : "uint64_t creationTimestamp = bi.getCreationTimestamp(); if(bi.getLifetime() < (time(NULL) - g_timeFrom2000 - creationTimestamp)) return true; else return false;",
-      "destination" : "auto destination = bi.getDestination(); auto endpoints = ns(\"endpoints\"); return std::find(endpoints.begin(), endpoints.end(), destination) != endpoints.end();",
+      "lifetime" : "uint64_t creationTimestamp = bs(\"timestamp.value\"); if(bs(\"lifetime\") < (time(NULL) - g_timeFrom2000 - creationTimestamp)) return true; else return false;",
+      "destination" : "auto destination = bs(\"destination\"); auto endpoints = ns(\"endpoints\"); return std::find(endpoints.begin(), endpoints.end(), destination) != endpoints.end();",
       "creation" : "",
       "deletion" : ""
     },
