@@ -123,7 +123,8 @@ void FirstADTNPlusFwk::start(
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
   m_nodeState.start(
-      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&NeighbourTable::getConnectedEID, m_neighbourTable),
+      std::bind(&NeighbourTable::getSingletonConnectedEID, m_neighbourTable),
       std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_voidWorker.setPath(m_config.getCodesPath());
   m_boolWorker.setPath(m_config.getCodesPath());
@@ -328,7 +329,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkDispatch(
 std::vector<std::string> FirstADTNPlusFwk::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Checking forward.";
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   nlohmann::json &bundleProcessState = bundleContainer.getState();
   BundleStateJson bundleState(bundleContainer.getBundle());
   try {

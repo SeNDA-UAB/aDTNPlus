@@ -65,7 +65,7 @@ void NeighbourTable::update(std::shared_ptr<Neighbour> neighbour) {
   m_mutex.unlock();
 }
 
-std::vector<std::string> NeighbourTable::getValues() {
+std::vector<std::string> NeighbourTable::getConnectedEID() {
   std::vector<std::string> keys;
   m_mutex.lock();
   keys.reserve(m_endpoints.size());
@@ -73,6 +73,20 @@ std::vector<std::string> NeighbourTable::getValues() {
                  std::back_inserter(keys),
                  [](const typename std::unordered_map<std::string,
                      std::unordered_set<std::string>>::value_type &pair) {
+                   return pair.first;
+                 });
+  m_mutex.unlock();
+  return keys;
+}
+
+std::vector<std::string> NeighbourTable::getSingletonConnectedEID() {
+  std::vector<std::string> keys;
+  m_mutex.lock();
+  keys.reserve(m_neigbours.size());
+  std::transform(m_neigbours.begin(), m_neigbours.end(),
+                 std::back_inserter(keys),
+                 [](const typename std::unordered_map<std::string,
+                     std::shared_ptr<Neighbour>>::value_type &pair) {
                    return pair.first;
                  });
   m_mutex.unlock();
@@ -123,6 +137,7 @@ void NeighbourTable::insert(std::vector<std::string> endpoints,
   for (auto endpoint : endpoints) {
     m_endpoints[endpoint].insert(neighbour);
   }
+  m_endpoints[neighbour].insert(neighbour);
 }
 
 void NeighbourTable::remove(std::vector<std::string> endpoints,
@@ -134,4 +149,5 @@ void NeighbourTable::remove(std::vector<std::string> endpoints,
       m_endpoints.erase(endpoint);
     }
   }
+  m_endpoints.erase(neighbour);
 }

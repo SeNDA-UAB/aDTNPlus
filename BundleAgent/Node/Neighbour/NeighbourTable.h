@@ -69,7 +69,13 @@ class NeighbourTable {
    *
    * @return a vector with the current endpoints.
    */
-  std::vector<std::string> getValues();
+  std::vector<std::string> getConnectedEID();
+  /**
+   * Returns a list with all the singleton endpoints in the table.
+   *
+   * @return a vector with the current singleton endpoints.
+   */
+  std::vector<std::string> getSingletonConnectedEID();
   /**
    * Returns the neighbour given a name.
    *

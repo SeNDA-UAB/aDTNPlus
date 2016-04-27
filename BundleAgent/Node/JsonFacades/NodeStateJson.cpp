@@ -28,9 +28,12 @@
 #include <functional>
 #include <algorithm>
 
-const std::vector<std::string> NodeStateJson::m_neighboursToken =
-    { "neighbours" };
-const std::vector<std::string> NodeStateJson::m_endpointsToken = { "endpoints" };
+const std::vector<std::string> NodeStateJson::m_connectedEIDToken = { "eid",
+    "connected", "all" };
+const std::vector<std::string> NodeStateJson::m_registeredEIDToken = { "eid",
+    "registered" };
+const std::vector<std::string> NodeStateJson::m_singletonEIDToken = { "eid",
+    "connected", "single" };
 
 NodeStateJson::NodeStateJson()
     : Json() {
@@ -40,10 +43,12 @@ NodeStateJson::~NodeStateJson() {
 }
 
 void NodeStateJson::start(
-    std::function<std::vector<std::string>(void)> neighboursFunction,
-    std::function<std::vector<std::string>(void)> endpointsFunction) {
-  m_neighboursFunction = std::move(neighboursFunction);
-  m_endpointsFunction = std::move(endpointsFunction);
+    std::function<std::vector<std::string>(void)> connecEIDFunction,
+    std::function<std::vector<std::string>(void)> singleEIDFunction,
+    std::function<std::vector<std::string>(void)> registerEIDFunction) {
+  m_connectedEIDFunction = std::move(connecEIDFunction);
+  m_singletonConnectedEIDFunction = std::move(singleEIDFunction);
+  m_registeredEIDFunction = std::move(registerEIDFunction);
 }
 
 NodeStateJson& NodeStateJson::operator=(basic_json other) {
@@ -59,11 +64,14 @@ NodeStateJson& NodeStateJson::operator=(const NodeStateJson& other) {
 NodeStateJson::reference NodeStateJson::operator()(const std::string &key) {
   std::vector<std::string> tokens;
   tokenize(key, tokens, ".");
-  if (tokensEquals(tokens, m_neighboursToken)) {
-    m_newJson = nlohmann::json(m_neighboursFunction());
+  if (tokensEquals(tokens, m_connectedEIDToken)) {
+    m_newJson = nlohmann::json(m_connectedEIDFunction());
     return m_newJson;
-  } else if (tokensEquals(tokens, m_endpointsToken)) {
-    m_newJson = nlohmann::json(m_endpointsFunction());
+  } else if (tokensEquals(tokens, m_registeredEIDToken)) {
+    m_newJson = nlohmann::json(m_registeredEIDFunction());
+    return m_newJson;
+  } else if (tokensEquals(tokens, m_singletonEIDToken)) {
+    m_newJson = nlohmann::json(m_singletonConnectedEIDFunction());
     return m_newJson;
   } else {
     return getReadAndWrite(tokens, m_baseReference);

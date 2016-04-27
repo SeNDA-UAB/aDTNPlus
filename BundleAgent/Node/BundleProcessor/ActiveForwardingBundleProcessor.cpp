@@ -50,7 +50,7 @@ ActiveForwardingBundleProcessor::~ActiveForwardingBundleProcessor() {
 
 std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
       .getBlocks();
   blocks.erase(blocks.begin());
