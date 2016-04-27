@@ -242,28 +242,31 @@ void BundleProcessor::receiveMessage(int sock) {
   }
 }
 
-void BundleProcessor::dispatch(Bundle bundle,
+void BundleProcessor::delivery(Bundle bundle,
                                std::vector<std::string> destinations) {
   LOG(11) << "Dispatching bundle";
   std::string payload = bundle.toRaw();
   int payloadSize = payload.length();
-  std::for_each(
-      destinations.begin(), destinations.end(),
-      [this, payload, payloadSize] (std::string &appId) {
-        try {
-          std::vector<Endpoint> endpoints =
-          m_listeningAppsTable->getValue(appId);
-          for (auto endpoint : endpoints) {
-            send(endpoint.getSocket(), &payloadSize, sizeof(payloadSize), 0);
-            send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
-            LOG(17) << "Send the payload: " << payload << " to the appId: "
-            << appId;
-          }
-        } catch (const TableException &e) {
-          LOG(10) << "Error getting appId, reason: " << e.what();
-          throw;
+  for (auto destination : destinations) {
+    try {
+      std::vector<Endpoint> endpoints = m_listeningAppsTable->getValue(
+          destination);
+      for (auto endpoint : endpoints) {
+        int sended = send(endpoint.getSocket(), &payloadSize,
+                          sizeof(payloadSize), 0);
+        if (sended < 0) {
+          // Error save to disk.
+          continue;
         }
-      });
+        send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
+        LOG(17) << "Send the payload: " << payload << " to the appId: "
+                << destination;
+      }
+    } catch (const TableException &e) {
+      LOG(10) << "Error getting appId, reason: " << e.what();
+      // Error save to disk.
+    }
+  }
 }
 
 void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {

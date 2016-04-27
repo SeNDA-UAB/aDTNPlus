@@ -67,13 +67,14 @@ Node::Node(std::string filename) {
   LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
-        new ListeningEndpointsTable());
+      new ListeningEndpointsTable());
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
-
+  m_listeningAppsTable->update(m_config.getNodeId(),
+                               Endpoint(m_config.getNodeId(), "", 0, -1));
   m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {
     LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
@@ -106,16 +107,14 @@ Node::Node(std::string filename) {
       } else {
         // Restore all the bundles in the folder.
         std::for_each(
-            bundles.begin(),
-            bundles.end(),
-            [this, info](std::string &bundle) {
+            bundles.begin(), bundles.end(), [this, info](std::string &bundle) {
               std::ifstream bundleF(bundle);
               std::string
               rawBundleContainer((std::istreambuf_iterator<char>(bundleF))
                   , std::istreambuf_iterator<char>());
               reinterpret_cast<BundleProcessor*>(
                   info->getPlugin())->restoreRawBundleContainer(
-                      rawBundleContainer);
+                  rawBundleContainer);
               bundleF.close();
             });
       }

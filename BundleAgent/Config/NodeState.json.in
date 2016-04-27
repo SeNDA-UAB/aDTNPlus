@@ -1,9 +1,9 @@
 {
   "configuration" : {
     "defaultCodes" : {
-      "forwarding" : "auto neighbours = ns(\"eid.connected.all\"); std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() % neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;",
+      "forwarding" : "if (bps[\"delivered\"]) {bps[\"discard\"] = true; return std::vector<std::string>();} else {auto neighbours = ns(\"eid.connected.all\"); std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() % neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;}",
       "lifetime" : "uint64_t creationTimestamp = bs(\"timestamp.value\"); if(bs(\"lifetime\") < (time(NULL) - g_timeFrom2000 - creationTimestamp)) return true; else return false;",
-      "destination" : "auto destination = bs(\"destination\"); auto endpoints = ns(\"eid.registered\"); return std::find(endpoints.begin(), endpoints.end(), destination) != endpoints.end();",
+      "destination" : "auto destination = bs(\"destination\"); auto endpoints = ns(\"eid.registered\"); if(std::find(endpoints.begin(), endpoints.end(), destination) != endpoints.end()) return std::vector<std::string>({destination}); else return std::vector<std::string>();",
       "creation" : "",
       "deletion" : ""
     },
