@@ -161,101 +161,112 @@ void BundleProcessor::receiveMessage(int sock) {
     LOG(10) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
             << ntohs(bundleSrc.sin_port);
   }
-
-  uint32_t bundleLength;
-  int receivedSize = recv(sock, &bundleLength, sizeof(bundleLength), 0);
-  if (receivedSize != sizeof(bundleLength)) {
-    if (receivedSize == 0) {
-      LOG(1) << "Error receiving bundle length from "
-             << inet_ntoa(bundleSrc.sin_addr)
-             << " Probably peer has disconnected.";
-    } else if (receivedSize < 0) {
-      LOG(1) << "Error receiving bundle length from "
-             << inet_ntoa(bundleSrc.sin_addr);
-    } else {
-      LOG(1) << "Error receiving bundle length from "
-             << inet_ntoa(bundleSrc.sin_addr)
-             << " Length not in the correct format.";
-    }
+  char buff[1024];
+  int receivedSize = recv(sock, buff, sizeof(buff), 0);
+  if (receivedSize != sizeof(buff)) {
+    LOG(1) << "Error receiving origin's platform id from "
+           << inet_ntoa(bundleSrc.sin_addr);
   } else {
-    bundleLength = ntohl(bundleLength);
-    LOG(42) << "Received bundle length: " << bundleLength;
-    char* rawBundle = new char[bundleLength];
-    uint32_t receivedLength = 0;
-    LOG(42) << "Receiving bundle...";
-    while (receivedLength != bundleLength) {
-      receivedSize = recv(sock, rawBundle + receivedLength,
-                          bundleLength - receivedLength, 0);
-      if (receivedSize == -1) {
-        LOG(1) << "Error receiving bundle from "
-               << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
-               << strerror(errno);
-        break;
-      } else if (receivedSize == 0) {
-        LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
-               << " closed the connection.";
-        break;
+    std::string srcNodeId = std::string(buff);
+    LOG(42) << "Received node id: " << srcNodeId;
+    uint32_t bundleLength;
+    receivedSize = recv(sock, &bundleLength, sizeof(bundleLength), 0);
+    if (receivedSize != sizeof(bundleLength)) {
+      if (receivedSize == 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Probably peer has disconnected.";
+      } else if (receivedSize < 0) {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr);
+      } else {
+        LOG(1) << "Error receiving bundle length from "
+               << inet_ntoa(bundleSrc.sin_addr)
+               << " Length not in the correct format.";
       }
-      receivedLength += receivedSize;
-    }
-    if (receivedLength != bundleLength) {
-      LOG(1) << "Bundle not received correctly from "
-             << inet_ntoa(bundleSrc.sin_addr);
     } else {
-      LOG(10) << "Received bundle from "
-          << inet_ntoa(bundleSrc.sin_addr) << ":" << ntohs(bundleSrc.sin_port)
-          << " with length: " << receivedLength;
-      close(sock);
-      std::string bundleStringRaw = std::string(rawBundle, bundleLength);
-      try {
-        // Create the bundle
-        LOG(42) << "Creating bundle from received raw";
-        std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
-            new Bundle(bundleStringRaw));
-        LOG(42) << "Creating bundle container";
-        // Create the bundleContainer
-        std::unique_ptr<BundleContainer> bc = createBundleContainer(
-            std::move(b));
-        // Save the bundleContainer to disk
-        LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
-        std::ofstream bundleFile;
-        std::stringstream ss;
-        ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
-        bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-        bundleFile << bc->serialize();
-        bundleFile.close();
-        // Enqueue the bundleContainer
-        LOG(42) << "Saving bundle to queue";
-        m_bundleQueue->enqueue(std::move(bc));
-      } catch (const BundleCreationException &e) {
-        LOG(1) << "Error constructing received bundle, reason: " << e.what();
+      bundleLength = ntohl(bundleLength);
+      LOG(42) << "Received bundle length: " << bundleLength;
+      char* rawBundle = new char[bundleLength];
+      uint32_t receivedLength = 0;
+      LOG(42) << "Receiving bundle...";
+      while (receivedLength != bundleLength) {
+        receivedSize = recv(sock, rawBundle + receivedLength,
+                            bundleLength - receivedLength, 0);
+        if (receivedSize == -1) {
+          LOG(1) << "Error receiving bundle from "
+                 << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
+                 << strerror(errno);
+          break;
+        } else if (receivedSize == 0) {
+          LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
+                 << " closed the connection.";
+          break;
+        }
+        receivedLength += receivedSize;
+      }
+      if (receivedLength != bundleLength) {
+        LOG(1) << "Bundle not received correctly from "
+               << inet_ntoa(bundleSrc.sin_addr);
+      } else {
+        LOG(10) << "Received bundle from " << inet_ntoa(bundleSrc.sin_addr)
+                << ":" << ntohs(bundleSrc.sin_port) << " with length: "
+                << receivedLength;
+        close(sock);
+        std::string bundleStringRaw = std::string(rawBundle, bundleLength);
+        try {
+          // Create the bundle
+          LOG(42) << "Creating bundle from received raw";
+          std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+              new Bundle(bundleStringRaw));
+          LOG(42) << "Creating bundle container";
+          // Create the bundleContainer
+          std::unique_ptr<BundleContainer> bc = createBundleContainer(
+              std::move(b));
+          // Save the bundleContainer to disk
+          LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
+          std::ofstream bundleFile;
+          std::stringstream ss;
+          ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
+          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+          bundleFile << bc->serialize();
+          bundleFile.close();
+          // Enqueue the bundleContainer
+          LOG(42) << "Saving bundle to queue";
+          m_bundleQueue->enqueue(std::move(bc));
+        } catch (const BundleCreationException &e) {
+          LOG(1) << "Error constructing received bundle, reason: " << e.what();
+        }
       }
     }
   }
 }
 
-void BundleProcessor::dispatch(Bundle bundle,
+void BundleProcessor::delivery(Bundle bundle,
                                std::vector<std::string> destinations) {
   LOG(11) << "Dispatching bundle";
   std::string payload = bundle.toRaw();
   int payloadSize = payload.length();
-  std::for_each(
-      destinations.begin(), destinations.end(),
-      [this, payload, payloadSize] (std::string &appId) {
-        try {
-          std::vector<Endpoint> endpoints =
-              m_listeningAppsTable->getValue(appId);
-          for (auto endpoint : endpoints) {
-            send(endpoint.getSocket(), &payloadSize, sizeof(payloadSize), 0);
-            send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
-            LOG(17) << "Send the payload: " << payload << " to the appId: "
-                << appId;
-          }
-        } catch (const TableException &e) {
-          LOG(10) << "Error getting appId, reason: " << e.what();
-          throw;
+  for (auto destination : destinations) {
+    try {
+      std::vector<Endpoint> endpoints = m_listeningAppsTable->getValue(
+          destination);
+      for (auto endpoint : endpoints) {
+        int sended = send(endpoint.getSocket(), &payloadSize,
+                          sizeof(payloadSize), 0);
+        if (sended < 0) {
+          // Error save to disk.
+          continue;
         }
-      });
+        send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
+        LOG(17) << "Send the payload: " << payload << " to the appId: "
+                << destination;
+      }
+    } catch (const TableException &e) {
+      LOG(10) << "Error getting appId, reason: " << e.what();
+      // Error save to disk.
+    }
+  }
 }
 
 void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
@@ -309,10 +320,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
               close(sock);
               throw ForwardException(ss.str());
             } else {
-              uint32_t nBundleLength = htonl(bundleLength);
-              LOG(46) << "Sending bundle length: " << bundleLength;
-              int writed = send(sock, &nBundleLength, sizeof(nBundleLength),
-                  0);
+              LOG(46) << "Sending node id: " << m_config.getNodeId();
+              int writed = send(sock, m_config.getNodeId().c_str(), 1024, 0);
               if (writed < 0) {
                 std::stringstream ss;
                 ss << "Cannot write to socket, reason: "
@@ -320,8 +329,10 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                 close(sock);
                 throw ForwardException(ss.str());
               } else {
-                LOG(46) << "Sending bundle...";
-                writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
+                uint32_t nBundleLength = htonl(bundleLength);
+                LOG(46) << "Sending bundle length: " << bundleLength;
+                writed = send(sock, &nBundleLength, sizeof(nBundleLength),
+                    0);
                 if (writed < 0) {
                   std::stringstream ss;
                   ss << "Cannot write to socket, reason: "
@@ -329,19 +340,29 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                   close(sock);
                   throw ForwardException(ss.str());
                 } else {
-                  sockaddr_in bundleSrc = {0};
-                  socklen_t bundleSrcLength = sizeof(bundleSrc);
-                  if (getsockname(sock,
-                          reinterpret_cast<sockaddr*>(&bundleSrc),
-                          &bundleSrcLength) != 0) {
-                    LOG(3) << "Cannot get peer name, reason: "
+                  LOG(46) << "Sending bundle...";
+                  writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
+                  if (writed < 0) {
+                    std::stringstream ss;
+                    ss << "Cannot write to socket, reason: "
                     << strerror(errno);
+                    close(sock);
+                    throw ForwardException(ss.str());
                   } else {
-                    LOG(11) << "A bundle of length " << bundleLength
-                    << " has been sent to " << nb->getNodeAddress()
-                    << ":" << nb->getNodePort() << " from "
-                    << inet_ntoa(bundleSrc.sin_addr) << ":"
-                    << ntohs(bundleSrc.sin_port);
+                    sockaddr_in bundleSrc = {0};
+                    socklen_t bundleSrcLength = sizeof(bundleSrc);
+                    if (getsockname(sock,
+                            reinterpret_cast<sockaddr*>(&bundleSrc),
+                            &bundleSrcLength) != 0) {
+                      LOG(3) << "Cannot get peer name, reason: "
+                      << strerror(errno);
+                    } else {
+                      LOG(11) << "A bundle of length " << bundleLength
+                      << " has been sent to " << nb->getNodeAddress()
+                      << ":" << nb->getNodePort() << " from "
+                      << inet_ntoa(bundleSrc.sin_addr) << ":"
+                      << ntohs(bundleSrc.sin_port);
+                    }
                   }
                 }
               }

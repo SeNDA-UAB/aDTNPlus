@@ -60,12 +60,14 @@ class NodeStateJson : public Json {
   /**
    * Function to pass the needed functions.
    *
-   * @param neighboursFunction The function that returns the current neighbours.
-   * @param endpointsFunction The function that returns the current registered
+   * @param connecEIDFunction The function that returns the connected endpoints.
+   * @param singleEIDFunction The function that returns the singleton connected endpoints.
+   * @param registerEIDFunction The function that returns the current registered endpoints.
    * endpoints.
    */
-  void start(std::function<std::vector<std::string>(void)> neighboursFunction,
-             std::function<std::vector<std::string>(void)> endpointsFunction);
+  void start(std::function<std::vector<std::string>(void)> connecEIDFunction,
+             std::function<std::vector<std::string>(void)> singleEIDFunction,
+             std::function<std::vector<std::string>(void)> registerEIDFunction);
   /**
    * Returns the element asked by the key.
    *
@@ -80,21 +82,29 @@ class NodeStateJson : public Json {
 
  private:
   /**
-   * Variable that holds the tokens for the neighbours path.
+   * Variable that holds the tokens for the connected path.
    */
-  static const std::vector<std::string> m_neighboursToken;
+  static const std::vector<std::string> m_connectedEIDToken;
+  /**
+   * Variable that holds the tokens for the singleton connected eid path.
+   */
+  static const std::vector<std::string> m_singletonEIDToken;
   /**
    * Variable that holds the tokens for the endpoints path.
    */
-  static const std::vector<std::string> m_endpointsToken;
+  static const std::vector<std::string> m_registeredEIDToken;
   /**
-   * Variable that holds the function to get the neighbours.
+   * Variable that holds the function to get the connected eids.
    */
-  std::function<std::vector<std::string>(void)> m_neighboursFunction;
+  std::function<std::vector<std::string>(void)> m_connectedEIDFunction;
+  /**
+   * Variable that holds the function to get the singleton connected eids.
+   */
+  std::function<std::vector<std::string>(void)> m_singletonConnectedEIDFunction;
   /**
    * Variable that holds the function to get the endpoints.
    */
-  std::function<std::vector<std::string>(void)> m_endpointsFunction;
+  std::function<std::vector<std::string>(void)> m_registeredEIDFunction;
 };
 
 #endif  // BUNDLEAGENT_NODE_JSONFACADES_NODESTATEJSON_H_

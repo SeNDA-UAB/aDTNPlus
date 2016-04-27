@@ -68,6 +68,10 @@ void BundleContainer::setState(nlohmann::json state) {
   m_state = state;
 }
 
+void BundleContainer::setFrom(const std::string& from) {
+  m_state["from"] = from;
+}
+
 std::string BundleContainer::serialize() {
   std::stringstream ss;
   ss << m_header << m_state << " " << m_bundle->toRaw() << m_footer;

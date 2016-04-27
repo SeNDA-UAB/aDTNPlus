@@ -87,13 +87,6 @@ class FirstADTNPlusFwk : public BundleProcessor {
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
       std::unique_ptr<Bundle> Bundle);
   /**
-   * Function that checks the possible dispatching apps.
-   *
-   * @param bundleContainer The container with the bundle.
-   * @return A list with the possible dispatching apps.
-   */
-  std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
-  /**
    * Function that checks the lifetime of a bundle.
    *
    * @param bundleContainer The container with the bundle.
@@ -112,9 +105,10 @@ class FirstADTNPlusFwk : public BundleProcessor {
    * Function that checks if we are the destination node.
    *
    * @param bundleContainer The container with the bundle.
-   * @return True if the bundle is for us.
+   * @return A list with the endpoints that must be delivered.
    */
-  virtual bool checkDestination(BundleContainer &bundleContainer);
+  virtual std::vector<std::string> checkDestination(
+      BundleContainer &bundleContainer);
   /**
    * Function that checks the changes in the node state.
    *
@@ -158,7 +152,7 @@ class FirstADTNPlusFwk : public BundleProcessor {
   /**
    * Worker for the default function in the extension 3 (Check Destination)
    */
-  Worker<bool, Json, nlohmann::json, Json> m_ext3DefaultWorker;
+  Worker<std::vector<std::string>, Json, nlohmann::json, Json> m_ext3DefaultWorker;
   /**
    * Worker for the default function in the extension 4 (Check Lifetime)
    */

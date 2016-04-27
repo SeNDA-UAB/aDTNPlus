@@ -90,10 +90,10 @@ class BundleProcessor {
    *
    * This function will dispatch a bundle to the given destinations.
    *
-   * @param bundle Bundle to dispatch.
-   * @param destinations List of all the destinations to dispatch the bundle.
+   * @param bundle Bundle to delivery.
+   * @param destinations List of all the destinations to delivery the bundle.
    */
-  void dispatch(Bundle bundle, std::vector<std::string> destinations);
+  void delivery(Bundle bundle, std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *

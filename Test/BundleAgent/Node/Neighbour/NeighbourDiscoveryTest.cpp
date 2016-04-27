@@ -67,29 +67,29 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
   nt->update(
       std::make_shared<Neighbour>("node100", "192.168.1.1", 4000,
                                   std::vector<std::string>( { "e1" })));
-  auto neighbours = nt->getValues();
-  ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
+  auto neighbours = nt->getConnectedEID();
+  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
   nt->update(
       std::make_shared<Neighbour>("node101", "192.168.1.1", 4000,
                                   std::vector<std::string>( { "e2" })));
   neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
+  neighbours = nt->getConnectedEID();
+  ASSERT_EQ(static_cast<size_t>(4), neighbours.size());
   sleep(3);
   neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
+  neighbours = nt->getConnectedEID();
+  ASSERT_EQ(static_cast<size_t>(4), neighbours.size());
   nt->update(
       std::make_shared<Neighbour>("node101", "192.168.1.1", 4000,
                                   std::vector<std::string>( { "e2" })));
   sleep(2);
   neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
+  neighbours = nt->getConnectedEID();
+  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
   ASSERT_EQ("node101", nt->getValue("node101")->getId());
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getValues();
+  neighbours = nt->getConnectedEID();
   ASSERT_EQ(static_cast<size_t>(0), neighbours.size());
   g_stop = true;
   // The neighbour cleaner thread has been stopped, so the new neighbours
@@ -99,8 +99,8 @@ TEST(NeighbourDiscoveryTest, NeighbourCleanerTest) {
                                   std::vector<std::string>( { "e2" })));
   sleep(5);
   neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_EQ(static_cast<size_t>(1), neighbours.size());
+  neighbours = nt->getConnectedEID();
+  ASSERT_EQ(static_cast<size_t>(2), neighbours.size());
 }
 
 /**

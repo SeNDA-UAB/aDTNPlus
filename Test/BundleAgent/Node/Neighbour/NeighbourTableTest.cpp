@@ -99,16 +99,16 @@ TEST(NeighbourTableTest, Endpoints) {
   nt->update(
       std::make_shared<Neighbour>("node1", "1.0.0.0", 0,
                                   std::vector<std::string>({ "e1", "e2" })));
-  ASSERT_EQ(static_cast<uint16_t>(2), nt->getValues().size());
+  ASSERT_EQ(static_cast<uint16_t>(3), nt->getConnectedEID().size());
   nt->update(
       std::make_shared<Neighbour>("node2", "1.0.0.0", 0,
                                   std::vector<std::string>({ "e3", "e4" })));
-  ASSERT_EQ(static_cast<uint16_t>(4), nt->getValues().size());
+  ASSERT_EQ(static_cast<uint16_t>(6), nt->getConnectedEID().size());
   sleep(1);
   nt->update(
       std::make_shared<Neighbour>("node3", "1.0.0.0", 0,
                                   std::vector<std::string>({ "e1", "e4" })));
-  ASSERT_EQ(static_cast<uint16_t>(4), nt->getValues().size());
+  ASSERT_EQ(static_cast<uint16_t>(7), nt->getConnectedEID().size());
   ASSERT_EQ(
       static_cast<uint16_t>(3), nt->getMinNeighbours(std::vector<std::string>({
           "e1", "e4" })).size());
@@ -120,5 +120,5 @@ TEST(NeighbourTableTest, Endpoints) {
   ASSERT_EQ(static_cast<uint16_t>(1),
             nt->getMinNeighbours(std::vector<std::string>({ "e2" })).size());
   nt->clean(1);
-  ASSERT_EQ(static_cast<uint16_t>(2), nt->getValues().size());
+  ASSERT_EQ(static_cast<uint16_t>(3), nt->getConnectedEID().size());
 }

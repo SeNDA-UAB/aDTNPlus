@@ -94,9 +94,11 @@ FirstADTNPlusFwk::FirstADTNPlusFwk()
       m_ext2DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
                           stringFormat(m_footer, "true"), "f", m_commandLine,
                           "./"),
-      m_ext3DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
-                          stringFormat(m_footer, "false"), "f", m_commandLine,
-                          "./"),
+      m_ext3DefaultWorker(
+          m_header
+              + stringFormat(m_littleSignature, "std::vector<std::string>"),
+          stringFormat(m_footer, "std::vector<std::string>()"), "f",
+          m_commandLine, "./"),
       m_ext4DefaultWorker(m_header + stringFormat(m_littleSignature, "bool"),
                           stringFormat(m_footer, "false"), "f", m_commandLine,
                           "./"),
@@ -123,7 +125,8 @@ void FirstADTNPlusFwk::start(
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
   m_nodeState.start(
-      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&NeighbourTable::getConnectedEID, m_neighbourTable),
+      std::bind(&NeighbourTable::getSingletonConnectedEID, m_neighbourTable),
       std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_voidWorker.setPath(m_config.getCodesPath());
   m_boolWorker.setPath(m_config.getCodesPath());
@@ -170,70 +173,37 @@ void FirstADTNPlusFwk::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (checkDestination(*bundleContainer)) {
+  std::vector<std::string> destinations = checkDestination(*bundleContainer);
+  bundleContainer->getState()["delivered"] = false;
+  if (destinations.size() > 0) {
     LOG(55) << "We are the destination node.";
-    LOG(55) << "Checking destination app listening.";
-    std::vector<std::string> destinations = checkDispatch(*bundleContainer);
-    if (destinations.size() > 0) {
-      LOG(55) << "There is a listening app, dispatching the bundle.";
+    LOG(55) << "Delivering to all the destination endpoints.";
+    delivery(bundleContainer->getBundle(), destinations);
+    bundleContainer->getState()["delivered"] = true;
+  }
+  LOG(55) << "Checking lifetime.";
+  if (checkLifetime(*bundleContainer)) {
+    LOG(55) << "Bundle expired, discarding it.";
+    discard(std::move(bundleContainer));
+  } else {
+    LOG(55) << "Bundle is not expired yet.";
+    LOG(55) << "Checking neighbours. " << "";
+    std::vector<std::string> neighbours = checkForward(*bundleContainer);
+    if (neighbours.size() > 0) {
+      LOG(55) << "There are some neighbours. Sending the bundle to neighbours.";
       try {
-        dispatch(bundleContainer->getBundle(), destinations);
+        forward(bundleContainer->getBundle(), neighbours);
+        LOG(55) << "Discarding the bundle.";
         discard(std::move(bundleContainer));
-      } catch (const TableException &e) {
-        LOG(55) << "Restoring not dispatched bundle.";
+      } catch (const ForwardException &e) {
+        LOG(1) << e.what();
+        LOG(55) << "The bundle has not been send, restoring the bundle.";
         restore(std::move(bundleContainer));
       }
     } else {
-      LOG(55) << "No listening app, restoring the bundle.";
-      restore(std::move(bundleContainer));
-    }
-  } else {
-    LOG(55) << "We are not the destination node.";
-    LOG(55) << "Checking lifetime.";
-    if (checkLifetime(*bundleContainer)) {
-      LOG(55) << "Bundle expired, discarding it.";
-      discard(std::move(bundleContainer));
-    } else {
-      LOG(55) << "Bundle is not expired yet.";
-      LOG(55) << "Checking neighbours. " << "";
-      std::vector<std::string> neighbours = checkForward(*bundleContainer);
-      if (neighbours.size() > 0) {
-        LOG(55) << "There are some neighbours.";
-        LOG(55) << "Checking if one of them is the bundle destination.";
-        auto it = std::find(
-            neighbours.begin(),
-            neighbours.end(),
-            bundleContainer->getBundle().getPrimaryBlock()->getDestination()
-                .substr(
-                0,
-                bundleContainer->getBundle().getPrimaryBlock()->getDestination()
-                    .find(":")));
-        if (it != neighbours.end()) {
-          LOG(55) << "Destination found, sending the bundle to it.";
-          std::vector<std::string> nextHop = std::vector<std::string>();
-          nextHop.push_back(*it);
-          try {
-            forward(bundleContainer->getBundle(), nextHop);
-            LOG(55) << "Discarding the bundle.";
-            discard(std::move(bundleContainer));
-          } catch (const ForwardException &e) {
-            LOG(1) << e.what();
-            LOG(55) << "The bundle has not been send, restoring the bundle.";
-            restore(std::move(bundleContainer));
-          }
-        } else {
-          LOG(55) << "Destination not found, "
-                  << "sending the bundle to all the neighbours.";
-          try {
-            forward(bundleContainer->getBundle(), neighbours);
-            LOG(55) << "Discarding the bundle.";
-            discard(std::move(bundleContainer));
-          } catch (const ForwardException &e) {
-            LOG(1) << e.what();
-            LOG(55) << "The bundle has not been send, restoring the bundle.";
-            restore(std::move(bundleContainer));
-          }
-        }
+      if (bundleContainer->getState()["discard"]) {
+        LOG(55) << "Asked to discard the bundle.";
+        discard(std::move(bundleContainer));
       } else {
         LOG(55) << "No neighbours found, restoring the bundle.";
         restore(std::move(bundleContainer));
@@ -264,9 +234,8 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
                          m_ext1DefaultWorker);
     m_voidWorker.getResult();
-    bc->getBundle().getFwk(
-        static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
-        bundleState.getBaseReference());
+    bc->getBundle().getFwk(static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))
+        ->setBundleState(bundleState.getBaseReference());
   } catch (const std::runtime_error &e) {
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
@@ -281,7 +250,8 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
   return std::move(bc);
 }
 
-bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
+std::vector<std::string> FirstADTNPlusFwk::checkDestination(
+    BundleContainer &bundleContainer) {
   LOG(55) << "Checking destination.";
   nlohmann::json &bundleProcessState = bundleContainer.getState();
   BundleStateJson bundleState(bundleContainer.getBundle());
@@ -292,12 +262,12 @@ bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::DESTINATION))
         ->getSwSrcCode();
-    m_boolWorker.generateFunction(code);
+    m_vectorWorker.generateFunction(code);
     bundleState = bundleContainer.getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    m_boolWorker.execute(m_nodeState, bundleState, bundleProcessState,
-                         m_ext3DefaultWorker);
-    bool destination = m_boolWorker.getResult();
+    m_vectorWorker.execute(m_nodeState, bundleState, bundleProcessState,
+                           m_ext3DefaultWorker);
+    std::vector<std::string> destination = m_vectorWorker.getResult();
     bundleContainer.getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->setBundleState(
         bundleState.getBaseReference());
@@ -310,25 +280,15 @@ bool FirstADTNPlusFwk::checkDestination(BundleContainer &bundleContainer) {
       return m_ext3DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(11) << "[Extension 3] Cannot execute any code to check destination.";
-      return false;
+      return std::vector<std::string>();
     }
   }
-}
-
-std::vector<std::string> FirstADTNPlusFwk::checkDispatch(
-    BundleContainer &bundleContainer) {
-  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
-      ->getDestination();
-  std::string appId = destination.substr(destination.find(":") + 1);
-  std::vector<std::string> dispatch;
-  dispatch.push_back(appId);
-  return dispatch;
 }
 
 std::vector<std::string> FirstADTNPlusFwk::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Checking forward.";
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   nlohmann::json &bundleProcessState = bundleContainer.getState();
   BundleStateJson bundleState(bundleContainer.getBundle());
   try {

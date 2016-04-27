@@ -97,7 +97,8 @@ void BasicBundleProcessor::start(
                          listeningAppsTable);
   std::ifstream nodeState(m_config.getNodeStatePath());
   m_nodeState.start(
-      std::bind(&NeighbourTable::getValues, m_neighbourTable),
+      std::bind(&NeighbourTable::getConnectedEID, m_neighbourTable),
+      std::bind(&NeighbourTable::getSingletonConnectedEID, m_neighbourTable),
       std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
   m_forwardWorker.setPath(m_config.getCodesPath());
   m_lifeWorker.setPath(m_config.getCodesPath());
@@ -140,7 +141,7 @@ void BasicBundleProcessor::processBundle(
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
-        dispatch(bundleContainer->getBundle(), destinations);
+        delivery(bundleContainer->getBundle(), destinations);
         discard(std::move(bundleContainer));
       } catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";
@@ -235,7 +236,7 @@ std::vector<std::string> BasicBundleProcessor::checkDispatch(
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   try {
     m_forwardWorker.execute(m_nodeState);
     auto result = m_forwardWorker.getResult();
