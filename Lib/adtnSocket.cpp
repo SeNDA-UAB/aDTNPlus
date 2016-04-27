@@ -158,6 +158,7 @@ void adtnSocket::send(std::string destination, std::string message) {
         ss << "Cannot connect with node, reason: " << strerror(errno);
         throw adtnSocketException(ss.str());
       } else {
+        ::send(sock, m_nodeName.c_str(), 1024, 0);
         std::string bundleRaw = b.toRaw();
         uint32_t bundleLength = bundleRaw.length();
         uint32_t nBundleLength = htonl(bundleLength);

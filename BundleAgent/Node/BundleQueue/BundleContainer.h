@@ -87,6 +87,12 @@ class BundleContainer {
    */
   void setState(nlohmann::json state);
   /**
+   * Sets the from value in the state.
+   *
+   * @param from the from value.
+   */
+  void setFrom(const std::string& from);
+  /**
    * Convert the BundleContainer into a string to save it to disk.
    *
    * @return The serialized form of the BundleContainer.
