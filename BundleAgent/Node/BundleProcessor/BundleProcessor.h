@@ -72,9 +72,10 @@ class BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                     std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
+  virtual void start(
+      Config config, std::shared_ptr<BundleQueue> bundleQueue,
+      std::shared_ptr<NeighbourTable> neighbourTable,
+      std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
   /**
    * @brief Function that restores a bundle container from disk.
    *
@@ -93,7 +94,8 @@ class BundleProcessor {
    * @param bundle Bundle to delivery.
    * @param destinations List of all the destinations to delivery the bundle.
    */
-  void delivery(Bundle bundle, std::vector<std::string> destinations);
+  void delivery(BundleContainer &bundleContainer,
+                std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *

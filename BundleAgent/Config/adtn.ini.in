@@ -48,6 +48,8 @@ bundleProcessName : ${DATADIR}/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so
 # Path to save the generated codes, it has to exist and the application has to
 # have permissions in the folder.
 codePath : ${DATADIR}/Codes/ 
+# Path to save the not correctly delivered bundles.
+deliveryPath : ${DATADIR}/Delivered/
 
 [AppListener]
 # IP address to listen

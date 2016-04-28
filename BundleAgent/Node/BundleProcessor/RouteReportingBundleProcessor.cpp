@@ -116,7 +116,7 @@ void RouteReportingBundleProcessor::processBundle(
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
-        delivery(bundleContainer->getBundle(), destinations);
+        delivery(*bundleContainer, destinations);
         discard(std::move(bundleContainer));
       } catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";

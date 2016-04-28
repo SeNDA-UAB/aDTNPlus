@@ -178,7 +178,7 @@ void FirstADTNPlusFwk::processBundle(
   if (destinations.size() > 0) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Delivering to all the destination endpoints.";
-    delivery(bundleContainer->getBundle(), destinations);
+    delivery(*bundleContainer, destinations);
     bundleContainer->getState()["delivered"] = true;
   }
   LOG(55) << "Checking lifetime.";

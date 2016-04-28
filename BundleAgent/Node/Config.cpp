@@ -49,6 +49,7 @@ const std::string Config::BUNDLEPROCESSORNAME =
     "libaDTNPlus_BasicBundleProcessor.so";
 const std::string Config::NODESTATEPATH = "BundleAgent/NodeState.json";
 const std::string Config::CODESPATH = "./";
+const std::string Config::DELIVEREDPATH = "/tmp/adtn/delivered/";
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -69,7 +70,8 @@ Config::Config()
       m_clean(CLEAN),
       m_bundleProcessorName(BUNDLEPROCESSORNAME),
       m_nodeStatePath(NODESTATEPATH),
-      m_codesPath(CODESPATH) {
+      m_codesPath(CODESPATH),
+      m_deliveredPath(DELIVEREDPATH) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -118,6 +120,9 @@ Config::Config(const std::string &configFilename) {
                                                   NODESTATEPATH);
     m_codesPath = m_configLoader.m_reader.Get("BundleProcess", "codePath",
                                               CODESPATH);
+    m_deliveredPath = m_configLoader.m_reader.Get("BundleProcess",
+                                                  "deliveryPath",
+                                                  DELIVEREDPATH);
   }
 }
 
@@ -198,4 +203,8 @@ std::string Config::getNodeStatePath() {
 
 std::string Config::getCodesPath() {
   return m_codesPath;
+}
+
+std::string Config::getDeliveryPath() {
+  return m_deliveredPath;
 }
