@@ -242,10 +242,10 @@ void BundleProcessor::receiveMessage(int sock) {
   }
 }
 
-void BundleProcessor::delivery(Bundle bundle,
+void BundleProcessor::delivery(BundleContainer &bundleContainer,
                                std::vector<std::string> destinations) {
   LOG(11) << "Dispatching bundle";
-  std::string payload = bundle.toRaw();
+  std::string payload = bundleContainer.getBundle().toRaw();
   int payloadSize = payload.length();
   for (auto destination : destinations) {
     try {
@@ -255,7 +255,14 @@ void BundleProcessor::delivery(Bundle bundle,
         int sended = send(endpoint.getSocket(), &payloadSize,
                           sizeof(payloadSize), 0);
         if (sended < 0) {
-          // Error save to disk.
+          LOG(11) << "Saving not delivered bundle to disk.";
+          std::ofstream bundleFile;
+          std::stringstream ss;
+          ss << m_config.getDeliveryPath()
+             << bundleContainer.getBundle().getId() << ".bundle";
+          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+          bundleFile << bundleContainer.serialize();
+          bundleFile.close();
           continue;
         }
         send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
@@ -264,7 +271,14 @@ void BundleProcessor::delivery(Bundle bundle,
       }
     } catch (const TableException &e) {
       LOG(10) << "Error getting appId, reason: " << e.what();
-      // Error save to disk.
+      LOG(11) << "Saving not delivered bundle to disk.";
+      std::ofstream bundleFile;
+      std::stringstream ss;
+      ss << m_config.getDeliveryPath() << bundleContainer.getBundle().getId()
+         << ".bundle";
+      bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+      bundleFile << bundleContainer.serialize();
+      bundleFile.close();
     }
   }
 }

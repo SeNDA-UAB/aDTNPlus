@@ -98,6 +98,7 @@ install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME}
   ARCHIVE DESTINATION lib)
 
 install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Bundles)")
+install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Delivered)")
 install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Codes)")
 install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Plugins)")
 

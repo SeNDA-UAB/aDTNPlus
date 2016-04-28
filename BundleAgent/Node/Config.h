@@ -168,6 +168,12 @@ class Config {
    * @return The path to save the codes.
    */
   std::string getCodesPath();
+  /**
+   * Get the path to save the not delivered bundles.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getDeliveryPath();
 
  private:
   /**
@@ -247,6 +253,10 @@ class Config {
    */
   std::string m_codesPath;
   /**
+   * The path to save the not delivered bundles.
+   */
+  std::string m_deliveredPath;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -272,6 +282,7 @@ class Config {
   static const std::string BUNDLEPROCESSORNAME;
   static const std::string NODESTATEPATH;
   static const std::string CODESPATH;
+  static const std::string DELIVEREDPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_
