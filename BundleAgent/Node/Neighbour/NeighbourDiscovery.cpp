@@ -203,7 +203,7 @@ void NeighbourDiscovery::receiveBeacons() {
                         b.getEndpoints()));
               }).detach();
             }
-            free(buffer);
+            delete[](buffer);
           }
           // Leave from the multicast group
           if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,

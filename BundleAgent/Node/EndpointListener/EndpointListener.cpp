@@ -143,6 +143,7 @@ void EndpointListener::startListening(int sock) {
       receivedLength += receivedSize;
     }
     std::string endpointId = std::string(buffer, eid);
+    delete[](buffer);
     if (static_cast<uint32_t>(receivedSize) != eid) {
       if (receivedSize == 0) {
         LOG(1) << "Error receiving bundle length from "
