@@ -243,6 +243,6 @@ std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(uint8_t fwkId,
   } catch (const ExtensionNotFoundException &e) {
     throw FrameworkNotFoundException("[Bundle] Framework extension not found.");
   } catch (const FrameworkNotFoundException &e) {
-    throw e;
+    throw;
   }
 }

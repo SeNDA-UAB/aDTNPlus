@@ -51,7 +51,7 @@ class BundleContainer {
    *
    * @param bundle the bundle to hold.
    */
-  BundleContainer(std::unique_ptr<Bundle> bundle);
+  explicit BundleContainer(std::unique_ptr<Bundle> bundle);
   /**
    * Generates a BundleContainer from serialized data.
    *

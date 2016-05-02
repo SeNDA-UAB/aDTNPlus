@@ -28,9 +28,7 @@
 #include <iostream>
 
 FrameworkExtension::FrameworkExtension(uint8_t fwkExtId,
-                                       std::string swSrcCode) {
-  m_fwkExtId = fwkExtId;
-  m_swSrcCode = swSrcCode;
+                                       std::string swSrcCode) : m_fwkExtId(fwkExtId), m_swSrcCode(swSrcCode) {
 }
 
 FrameworkExtension::~FrameworkExtension() {

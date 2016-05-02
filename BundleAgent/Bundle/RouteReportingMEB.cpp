@@ -35,19 +35,19 @@ RouteReportingMEB::RouteReportingMEB(std::string nodeId,
     : MetadataExtensionBlock(
         static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB),
         nodeId + "," + std::to_string(arrivalTime) + ","
-            + std::to_string(departureTime)) {
-  m_routeReporting = m_metadata;
+            + std::to_string(departureTime)),
+            m_routeReporting(m_metadata) {
 }
 
 RouteReportingMEB::RouteReportingMEB(const std::string &rawData)
-    : MetadataExtensionBlock(rawData) {
-  m_routeReporting = m_metadata;
+    : MetadataExtensionBlock(rawData),
+      m_routeReporting(m_metadata) {
 }
 
 RouteReportingMEB::RouteReportingMEB()
-    : MetadataExtensionBlock() {
+    : MetadataExtensionBlock(),
+      m_routeReporting(m_metadata) {
   m_metadataType = static_cast<uint8_t>(MetadataTypes::ROUTE_REPORTING_MEB);
-  m_routeReporting = m_metadata;
 }
 
 RouteReportingMEB::~RouteReportingMEB() {
