@@ -50,7 +50,7 @@ Json::reference Json::getReadAndWrite(std::vector<std::string> tokens,
   return ref;
 }
 
-Json::reference Json::getReadOnly(const std::vector<std::string> tokens) {
+Json::reference Json::getReadOnly(const std::vector<std::string> &tokens) {
   m_newJson = m_baseReference;
   nlohmann::json aux = m_newJson;
   for (auto k : tokens) {

@@ -40,7 +40,7 @@ MetadataExtensionBlock::MetadataExtensionBlock()
 }
 
 MetadataExtensionBlock::MetadataExtensionBlock(const uint8_t metadataType,
-                                               const std::string metadata)
+                                               const std::string &metadata)
     : m_metadataType(metadataType),
       m_metadata(metadata) {
   m_blockType =

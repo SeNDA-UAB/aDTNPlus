@@ -95,7 +95,7 @@ class Json : public nlohmann::json {
    * @param tokens The tokens used as json names of an object.
    * @return The value of the object.
    */
-  reference getReadOnly(const std::vector<std::string> tokens);
+  reference getReadOnly(const std::vector<std::string> &tokens);
   /**
    * This function returns a read/write reference given a vector of tokens, from the
    * underlying json.
