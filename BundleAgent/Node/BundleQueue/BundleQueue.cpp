@@ -24,6 +24,7 @@
 
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/BundleQueue/BundleContainer.h"
+#include "Bundle/Bundle.h"
 
 BundleQueue::BundleQueue()
     : m_bundles(),
@@ -35,7 +36,8 @@ BundleQueue::~BundleQueue() {
 }
 
 BundleQueue::BundleQueue(BundleQueue&& bc)
-    : m_bundles(std::move(bc.m_bundles)) {
+    : m_bundles(std::move(bc.m_bundles)),
+      m_count(bc.m_count) {
 }
 
 void BundleQueue::wait_for(int time) {
@@ -50,15 +52,20 @@ void BundleQueue::wait_for(int time) {
 }
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
-  m_bundles.push_back(std::move(bundleContainer));
-  std::unique_lock<std::mutex> lck(m_mutex);
-  ++m_count;
-  m_conditionVariable.notify_one();
+  if (m_bundleIds.find(bundleContainer->getBundle().getId())
+      == m_bundleIds.end()) {
+    m_bundles.push_back(std::move(bundleContainer));
+    m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
+    std::unique_lock<std::mutex> lck(m_mutex);
+    ++m_count;
+    m_conditionVariable.notify_one();
+  }
 }
 
 std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
   if (m_bundles.size() > 0) {
     std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
+    m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
     return bc;
   } else {
