@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <chrono>
 #include <memory>
+#include <unordered_set>
 
 /**
  * CLASS Endpoint.
@@ -89,6 +90,10 @@ class Endpoint {
    */
   bool operator==(const Endpoint &endpoint) const;
 
+  bool checkDeliveredId(const std::string &id);
+
+  void addDeliveredId(const std::string &id);
+
  private:
   /**
    * Identifier of the endpoint.
@@ -106,6 +111,10 @@ class Endpoint {
    * Socket of communication.
    */
   int m_socket;
+  /**
+   * Set of delivered bundle id, to calculate aggregation.
+   */
+  std::unordered_set<std::string> m_deliveredIds;
   /**
    * Time of the last activity of the endpoint.
    */

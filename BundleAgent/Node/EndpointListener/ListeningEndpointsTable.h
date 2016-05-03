@@ -72,7 +72,7 @@ class ListeningEndpointsTable {
    *
    * @param value The value to check.
    */
-  void update(std::string endpointId, Endpoint endpoint);
+  void update(std::string endpointId, std::shared_ptr<Endpoint> endpoint);
 
   /**
    * Function to get a list of all the id's in the Table.
@@ -86,13 +86,13 @@ class ListeningEndpointsTable {
    * @param name the id of the value.
    * @return a T pointer if exists, else throws a TableException.
    */
-  std::vector<Endpoint> getValue(const std::string &name);
+  std::vector<std::shared_ptr<Endpoint>> getValue(const std::string &name);
 
  protected:
   /**
    * Map with the neighbours.
    */
-  std::map<std::string, std::vector<Endpoint>> m_values;
+  std::map<std::string, std::vector<std::shared_ptr<Endpoint>>> m_values;
   /**
    * Mutex for the map.
    */

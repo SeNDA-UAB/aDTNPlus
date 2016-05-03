@@ -34,8 +34,9 @@
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
-EndpointListener::EndpointListener(Config config,
-                   std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
+EndpointListener::EndpointListener(
+    Config config,
+    std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
     : m_config(config),
       m_listeningEndpointsTable(listeningEndpointsTable) {
   std::thread t = std::thread(&EndpointListener::listenEndpoints, this);
@@ -127,23 +128,23 @@ void EndpointListener::startListening(int sock) {
     char* buffer = new char[eid];
     uint32_t receivedLength = 0;
     while (receivedLength < eid) {
-      receivedSize = recv(sock, buffer + receivedLength,
-                      eid - receivedLength, 0);
+      receivedSize = recv(sock, buffer + receivedLength, eid - receivedLength,
+                          0);
 
       if (receivedSize == -1) {
         LOG(1) << "Error receiving bundle from "
-            << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
-            << strerror(errno);
+               << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
+               << strerror(errno);
         break;
       } else if (receivedSize == 0) {
         LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
-            << " closed the connection.";
+               << " closed the connection.";
         break;
       }
       receivedLength += receivedSize;
     }
     std::string endpointId = std::string(buffer, eid);
-    delete[](buffer);
+    delete[] (buffer);
     if (static_cast<uint32_t>(receivedSize) != eid) {
       if (receivedSize == 0) {
         LOG(1) << "Error receiving bundle length from "
@@ -158,8 +159,8 @@ void EndpointListener::startListening(int sock) {
                << " Length not in the correct format.";
       }
     } else {
-      m_listeningEndpointsTable->update(endpointId,
-          Endpoint(endpointId, "", 0, sock));
+      m_listeningEndpointsTable->update(
+          endpointId, std::make_shared<Endpoint>(endpointId, "", 0, sock));
       LOG(1) << "Registered endpoint: " << endpointId;
     }
   }

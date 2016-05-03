@@ -73,8 +73,9 @@ Node::Node(std::string filename) {
   m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
-  m_listeningAppsTable->update(m_config.getNodeId(),
-                               Endpoint(m_config.getNodeId(), "", 0, -1));
+  m_listeningAppsTable->update(
+      m_config.getNodeId(),
+      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, -1));
   m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {
     LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()

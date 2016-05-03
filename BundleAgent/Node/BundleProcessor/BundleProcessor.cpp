@@ -249,25 +249,28 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
   int payloadSize = payload.length();
   for (auto destination : destinations) {
     try {
-      std::vector<Endpoint> endpoints = m_listeningAppsTable->getValue(
+      auto endpoints = m_listeningAppsTable->getValue(
           destination);
       for (auto endpoint : endpoints) {
-        int sended = send(endpoint.getSocket(), &payloadSize,
-                          sizeof(payloadSize), 0);
-        if (sended < 0) {
-          LOG(11) << "Saving not delivered bundle to disk.";
-          std::ofstream bundleFile;
-          std::stringstream ss;
-          ss << m_config.getDeliveryPath()
-             << bundleContainer.getBundle().getId() << ".bundle";
-          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-          bundleFile << bundleContainer.serialize();
-          bundleFile.close();
-          continue;
+        if (!endpoint->checkDeliveredId(bundleContainer.getBundle().getId())) {
+          int sended = send(endpoint->getSocket(), &payloadSize,
+                            sizeof(payloadSize), 0);
+          if (sended < 0) {
+            LOG(11) << "Saving not delivered bundle to disk.";
+            std::ofstream bundleFile;
+            std::stringstream ss;
+            ss << m_config.getDeliveryPath()
+               << bundleContainer.getBundle().getId() << ".bundle";
+            bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+            bundleFile << bundleContainer.serialize();
+            bundleFile.close();
+            continue;
+          }
+          send(endpoint->getSocket(), payload.c_str(), payloadSize, 0);
+          LOG(17) << "Send the payload: " << payload << " to the appId: "
+                  << destination;
+          endpoint->addDeliveredId(bundleContainer.getBundle().getId());
         }
-        send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
-        LOG(17) << "Send the payload: " << payload << " to the appId: "
-                << destination;
       }
     } catch (const TableException &e) {
       LOG(10) << "Error getting appId, reason: " << e.what();
