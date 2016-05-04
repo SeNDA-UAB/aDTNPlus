@@ -34,7 +34,7 @@ TEST(BundleQueueTest, EnqueueAndDequeue) {
       new Bundle("Me", "Someone", "This is a test bundle"));
   std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(b)));
-  BundleQueue queue = BundleQueue();
+  BundleQueue queue = BundleQueue("/tmp/");
   BundleContainer* bc2 = bc.get();
   queue.enqueue(std::move(bc));
   std::unique_ptr<BundleContainer> bc1 = queue.dequeue();

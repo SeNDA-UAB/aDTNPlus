@@ -70,7 +70,8 @@ Node::Node(std::string filename) {
       new ListeningEndpointsTable());
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
-  m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
+  m_bundleQueue = std::shared_ptr<BundleQueue>(
+      new BundleQueue(m_config.getTrashReception()));
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
   m_listeningAppsTable->update(

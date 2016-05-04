@@ -174,6 +174,18 @@ class Config {
    * @return The path to save the bundles.
    */
   std::string getDeliveryPath();
+  /**
+   * Get the path to save the trashed bundles from the delivery aggregation.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getTrashDelivery();
+  /**
+   * Get the path to save the trashed bundles from the reception aggregation.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getTrashReception();
 
  private:
   /**
@@ -257,6 +269,14 @@ class Config {
    */
   std::string m_deliveredPath;
   /**
+   * The path to save the trashed bundles when aggregating in delivery.
+   */
+  std::string m_trashDeliveryPath;
+  /**
+   * The path to save the trashed bundles when aggregating in reception.
+   */
+  std::string m_trashReceptionPath;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -283,6 +303,8 @@ class Config {
   static const std::string NODESTATEPATH;
   static const std::string CODESPATH;
   static const std::string DELIVEREDPATH;
+  static const std::string TRASHDELIVERYPATH;
+  static const std::string TRASHRECEPTIONPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

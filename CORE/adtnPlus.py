@@ -107,6 +107,10 @@ bundleProcessName : %s/adtnPlus/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so
 codePath : %s/adtnPlus/Codes/
 # Path to save the not correctly delivered bundles.
 deliveryPath : %s/adtnPlus/Delivered/
+# Path to save the trashed bundles when aggregating in the node.
+trashAggregationReception : %s/adtnPlus/Trash/aggregation/reception/
+# Path to save the trashed bundles when aggregating in the delivery.
+trashAggregationDelivery : %s/adtnPlus/Trash/aggregation/delivery/
 
 [AppListener]
 # IP address to listen
@@ -118,7 +122,8 @@ listenerPort : 50000
 # Default node state path
 path : %s/adtnPlus/NodeState.json
 """ % (node.name, nodeip, node.nodedir, node.nodedir,
-            node.nodedir, node.nodedir, node.nodedir, nodeip, node.nodedir)
+            node.nodedir, node.nodedir, node.nodedir, node.nodedir,node.nodedir,
+            nodeip, node.nodedir)
 
     @classmethod
     def generatenodeState(cls, node, filename, services):
@@ -165,6 +170,8 @@ fi
 mkdir -p adtnPlus/Bundles
 mkdir -p adtnPlus/Delivered
 mkdir -p adtnPlus/Codes
+mkdir -p adtnPlus/Trash/aggregation/delivery
+mkdir -p adtnPlus/Trash/aggregation/reception
 CFGPATH=%s
 sleep 2
 # launch aDTNPlus platform service

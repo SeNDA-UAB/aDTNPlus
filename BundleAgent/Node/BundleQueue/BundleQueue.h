@@ -51,7 +51,7 @@ class BundleQueue {
   /**
    * Default constructor.
    */
-  BundleQueue();
+  explicit BundleQueue(const std::string &trashPath);
   /**
    * Destructor of the class.
    */
@@ -99,6 +99,10 @@ class BundleQueue {
    * Count of elements to consume.
    */
   int m_count;
+  /**
+   * Path to save trashed bundles.
+   */
+  std::string m_trashPath;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_

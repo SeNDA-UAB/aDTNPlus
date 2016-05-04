@@ -50,6 +50,10 @@ bundleProcessName : ${DATADIR}/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so
 codePath : ${DATADIR}/Codes/ 
 # Path to save the not correctly delivered bundles.
 deliveryPath : ${DATADIR}/Delivered/
+# Path to save the trashed bundles when aggregating in the node.
+trashAggregationReception : ${DATADIR}/Trash/aggregation/reception/
+# Path to save the trashed bundles when aggregating in the delivery.
+trashAggregationDelivery : ${DATADIR}/Trash/aggregation/delivery/
 
 [AppListener]
 # IP address to listen

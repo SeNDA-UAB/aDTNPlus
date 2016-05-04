@@ -249,8 +249,7 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
   int payloadSize = payload.length();
   for (auto destination : destinations) {
     try {
-      auto endpoints = m_listeningAppsTable->getValue(
-          destination);
+      auto endpoints = m_listeningAppsTable->getValue(destination);
       for (auto endpoint : endpoints) {
         if (!endpoint->checkDeliveredId(bundleContainer.getBundle().getId())) {
           int sended = send(endpoint->getSocket(), &payloadSize,
@@ -261,7 +260,8 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
             std::stringstream ss;
             ss << m_config.getDeliveryPath()
                << bundleContainer.getBundle().getId() << ".bundle";
-            bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+            bundleFile.open(ss.str(),
+                            std::ofstream::out | std::ofstream::binary);
             bundleFile << bundleContainer.serialize();
             bundleFile.close();
             continue;
@@ -270,6 +270,17 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
           LOG(17) << "Send the payload: " << payload << " to the appId: "
                   << destination;
           endpoint->addDeliveredId(bundleContainer.getBundle().getId());
+        } else {
+          LOG(11) << "Saving trashed bundle to disk.";
+          std::ofstream bundleFile;
+          std::stringstream ss;
+          auto time = std::chrono::high_resolution_clock::now();
+          ss << m_config.getTrashDelivery()
+             << bundleContainer.getBundle().getId() << "_"
+             << time.time_since_epoch().count() << ".bundle";
+          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+          bundleFile << bundleContainer.serialize();
+          bundleFile.close();
         }
       }
     } catch (const TableException &e) {
