@@ -38,17 +38,17 @@
 #include <memory>
 #include <map>
 
-class SigFaultException : public std::runtime_error {
- public:
-  explicit SigFaultException(const std::string &what)
-      : runtime_error(what) {
-  }
-};
-
 class WorkerException : public std::runtime_error {
  public:
   explicit WorkerException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class SigFaultException : public WorkerException {
+ public:
+  explicit SigFaultException(const std::string &what)
+      : WorkerException(what) {
   }
 };
 
@@ -222,10 +222,14 @@ class Worker {
    * @return The result that the function returned.
    */
   T getResult() {
-    try {
-      auto result = m_future.get();
-      return result;
-    } catch (...) {
+    if (m_future.valid()) {
+      try {
+        T result = m_future.get();
+        return result;
+      } catch (...) {
+        throw WorkerException("Worker could not retrieve function result.");
+      }
+    } else {
       throw WorkerException("Worker could not retrieve function result.");
     }
   }
