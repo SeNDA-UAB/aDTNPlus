@@ -226,16 +226,6 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
       new BundleContainer(std::move(bundle)));
   nlohmann::json &bundleProcessState = bc->getState();
   BundleStateJson bundleState(bc->getBundle());
-  // Create custom workers to avoid concurrency problems.
-  Worker<bool, Json, Json, nlohmann::json,
-      Worker<bool, Json, nlohmann::json, Json>> voidWorker(
-      m_header + stringFormat(m_bigSignature, "bool", "bool"),
-      stringFormat(m_footer, "true"), "f", m_commandLine, "./", false);
-  Worker<bool, Json, nlohmann::json, Json> ext1DefaultWorker(
-      m_header + stringFormat(m_littleSignature, "bool"),
-      stringFormat(m_footer, "true"), "f", m_commandLine, "./");
-  voidWorker.setPath(m_config.getCodesPath());
-  ext1DefaultWorker.setPath(m_config.getCodesPath());
   try {
     LOG(55)
         << "Checking if bundle contains an extension of value: "
@@ -244,12 +234,14 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK),
         static_cast<uint8_t>(FirstFrameworkExtensionsIds::CONTAINER_CREATION))
         ->getSwSrcCode();
-    voidWorker.generateFunction(code);
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_voidWorker.generateFunction(code);
+    lock.unlock();
     bundleState = bc->getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
-    voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
+    m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
                        m_ext1DefaultWorker);
-    voidWorker.getResult();
+    m_voidWorker.getResult();
     bc->getBundle().getFwk(static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))
         ->setBundleState(bundleState.getBaseReference());
   } catch (const std::runtime_error &e) {
@@ -258,9 +250,8 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
       LOG(55) << "Trying to execute the default code.";
       std::string defaultBundleCreation =
                 m_nodeState["configuration"]["defaultCodes"]["creation"];
-      ext1DefaultWorker.generateFunction(defaultBundleCreation);
-      ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
-      ext1DefaultWorker.getResult();
+      m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
+      m_ext1DefaultWorker.getResult();
     } catch (...) {
       LOG(11) << "[Extension 1] Cannot execute any code in "
               "Bundle container creation.";
