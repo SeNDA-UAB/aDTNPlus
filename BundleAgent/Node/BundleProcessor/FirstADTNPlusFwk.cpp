@@ -44,6 +44,7 @@
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Utils/globals.h"
 #include "Node/JsonFacades/BundleStateJson.h"
+#include "Utils/Functions.h"
 
 NEW_PLUGIN(FirstADTNPlusFwk, "First active DTN framework", "1.0",
            "This processor allows to implement up to 5 functions.")
@@ -114,6 +115,11 @@ FirstADTNPlusFwk::~FirstADTNPlusFwk() {
     std::ofstream nodeState(m_config.getNodeStatePath());
     nodeState << m_nodeState.dump(2);
     nodeState.close();
+  }
+  std::vector<std::string> codes = getFilesInFolder(
+            m_config.getCodesPath());
+  for (auto c : codes) {
+    std::remove(c.c_str());
   }
 }
 
@@ -224,7 +230,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
   Worker<bool, Json, Json, nlohmann::json,
       Worker<bool, Json, nlohmann::json, Json>> voidWorker(
       m_header + stringFormat(m_bigSignature, "bool", "bool"),
-      stringFormat(m_footer, "true"), "f", m_commandLine, "./");
+      stringFormat(m_footer, "true"), "f", m_commandLine, "./", false);
   Worker<bool, Json, nlohmann::json, Json> ext1DefaultWorker(
       m_header + stringFormat(m_littleSignature, "bool"),
       stringFormat(m_footer, "true"), "f", m_commandLine, "./");

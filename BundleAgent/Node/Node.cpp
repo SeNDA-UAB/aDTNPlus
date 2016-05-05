@@ -22,7 +22,6 @@
  *
  */
 
-#include <dirent.h>
 #include <dlfcn.h>
 #include <string>
 #include <vector>
@@ -37,27 +36,9 @@
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
+#include "Utils/Functions.h"
 #include "Utils/globals.h"
 #include "Node/JsonFacades/NodeStateJson.h"
-
-std::vector<std::string> getBundlesInFolder(std::string folder) {
-  DIR *dir = NULL;
-  std::vector<std::string> files;
-  if ((dir = opendir(folder.c_str())) == NULL) {
-    LOG(1) << "Cannot open bundles directory, reason: " << strerror(errno);
-  } else {
-    struct dirent *ent = NULL;
-    while ((ent = readdir(dir)) != NULL) {
-      if (ent->d_type != DT_REG)
-        continue;
-      std::stringstream ss;
-      ss << folder << ent->d_name;
-      files.push_back(ss.str());
-    }
-    closedir(dir);
-  }
-  return files;
-}
 
 Node::Node(std::string filename) {
   m_config = Config(filename);
@@ -94,7 +75,7 @@ Node::Node(std::string filename) {
       reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
           m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
       // Try to restore the bundles.
-      std::vector<std::string> bundles = getBundlesInFolder(
+      std::vector<std::string> bundles = getFilesInFolder(
           m_config.getDataPath());
       if (m_config.getClean()) {
         // Delete all the bundles in the folder.
