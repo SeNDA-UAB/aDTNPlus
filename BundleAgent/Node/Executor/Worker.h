@@ -94,6 +94,10 @@ inline std::string stringFormat(const std::string& format, Args ... args) {
   return std::string(buffer.get(), buffer.get() + size - 1);
 }
 
+inline bool existsFile(const std::string& path) {
+  return std::ifstream(path).good();
+}
+
 /**
  * CLASS Worker
  * This class is a code executor. It generates a code file, compiles into a
@@ -162,7 +166,8 @@ class Worker {
     std::string fileName = std::to_string(hash);
     std::string codeFileName = m_path + fileName + ".cpp";
     std::string libraryFileName = m_path + fileName + ".so";
-    if (m_fileNames.find(fileName) == m_fileNames.end()) {
+    if (m_fileNames.find(fileName) == m_fileNames.end()
+        && !existsFile(libraryFileName)) {
       m_fileNames[fileName] = nullptr;
       std::ofstream codeFile(codeFileName);
       codeFile << fullCode.str();
@@ -222,14 +227,13 @@ class Worker {
    * @return The result that the function returned.
    */
   T getResult() {
-    if (m_future.valid()) {
-      try {
-        T result = m_future.get();
-        return result;
-      } catch (...) {
+    try {
+      if (m_future.valid()) {
+        return m_future.get();
+      } else {
         throw WorkerException("Worker could not retrieve function result.");
       }
-    } else {
+    } catch (...) {
       throw WorkerException("Worker could not retrieve function result.");
     }
   }
