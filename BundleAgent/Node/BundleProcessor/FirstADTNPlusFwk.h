@@ -174,6 +174,7 @@ class FirstADTNPlusFwk : public BundleProcessor {
    * Mutex to lock bundleContainer creation.
    */
   std::mutex m_mutex;
+  std::mutex m_mutex1;
   /**
    * Variable that holds the common header for all the workers.
    */
