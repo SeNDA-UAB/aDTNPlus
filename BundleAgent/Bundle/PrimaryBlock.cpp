@@ -27,6 +27,7 @@
 #include <sstream>
 #include <cstring>
 #include <map>
+#include <utility>
 #include <vector>
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
@@ -380,6 +381,15 @@ void PrimaryBlock::setCustodian(const std::string &custodian) {
 void PrimaryBlock::setLifetime(const uint64_t &lifetime) {
   LOG(40) << "Setting new lifetime [" << lifetime << "]";
   m_lifetime = lifetime;
+}
+
+void PrimaryBlock::setTimestamp(std::pair<uint64_t, uint64_t> timestamp) {
+  m_creationTimestamp = timestamp.first;
+  m_creationTimestampSeqNumber = timestamp.second;
+}
+
+void PrimaryBlock::setSource(const std::string &source) {
+  m_source = source;
 }
 
 std::string PrimaryBlock::toString() {

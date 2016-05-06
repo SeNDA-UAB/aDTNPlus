@@ -162,8 +162,8 @@ TEST(BundleTest, ConstructorWithTwoPayload) {
 TEST(BundleTest, BundleId) {
   Bundle b = Bundle("Source", "Destination", "This is a payload");
   std::stringstream ss;
-  ss << b.getPrimaryBlock()->getSource()
-     << b.getPrimaryBlock()->getCreationTimestamp()
+  ss << b.getPrimaryBlock()->getSource() << "_"
+     << b.getPrimaryBlock()->getCreationTimestamp() << "_"
      << b.getPrimaryBlock()->getCreationTimestampSeqNumber();
   ASSERT_EQ(ss.str(), b.getId());
 }

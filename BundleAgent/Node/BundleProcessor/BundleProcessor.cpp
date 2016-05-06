@@ -49,6 +49,7 @@
 #include "Bundle/PayloadBlock.h"
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
+#include "Utils/TimestampManager.h"
 
 BundleProcessor::BundleProcessor() {
 }
@@ -219,6 +220,17 @@ void BundleProcessor::receiveMessage(int sock) {
           LOG(42) << "Creating bundle from received raw";
           std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
               new Bundle(bundleStringRaw));
+          // If the source node is the library, change the timestamp to a one
+          // generated from this node
+          if (srcNodeId == "_ADTN_LIB_") {
+            b->getPrimaryBlock()->setTimestamp(
+                TimestampManager::getInstance()->getTimestamp());
+            // If the source of the bundle is the library,
+            // change it to this node id.
+            if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
+              b->getPrimaryBlock()->setSource(m_config.getNodeId());
+            }
+          }
           LOG(42) << "Creating bundle container";
           // Create the bundleContainer
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
