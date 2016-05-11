@@ -161,10 +161,11 @@ void FirstADTNPlusFwk::start(
         m_ext5DefaultWorker.generateFunction(defaultForwardingCode);
         m_ext4DefaultWorker.generateFunction(defaultLifeCode);
         m_ext3DefaultWorker.generateFunction(defaultDestinationCode);
-        m_ext2DefaultWorker.generateFunction(defaultBundleCreation);
-        m_ext1DefaultWorker.generateFunction(defaultBundleDeletion);
+        m_ext2DefaultWorker.generateFunction(defaultBundleDeletion);
+        m_ext1DefaultWorker.generateFunction(defaultBundleCreation);
       } catch (const WorkerException &e) {
-        LOG(11) << "Cannot create code worker, reason: " << e.what();
+        LOG(1) << "Cannot create default worker, reason: " << e.what();
+        g_stop = true;
       }
     } catch (const std::invalid_argument &e) {
       LOG(1) << "Error in NodeState json: " << e.what();
@@ -180,7 +181,6 @@ void FirstADTNPlusFwk::processBundle(
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
   std::vector<std::string> destinations = checkDestination(*bundleContainer);
-  bundleContainer->getState()["delivered"] = false;
   if (destinations.size() > 0) {
     LOG(55) << "We are the destination node.";
     LOG(55) << "Delivering to all the destination endpoints.";
@@ -212,6 +212,7 @@ void FirstADTNPlusFwk::processBundle(
         restore(std::move(bundleContainer));
       }
     } else {
+      LOG(55) << "No neighbours found.";
       if (bundleContainer->getState()["discard"]) {
         LOG(55) << "Asked to discard the bundle.";
         discard(std::move(bundleContainer));
@@ -254,8 +255,6 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       LOG(55) << "Trying to execute the default code.";
-      std::string defaultBundleCreation =
-          m_nodeState["configuration"]["defaultCodes"]["creation"];
       std::unique_lock<std::mutex> lock(m_mutex1);
       m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext1DefaultWorker.getResult();
