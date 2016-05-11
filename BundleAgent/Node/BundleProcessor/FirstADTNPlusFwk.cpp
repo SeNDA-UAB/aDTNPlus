@@ -117,8 +117,7 @@ FirstADTNPlusFwk::~FirstADTNPlusFwk() {
     nodeState << m_nodeState.dump(2);
     nodeState.close();
   }
-  std::vector<std::string> codes = getFilesInFolder(
-            m_config.getCodesPath());
+  std::vector<std::string> codes = getFilesInFolder(m_config.getCodesPath());
   for (auto c : codes) {
     std::remove(c.c_str());
   }
@@ -200,8 +199,13 @@ void FirstADTNPlusFwk::processBundle(
       LOG(55) << "There are some neighbours. Sending the bundle to neighbours.";
       try {
         forward(bundleContainer->getBundle(), neighbours);
-        LOG(55) << "Discarding the bundle.";
-        discard(std::move(bundleContainer));
+        if (bundleContainer->getState()["discard"]) {
+          LOG(55) << "Discarding the bundle.";
+          discard(std::move(bundleContainer));
+        } else {
+          LOG(55) << "Keeping the bundle.";
+          restore(std::move(bundleContainer));
+        }
       } catch (const ForwardException &e) {
         LOG(1) << e.what();
         LOG(55) << "The bundle has not been send, restoring the bundle.";
@@ -240,7 +244,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     bundleState = bc->getBundle().getFwk(
         static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))->getBundleState();
     m_voidWorker.execute(m_nodeState, bundleState, bundleProcessState,
-                       m_ext1DefaultWorker);
+                         m_ext1DefaultWorker);
     m_voidWorker.getResult();
     lock.unlock();
     bc->getBundle().getFwk(static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))
@@ -251,7 +255,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     try {
       LOG(55) << "Trying to execute the default code.";
       std::string defaultBundleCreation =
-                m_nodeState["configuration"]["defaultCodes"]["creation"];
+          m_nodeState["configuration"]["defaultCodes"]["creation"];
       std::unique_lock<std::mutex> lock(m_mutex1);
       m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext1DefaultWorker.getResult();
