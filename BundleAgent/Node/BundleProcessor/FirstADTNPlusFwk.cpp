@@ -231,6 +231,9 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
   std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
   nlohmann::json &bundleProcessState = bc->getState();
+  // Adds initial values for the rest of codes
+  bundleProcessState["discard"] = false;
+  bundleProcessState["dispatched"] = false;
   BundleStateJson bundleState(bc->getBundle());
   try {
     LOG(55)
