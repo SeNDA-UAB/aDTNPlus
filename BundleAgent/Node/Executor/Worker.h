@@ -219,7 +219,7 @@ class Worker {
       std::packaged_task<T(Args&...)> task(function);
       m_future = task.get_future();
       std::thread t(std::move(task), std::ref(params)...);
-      t.detach();
+      t.join();
     } catch (...) {
       throw WorkerException("Worker could not execute the code correctly.");
     }
