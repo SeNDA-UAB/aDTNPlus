@@ -58,9 +58,10 @@ void BundleQueue::wait_for(int time) {
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   std::unique_lock<std::mutex> insertLock(m_insertMutex);
-  bool exist = m_bundleIds.find(bundleContainer->getBundle().getId());
+  bool notExist = m_bundleIds.find(bundleContainer->getBundle().getId())
+      == m_bundleIds.end();
   insertLock.unlock();
-  if (exist) {
+  if (notExist) {
     insertLock.lock();
     m_bundles.push_back(std::move(bundleContainer));
     m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
