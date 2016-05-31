@@ -92,6 +92,10 @@ class BundleQueue {
    */
   std::mutex m_mutex;
   /**
+   * Mutex for the insert.
+   */
+  std::mutex m_insertMutex;
+  /**
    * Condition variable.
    */
   std::condition_variable m_conditionVariable;

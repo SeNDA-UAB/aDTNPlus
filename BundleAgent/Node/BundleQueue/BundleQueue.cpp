@@ -57,10 +57,14 @@ void BundleQueue::wait_for(int time) {
 }
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
-  if (m_bundleIds.find(bundleContainer->getBundle().getId())
-      == m_bundleIds.end()) {
+  std::unique_lock<std::mutex> insertLock(m_insertMutex);
+  bool exist = m_bundleIds.find(bundleContainer->getBundle().getId());
+  insertLock.unlock();
+  if (exist) {
+    insertLock.lock();
     m_bundles.push_back(std::move(bundleContainer));
     m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
+    insertLock.unlock();
     std::unique_lock<std::mutex> lck(m_mutex);
     ++m_count;
     m_conditionVariable.notify_one();
@@ -69,8 +73,7 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
     std::stringstream ss;
     auto time = std::chrono::high_resolution_clock::now();
     ss << m_trashPath << bundleContainer->getBundle().getId() << "_"
-        << time.time_since_epoch().count()
-        << ".bundle";
+       << time.time_since_epoch().count() << ".bundle";
     bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
     bundleFile << bundleContainer->serialize();
     bundleFile.close();
@@ -79,9 +82,11 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
 
 std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
   if (m_bundles.size() > 0) {
+    std::unique_lock<std::mutex> lock(m_insertMutex);
     std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
     m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
+    lock.unlock();
     return bc;
   } else {
     throw EmptyBundleQueueException("[BundleQueue] The queue is empty");
