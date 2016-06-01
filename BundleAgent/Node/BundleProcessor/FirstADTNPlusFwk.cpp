@@ -232,8 +232,8 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
       new BundleContainer(std::move(bundle)));
   nlohmann::json &bundleProcessState = bc->getState();
   BundleStateJson bundleState(bc->getBundle());
-  std::unique_lock<std::mutex> lck(m_mutex, std::defer_lock);
   try {
+    std::unique_lock<std::mutex> lck(m_mutex, std::defer_lock);
     LOG(55)
         << "Checking if bundle contains an extension of value: "
         << static_cast<int>(FirstFrameworkExtensionsIds::CONTAINER_CREATION);
@@ -252,14 +252,15 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     bc->getBundle().getFwk(static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK))
         ->setBundleState(bundleState.getBaseReference());
   } catch (const std::runtime_error &e) {
-
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
+      std::unique_lock<std::mutex> lck1(m_mutex, std::defer_lock);
+      LOG(11) << "Trying to execute default code";
       LOG(55) << "Trying to execute the default code.";
-      lck.lock();
+      lck1.lock();
       m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext1DefaultWorker.getResult();
-      lck.unlock();
+      lck1.unlock();
     } catch (...) {
       LOG(11) << "[Extension 1] Cannot execute any code in "
               "Bundle container creation.";
