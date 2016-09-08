@@ -49,6 +49,7 @@
 #include "Bundle/PayloadBlock.h"
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
+#include "Utils/TimestampManager.h"
 
 BundleProcessor::BundleProcessor() {
 }
@@ -219,6 +220,17 @@ void BundleProcessor::receiveMessage(int sock) {
           LOG(42) << "Creating bundle from received raw";
           std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
               new Bundle(bundleStringRaw));
+          // If the source node is the library, change the timestamp to a one
+          // generated from this node
+          if (srcNodeId == "_ADTN_LIB_") {
+            b->getPrimaryBlock()->setTimestamp(
+                TimestampManager::getInstance()->getTimestamp());
+            // If the source of the bundle is the library,
+            // change it to this node id.
+            if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
+              b->getPrimaryBlock()->setSource(m_config.getNodeId());
+            }
+          }
           LOG(42) << "Creating bundle container";
           // Create the bundleContainer
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
@@ -249,25 +261,39 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
   int payloadSize = payload.length();
   for (auto destination : destinations) {
     try {
-      std::vector<Endpoint> endpoints = m_listeningAppsTable->getValue(
-          destination);
+      auto endpoints = m_listeningAppsTable->getValue(destination);
       for (auto endpoint : endpoints) {
-        int sended = send(endpoint.getSocket(), &payloadSize,
-                          sizeof(payloadSize), 0);
-        if (sended < 0) {
-          LOG(11) << "Saving not delivered bundle to disk.";
+        if (!endpoint->checkDeliveredId(bundleContainer.getBundle().getId())) {
+          int sended = send(endpoint->getSocket(), &payloadSize,
+                            sizeof(payloadSize), 0);
+          if (sended < 0) {
+            LOG(11) << "Saving not delivered bundle to disk.";
+            std::ofstream bundleFile;
+            std::stringstream ss;
+            ss << m_config.getDeliveryPath()
+               << bundleContainer.getBundle().getId() << ".bundle";
+            bundleFile.open(ss.str(),
+                            std::ofstream::out | std::ofstream::binary);
+            bundleFile << bundleContainer.serialize();
+            bundleFile.close();
+            continue;
+          }
+          send(endpoint->getSocket(), payload.c_str(), payloadSize, 0);
+          LOG(17) << "Send the payload: " << payload << " to the appId: "
+                  << destination;
+          endpoint->addDeliveredId(bundleContainer.getBundle().getId());
+        } else {
+          LOG(11) << "Saving trashed bundle to disk.";
           std::ofstream bundleFile;
           std::stringstream ss;
-          ss << m_config.getDeliveryPath()
-             << bundleContainer.getBundle().getId() << ".bundle";
+          auto time = std::chrono::high_resolution_clock::now();
+          ss << m_config.getTrashDelivery()
+             << bundleContainer.getBundle().getId() << "_"
+             << time.time_since_epoch().count() << ".bundle";
           bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
           bundleFile << bundleContainer.serialize();
           bundleFile.close();
-          continue;
         }
-        send(endpoint.getSocket(), payload.c_str(), payloadSize, 0);
-        LOG(17) << "Send the payload: " << payload << " to the appId: "
-                << destination;
       }
     } catch (const TableException &e) {
       LOG(10) << "Error getting appId, reason: " << e.what();

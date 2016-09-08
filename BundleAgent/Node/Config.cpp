@@ -50,6 +50,10 @@ const std::string Config::BUNDLEPROCESSORNAME =
 const std::string Config::NODESTATEPATH = "BundleAgent/NodeState.json";
 const std::string Config::CODESPATH = "./";
 const std::string Config::DELIVEREDPATH = "/tmp/adtn/delivered/";
+const std::string Config::TRASHDELIVERYPATH =
+    "/tmp/adtn/trash/aggregation/delivery/";
+const std::string Config::TRASHRECEPTIONPATH =
+    "/tmp/adtn/trash/aggregation/reception";
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -71,7 +75,9 @@ Config::Config()
       m_bundleProcessorName(BUNDLEPROCESSORNAME),
       m_nodeStatePath(NODESTATEPATH),
       m_codesPath(CODESPATH),
-      m_deliveredPath(DELIVEREDPATH) {
+      m_deliveredPath(DELIVEREDPATH),
+      m_trashDeliveryPath(TRASHDELIVERYPATH),
+      m_trashReceptionPath(TRASHRECEPTIONPATH) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -123,6 +129,10 @@ Config::Config(const std::string &configFilename) {
     m_deliveredPath = m_configLoader.m_reader.Get("BundleProcess",
                                                   "deliveryPath",
                                                   DELIVEREDPATH);
+    m_trashDeliveryPath = m_configLoader.m_reader.Get(
+        "BundleProcess", "trashAggregationDelivery", TRASHDELIVERYPATH);
+    m_trashReceptionPath = m_configLoader.m_reader.Get(
+        "BundleProcess", "trashAggregationReception", TRASHRECEPTIONPATH);
   }
 }
 
@@ -207,4 +217,12 @@ std::string Config::getCodesPath() {
 
 std::string Config::getDeliveryPath() {
   return m_deliveredPath;
+}
+
+std::string Config::getTrashDelivery() {
+  return m_trashDeliveryPath;
+}
+
+std::string Config::getTrashReception() {
+  return m_trashReceptionPath;
 }

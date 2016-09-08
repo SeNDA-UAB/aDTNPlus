@@ -91,9 +91,12 @@ int main(int argc, char **argv) {
       std::cout << "Payload received: " << s.recv() << std::endl;
       if (printState) {
         try {
-          std::cout
-              << s.getBundleState(
+          std::string bs =
+              s.getBundleState(
                   static_cast<uint8_t>(FrameworksIds::FIRST_FRAMEWORK));
+          if (bs != "null") {
+            std::cout << bs << std::endl;
+          }
         } catch (const std::runtime_error &e) {
           std::cout << e.what() << std::endl;
         }

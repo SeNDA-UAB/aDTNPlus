@@ -45,6 +45,7 @@ TimestampManager* TimestampManager::getInstance() {
 }
 
 std::pair<uint64_t, uint64_t> TimestampManager::getTimestamp() {
+  std::lock_guard<std::mutex> guard(m_mutex);
   uint64_t timestamp = time(NULL) - g_timeFrom2000;
   if (timestamp != m_lastTimestamp) {
     m_lastSeqNum = 0;

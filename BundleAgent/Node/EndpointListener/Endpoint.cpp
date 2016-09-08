@@ -81,3 +81,11 @@ uint16_t Endpoint::getPort() {
 int Endpoint::getSocket() {
   return m_socket;
 }
+
+bool Endpoint::checkDeliveredId(const std::string &id) {
+  return (m_deliveredIds.find(id) != m_deliveredIds.end());
+}
+
+void Endpoint::addDeliveredId(const std::string &id) {
+  m_deliveredIds.insert(id);
+}

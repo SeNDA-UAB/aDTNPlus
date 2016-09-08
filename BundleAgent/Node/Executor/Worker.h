@@ -38,17 +38,17 @@
 #include <memory>
 #include <map>
 
-class SigFaultException : public std::runtime_error {
- public:
-  explicit SigFaultException(const std::string &what)
-      : runtime_error(what) {
-  }
-};
-
 class WorkerException : public std::runtime_error {
  public:
   explicit WorkerException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class SigFaultException : public WorkerException {
+ public:
+  explicit SigFaultException(const std::string &what)
+      : WorkerException(what) {
   }
 };
 
@@ -94,6 +94,10 @@ inline std::string stringFormat(const std::string& format, Args ... args) {
   return std::string(buffer.get(), buffer.get() + size - 1);
 }
 
+inline bool existsFile(const std::string& path) {
+  return std::ifstream(path).good();
+}
+
 /**
  * CLASS Worker
  * This class is a code executor. It generates a code file, compiles into a
@@ -118,12 +122,13 @@ class Worker {
    *                    second for the library output name.)
    */
   Worker(std::string header, std::string footer, std::string functionName,
-         std::string commandLine, std::string path)
+         std::string commandLine, std::string path, bool deleteFiles = true)
       : m_header(header),
         m_footer(footer),
         m_functionName(functionName),
         m_commandLine(commandLine),
         m_path(path),
+        m_deleteFiles(deleteFiles),
         m_handler(0) {
     struct sigaction action;
     action.sa_handler = signalHandler;
@@ -137,11 +142,13 @@ class Worker {
   virtual ~Worker() {
     if (m_handler)
       dlclose(m_handler);
-    for (auto& kv : m_fileNames) {
-      std::string code = m_path + kv.first + ".cpp";
-      std::string library = m_path + kv.first + ".so";
-      std::remove(code.c_str());
-      std::remove(library.c_str());
+    if (m_deleteFiles) {
+      for (auto& kv : m_fileNames) {
+        std::string code = m_path + kv.first + ".cpp";
+        std::string library = m_path + kv.first + ".so";
+        std::remove(code.c_str());
+        std::remove(library.c_str());
+      }
     }
   }
   /**
@@ -162,7 +169,8 @@ class Worker {
     std::string fileName = std::to_string(hash);
     std::string codeFileName = m_path + fileName + ".cpp";
     std::string libraryFileName = m_path + fileName + ".so";
-    if (m_fileNames.find(fileName) == m_fileNames.end()) {
+    if (m_fileNames.find(fileName) == m_fileNames.end()
+        && !existsFile(libraryFileName)) {
       m_fileNames[fileName] = nullptr;
       std::ofstream codeFile(codeFileName);
       codeFile << fullCode.str();
@@ -211,7 +219,7 @@ class Worker {
       std::packaged_task<T(Args&...)> task(function);
       m_future = task.get_future();
       std::thread t(std::move(task), std::ref(params)...);
-      t.detach();
+      t.join();
     } catch (...) {
       throw WorkerException("Worker could not execute the code correctly.");
     }
@@ -223,8 +231,11 @@ class Worker {
    */
   T getResult() {
     try {
-      auto result = m_future.get();
-      return result;
+      if (m_future.valid()) {
+        return m_future.get();
+      } else {
+        throw WorkerException("Worker could not retrieve function result.");
+      }
     } catch (...) {
       throw WorkerException("Worker could not retrieve function result.");
     }
@@ -259,6 +270,10 @@ class Worker {
    * Path to save the codes.
    */
   std::string m_path;
+  /**
+   * Variable to check if the generated files must be deleted or not.
+   */
+  bool m_deleteFiles;
   /**
    * The shared library handler.
    */

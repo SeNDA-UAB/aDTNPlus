@@ -49,6 +49,8 @@ static void help(std::string program_name) {
       << "Which node is the destination.\n"
       << "   [-m | --message] message to send\t\tThe message to send.\n"
       << "Supported options:\n"
+      << "   [-s | --source] source of the bundle.\t\tChanges the source to the"
+      "given one"
       << "   [-c | --create] creation code\t\tAdds the code to the "
       "CONTAINER_CREATION extension.\n"
       << "   [-C | --createFile] creation code in file\tAdds the code from "
@@ -80,10 +82,12 @@ int main(int argc, char **argv) {
   std::map<FirstFrameworkExtensionsIds, std::string> files;
   std::string destination = "";
   std::string message = "";
+  std::string source = "";
 
   static struct option long_options[] = { { "listeningIP", required_argument, 0,
       'i' }, { "port", required_argument, 0, 'p' }, { "destination",
-  required_argument, 0, 'd' }, { "message", required_argument, 0, 'm' }, {
+  required_argument, 0, 'd' }, { "message", required_argument, 0, 'm' },
+      {"source", required_argument, 0, 's'}, {
       "create", required_argument, 0, 'c' },
       { "del", required_argument, 0, 'e' },
       { "dest", required_argument, 0, 't' },
@@ -94,7 +98,7 @@ int main(int argc, char **argv) {
           "fwdFile", required_argument, 0, 'F' },
       { "help", no_argument, 0, 'h' }, { 0, 0, 0, 0 } };
 
-  while ((opt = getopt_long(argc, argv, "i:p:d:m:c:e:t:l:f:C:E:T:L:F:h",
+  while ((opt = getopt_long(argc, argv, "i:p:d:m:s:c:e:t:l:f:C:E:T:L:F:h",
                             long_options, &option_index))) {
     switch (opt) {
       case 'i':
@@ -108,6 +112,9 @@ int main(int argc, char **argv) {
         break;
       case 'm':
         message = std::string(optarg);
+        break;
+      case 's':
+        source = std::string(optarg);
         break;
       case 'c':
         codes[FirstFrameworkExtensionsIds::CONTAINER_CREATION] = std::string(
@@ -158,6 +165,9 @@ int main(int argc, char **argv) {
   }
 
   adtnSocket s = adtnSocket(ip, port);
+  if (source != "") {
+    s.changeSource(source);
+  }
   // Add the codes if any
   for (auto it = codes.begin(); it != codes.end(); ++it) {
     s.addFrameworkExtension(

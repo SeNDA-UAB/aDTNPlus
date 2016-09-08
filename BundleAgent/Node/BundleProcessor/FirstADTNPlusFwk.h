@@ -27,6 +27,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <mutex>
 #include "Utils/Json.h"
 #include "Node/JsonFacades/NodeStateJson.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
@@ -169,6 +170,10 @@ class FirstADTNPlusFwk : public BundleProcessor {
    * Variable that holds the old parameters to check what changed.
    */
   NodeStateJson m_oldNodeState;
+  /**
+   * Mutex to lock bundleContainer creation.
+   */
+  std::mutex m_mutex;
   /**
    * Variable that holds the common header for all the workers.
    */

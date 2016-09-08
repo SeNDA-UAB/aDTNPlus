@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <utility>
+#include <mutex>
 
 const uint64_t g_timeFrom2000 = 946684800;
 
@@ -75,6 +76,10 @@ class TimestampManager {
    * Last sequence number given.
    */
   uint64_t m_lastSeqNum;
+
+  std::mutex m_mutex;
+
+
 };
 
 #endif  // BUNDLEAGENT_UTILS_TIMESTAMPMANAGER_H_

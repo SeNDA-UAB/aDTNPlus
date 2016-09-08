@@ -107,6 +107,10 @@ bundleProcessName : %s/adtnPlus/Plugins/libaDTNPlus_FirstFwkBundleProcessor.so
 codePath : %s/adtnPlus/Codes/
 # Path to save the not correctly delivered bundles.
 deliveryPath : %s/adtnPlus/Delivered/
+# Path to save the trashed bundles when aggregating in the node.
+trashAggregationReception : %s/adtnPlus/Trash/aggregation/reception/
+# Path to save the trashed bundles when aggregating in the delivery.
+trashAggregationDelivery : %s/adtnPlus/Trash/aggregation/delivery/
 
 [AppListener]
 # IP address to listen
@@ -118,7 +122,8 @@ listenerPort : 50000
 # Default node state path
 path : %s/adtnPlus/NodeState.json
 """ % (node.name, nodeip, node.nodedir, node.nodedir,
-            node.nodedir, node.nodedir, node.nodedir, nodeip, node.nodedir)
+            node.nodedir, node.nodedir, node.nodedir, node.nodedir,node.nodedir,
+            nodeip, node.nodedir)
 
     @classmethod
     def generatenodeState(cls, node, filename, services):
@@ -129,7 +134,7 @@ path : %s/adtnPlus/NodeState.json
       "forwarding" : "if (bps[\"delivered\"]) {bps[\"discard\"] = true; return std::vector<std::string>();} else {auto neighbours = ns(\"eid.connected.all\"); std::vector<std::string> toSend = std::vector<std::string>(); if (neighbours.size() > 0) {int pos = rand() %% neighbours.size(); toSend.push_back(neighbours[pos]);}return toSend;}",
       "lifetime" : "uint64_t creationTimestamp = bs(\"timestamp.value\"); if(bs(\"lifetime\") < (time(NULL) - g_timeFrom2000 - creationTimestamp)) return true; else return false;",
       "destination" : "auto destination = bs(\"destination\"); auto endpoints = ns(\"eid.registered\"); if(std::find(endpoints.begin(), endpoints.end(), destination) != endpoints.end()) return std::vector<std::string>({destination}); else return std::vector<std::string>();",
-      "creation" : "",
+      "creation" : "bps[\"delivered\"] = false; bps[\"discard\"] = false;",
       "deletion" : ""
     },
     "logLevel" : 21
@@ -165,6 +170,8 @@ fi
 mkdir -p adtnPlus/Bundles
 mkdir -p adtnPlus/Delivered
 mkdir -p adtnPlus/Codes
+mkdir -p adtnPlus/Trash/aggregation/delivery
+mkdir -p adtnPlus/Trash/aggregation/reception
 CFGPATH=%s
 sleep 2
 # launch aDTNPlus platform service

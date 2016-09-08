@@ -195,9 +195,13 @@ class adtnSocket {
    */
   int m_recvPort;
   /**
-   * The source name used to create the bundle.
+   * The source name used to notify the node.
    */
   std::string m_nodeName;
+  /**
+   * The source name used in the bundle source.
+   */
+  std::string m_sourceName;
   /**
    * The socket used to receive the bundles.
    */

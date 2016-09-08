@@ -38,45 +38,28 @@ ListeningEndpointsTable::~ListeningEndpointsTable() {
 void ListeningEndpointsTable::clean(int expirationTime) {
   LOG(62) << "Cleaning endpoints that have been out for more than "
           << expirationTime;
-  for (std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
-      .begin(); it != m_values.end(); ++it) {
-    int i = 0;
-    for (Endpoint endpoint : it->second) {
-      if (endpoint.getElapsedActivityTime() >= expirationTime) {
-        LOG(17) << "Endpoint " << endpoint.getId() << "has disappeared";
-        std::vector<Endpoint> endpoints = m_values[it->first];
-        endpoints.erase(endpoints.begin() + i);
-        if (endpoints.size() == 0) {
-          m_values.erase(it);
-        }
-      }
-      i++;
-    }
-  }
 }
 
 void ListeningEndpointsTable::update(std::string endpointId,
-                                     Endpoint endpoint) {
-  typename std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
-      .find(endpointId);
+                                     std::shared_ptr<Endpoint> endpoint) {
+  auto it = m_values.find(endpointId);
   if (it != m_values.end()) {
     m_values[endpointId].push_back(endpoint);
   } else {
-    std::vector<Endpoint> endpoints { endpoint };
+    std::vector<std::shared_ptr<Endpoint>> endpoints { endpoint };
     m_values[endpointId] = endpoints;
   }
 }
 
 std::vector<std::string> ListeningEndpointsTable::getValues() {
   std::vector<std::string> keys;
-  for (std::map<std::string, std::vector<Endpoint>>::iterator it = m_values
-      .begin(); it != m_values.end(); ++it) {
+  for (auto it = m_values.begin(); it != m_values.end(); ++it) {
     keys.push_back(it->first);
   }
   return keys;
 }
 
-std::vector<Endpoint> ListeningEndpointsTable::getValue(
+std::vector<std::shared_ptr<Endpoint>> ListeningEndpointsTable::getValue(
     const std::string &name) {
   auto it = m_values.find(name);
   if (it != m_values.end())

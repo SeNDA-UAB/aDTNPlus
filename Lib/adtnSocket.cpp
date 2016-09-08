@@ -49,6 +49,7 @@ adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
       m_sendPort(sendPort),
       m_recvPort(recvPort),
       m_nodeName("_ADTN_LIB_"),
+      m_sourceName("_ADTN_LIB_"),
       m_recvSocket(-1),
       m_lastBundle(nullptr) {
 }
@@ -128,7 +129,7 @@ std::string adtnSocket::recv() {
 
 void adtnSocket::send(std::string destination, std::string message) {
   try {
-    Bundle b = Bundle(m_nodeName, destination, message);
+    Bundle b = Bundle(m_sourceName, destination, message);
     if (m_frameworkExtensions.size() > 0) {
       for (auto it = m_frameworkExtensions.begin();
           it != m_frameworkExtensions.end(); ++it) {
@@ -173,7 +174,7 @@ void adtnSocket::send(std::string destination, std::string message) {
 }
 
 void adtnSocket::changeSource(std::string name) {
-  m_nodeName = name;
+  m_sourceName = name;
 }
 
 void adtnSocket::addRoutingSelection(uint8_t type) {
