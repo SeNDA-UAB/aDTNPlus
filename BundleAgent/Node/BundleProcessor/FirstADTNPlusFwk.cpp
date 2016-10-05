@@ -430,20 +430,66 @@ void FirstADTNPlusFwk::checkNodeStateChanges() {
     if (code.compare(
         m_oldNodeState["configuration"]["defaultCodes"]["forwarding"]) != 0) {
       try {
-        // m_forwardWorker.generateFunction(code);
+        m_ext5DefaultWorker.generateFunction(code);
       } catch (const WorkerException &e) {
         LOG(11) << "Cannot create forward code worker, reason: " << e.what();
+        m_ext5DefaultWorker.generateFunction(
+            m_oldNodeState["configuration"]["defaultCodes"]["forwarding"]);
       }
     }
     code = m_nodeState["configuration"]["defaultCodes"]["lifetime"];
     if (code.compare(
         m_oldNodeState["configuration"]["defaultCodes"]["lifetime"]) != 0) {
       try {
-        // m_lifeWorker.generateFunction(code);
+        m_ext4DefaultWorker.generateFunction(code);
       } catch (const WorkerException &e) {
         LOG(11) << "Cannot create life code worker, reason: " << e.what();
+        m_ext4DefaultWorker.generateFunction(
+            m_oldNodeState["configuration"]["defaultCodes"]["lifetime"]);
       }
     }
+    code = m_nodeState["configuration"]["defaultCodes"]["destination"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["destination"]) != 0) {
+      try {
+        m_ext3DefaultWorker.generateFunction(code);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create destination code worker, reason: "
+                << e.what();
+        m_ext3DefaultWorker.generateFunction(
+            m_oldNodeState["configuration"]["defaultCodes"]["destination"]);
+      }
+    }
+    code = m_nodeState["configuration"]["defaultCodes"]["deletion"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["deletion"]) != 0) {
+      try {
+        m_ext2DefaultWorker.generateFunction(code);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create deletion code worker, reason: " << e.what();
+        m_ext2DefaultWorker.generateFunction(
+            m_oldNodeState["configuration"]["defaultCodes"]["deletion"]);
+      }
+    }
+
+    code = m_nodeState["configuration"]["defaultCodes"]["creation"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["creation"]) != 0) {
+      try {
+        std::unique_lock<std::mutex> lck(m_mutex, std::defer_lock);
+        lck.lock();
+        m_ext1DefaultWorker.generateFunction(code);
+        lck.unlock();
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create creation code worker, reason: " << e.what();
+        std::unique_lock<std::mutex> lck1(m_mutex, std::defer_lock);
+        lck1.lock();
+        m_ext1DefaultWorker.generateFunction(
+            m_oldNodeState["configuration"]["defaultCodes"]["creation"]);
+        lck1.unlock();
+      }
+    }
+
     m_oldNodeState = m_nodeState;
   }
 }
