@@ -76,6 +76,11 @@ class BundleQueue {
    * @param time Wait timeout.
    */
   void wait_for(int time);
+  /**
+   * Returns the number of bundles in the queue.
+   * @return The size of the queue.
+   */
+  uint32_t getSize();
 
  private:
   /**

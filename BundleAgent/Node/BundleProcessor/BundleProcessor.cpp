@@ -74,14 +74,29 @@ void BundleProcessor::start(
 
 void BundleProcessor::processBundles() {
   g_startedThread++;
+  g_processed = 0;
+  g_queueSize = m_bundleQueue->getSize();
   while (!g_stop.load()) {
-    try {
-      LOG(60) << "Checking for bundles in the queue";
-      m_bundleQueue->wait_for(m_config.getSocketTimeout());
-      std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
-      processBundle(std::move(bc));
-    } catch (const std::exception &e) {
+    while (g_processed.load() < g_queueSize.load()) {
+      if (g_processed.load() == 0) {
+        g_queueSize = m_bundleQueue->getSize();
+      }
+      try {
+        LOG(60) << "Checking for bundles in the queue";
+        m_bundleQueue->wait_for(m_config.getSocketTimeout());
+        std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
+        processBundle(std::move(bc));
+        g_processed++;
+      } catch (const std::exception &e) {
+      }
     }
+    std::unique_lock<std::mutex> lck(g_processorMutex);
+    while (g_processorConditionVariable.wait_for(
+        lck, std::chrono::seconds(m_config.getSocketTimeout()))
+        == std::cv_status::timeout) {
+      break;
+    }
+    lck.unlock();
   }
   LOG(12) << "Exit Process bundles thread.";
   g_stopped++;
@@ -246,6 +261,10 @@ void BundleProcessor::receiveMessage(int sock) {
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           m_bundleQueue->enqueue(std::move(bc));
+          // Notify Processor that a new bundle can be processed
+          g_processed = 0;
+          std::unique_lock<std::mutex> lck(g_processorMutex);
+          g_processorConditionVariable.notify_one();
         } catch (const BundleCreationException &e) {
           LOG(1) << "Error constructing received bundle, reason: " << e.what();
         }
@@ -422,6 +441,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
       }
     }
     if (hops == 0)
+      g_processed--;
       throw ForwardException("The bundle has not been send to any neighbour.");
   }
 }

@@ -30,6 +30,7 @@
 #include <vector>
 #include <algorithm>
 #include "Utils/Logger.h"
+#include "Utils/globals.h"
 
 NeighbourTable::NeighbourTable() {
 }
@@ -61,6 +62,10 @@ void NeighbourTable::update(std::shared_ptr<Neighbour> neighbour) {
   } else {
     m_neigbours[neighbour->getId()] = neighbour;
     insert(neighbour->getEndpoints(), neighbour->getId());
+    // Notify Processor that a new neighbour has appeared, so it can process
+    g_processed = 0;
+    std::unique_lock<std::mutex> lck(g_processorMutex);
+    g_processorConditionVariable.notify_one();
   }
   m_mutex.unlock();
 }
