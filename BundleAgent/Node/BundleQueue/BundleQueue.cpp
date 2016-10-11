@@ -94,3 +94,7 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
   }
 }
 
+uint32_t BundleQueue::getSize() {
+  return m_bundles.size();
+}
+
