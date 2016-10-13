@@ -31,16 +31,20 @@
 #include <cstring>
 #include <thread>
 #include <chrono>
+#include <vector>
 #include <stdexcept>
 #include "Node/Neighbour/NeighbourTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/Neighbour/Beacon.h"
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
 NeighbourDiscovery::NeighbourDiscovery(
-    Config config, std::shared_ptr<NeighbourTable> neighbourTable)
+    Config config, std::shared_ptr<NeighbourTable> neighbourTable,
+    std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
     : m_config(config),
-      m_neighbourTable(neighbourTable) {
+      m_neighbourTable(neighbourTable),
+      m_listeningEndpointsTable(listeningEndpointsTable) {
   std::thread t = std::thread(&NeighbourDiscovery::cleanNeighbours, this);
   t.detach();
   t = std::thread(&NeighbourDiscovery::sendBeacons, this);
@@ -91,11 +95,12 @@ void NeighbourDiscovery::sendBeacons() {
       // Create the beacon with our information.
       LOG(64) << "Sending beacons to " << m_config.getDiscoveryAddress() << ":"
               << m_config.getDiscoveryPort();
-      Beacon b = Beacon(nodeId, nodeAddress, nodePort);
       int sleepTime = m_config.getDiscoveryPeriod();
       g_startedThread++;
       while (!g_stop.load()) {
         std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+        Beacon b = Beacon(nodeId, nodeAddress, nodePort,
+                          m_listeningEndpointsTable->getValues());
         LOG(14) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
                 << nodePort;
         std::string rawBeacon = b.getRaw();
@@ -174,29 +179,31 @@ void NeighbourDiscovery::receiveBeacons() {
                      sizeof(struct timeval));
           g_startedThread++;
           while (!g_stop.load()) {
-            char* buffer = reinterpret_cast<char*>(malloc(
-                Beacon::MAX_BEACON_SIZE * sizeof(char)));
-            ssize_t recvLength = recv(sock, buffer, Beacon::MAX_BEACON_SIZE, 0);
+            uint16_t beaconLength = 65507;
+            char* buffer = new char[65507];
+            int receivedSize = recv(sock, buffer, beaconLength, 0);
+            if (receivedSize == -1) {
+              LOG(1) << "Error receiving beacon, reason: " << strerror(errno);
+              break;
+            } else if (receivedSize == 0) {
+              LOG(1) << "Peer closed the connection.";
+              break;
+            }
             // Create a thread to add the new neighbour and let this
             // receiving more beacons
-            if (recvLength > 0) {
-              Beacon b = Beacon(std::string(buffer, recvLength));
-              if (b.getNodeId() != nodeId || testMode) {
-                LOG(15) << "Received beacon from " << b.getNodeId() << " "
-                        << b.getNodeAddress() << ":" << b.getNodePort();
-                std::thread([b, this]() {
-                  m_neighbourTable->update(std::make_shared<Neighbour>(
-                          b.getNodeId(),
-                          b.getNodeAddress(),
-                          b.getNodePort()));
-                }).detach();
-              }
-            } else if (recvLength == -1) {
-              if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                LOG(1) << "Error receiving beacon " << strerror(errno);
-              }
+            Beacon b = Beacon(std::string(buffer, beaconLength));
+            if (b.getNodeId() != nodeId || testMode) {
+              LOG(15) << "Received beacon from " << b.getNodeId() << " "
+                      << b.getNodeAddress() << ":" << b.getNodePort();
+              std::thread([b, this]() {
+                m_neighbourTable->update(std::make_shared<Neighbour>(
+                        b.getNodeId(),
+                        b.getNodeAddress(),
+                        b.getNodePort(),
+                        b.getEndpoints()));
+              }).detach();
             }
-            free(buffer);
+            delete[](buffer);
           }
           // Leave from the multicast group
           if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
@@ -208,7 +215,7 @@ void NeighbourDiscovery::receiveBeacons() {
         }
       }
     }
-    // Close the socket
+// Close the socket
     close(sock);
   }
   LOG(15) << "Exit Beacon receiver thread.";

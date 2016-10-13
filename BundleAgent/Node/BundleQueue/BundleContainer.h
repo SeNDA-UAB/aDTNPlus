@@ -26,6 +26,7 @@
 
 #include <memory>
 #include <string>
+#include "ExternTools/json/json.hpp"
 
 class Bundle;
 
@@ -46,13 +47,11 @@ class BundleContainer {
   /**
    * Default constructor.
    *
-   * This will create a BundleContainer, that holds a bundle and the id of
-   * the neighbour that send this bundle.
+   * This will create a BundleContainer, that holds a bundle.
    *
-   * @param from the neighbour id.
    * @param bundle the bundle to hold.
    */
-  BundleContainer(std::string from, std::unique_ptr<Bundle> bundle);
+  explicit BundleContainer(std::unique_ptr<Bundle> bundle);
   /**
    * Generates a BundleContainer from serialized data.
    *
@@ -76,11 +75,23 @@ class BundleContainer {
    */
   Bundle& getBundle();
   /**
-   * Get the source neighbour name.
+   * Get the state of the Container.
    *
-   * @return the neighbour source.
+   * @return The state of the container.
    */
-  std::string getFrom() const;
+  nlohmann::json& getState();
+  /**
+   * Sets a new state for the Container.
+   *
+   * @param state the new state.
+   */
+  void setState(nlohmann::json state);
+  /**
+   * Sets the from value in the state.
+   *
+   * @param from the from value.
+   */
+  void setFrom(const std::string& from);
   /**
    * Convert the BundleContainer into a string to save it to disk.
    *
@@ -107,9 +118,9 @@ class BundleContainer {
    */
   std::unique_ptr<Bundle> m_bundle;
   /**
-   * The source neighbour id.
+   * Variable that contains the state of the BundleContainer.
    */
-  std::string m_from;
+  nlohmann::json m_state;
   /**
    * Header to check serialization integrity and version.
    * 0x1vff, where v is the version.

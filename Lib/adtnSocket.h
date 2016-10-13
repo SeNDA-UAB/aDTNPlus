@@ -28,14 +28,24 @@
 #include <stdexcept>
 #include <memory>
 #include <vector>
+#include <map>
+#include "Bundle/BundleTypes.h"
 
 class Bundle;
 class CanonicalBlock;
+class FrameworkExtension;
 
 class adtnSocketException : public std::runtime_error {
  public:
   explicit adtnSocketException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class adtnMissingBundleException : public std::runtime_error {
+ public:
+  explicit adtnMissingBundleException(const std::string &what)
+    : runtime_error(what) {
   }
 };
 
@@ -88,7 +98,7 @@ class adtnSocket {
    *
    * @param appId The appId to register.
    */
-  void connect(int appId);
+  void connect(std::string appId);
   /**
    * @brief Receives a message from the node.
    *
@@ -144,6 +154,26 @@ class adtnSocket {
    * @return The information of the routing report.
    */
   std::string getRouteReporting();
+  /**
+   * @brief Adds a Framework extension.
+   *
+   * If the framework extension already exist it will overwrite it, otherwise
+   * it will be created.
+   *
+   * @param frameworkId The id of the framework.
+   * @param extensionId The id of the extension.
+   * @param code The code for the extension.
+   */
+  void addFrameworkExtension(uint8_t frameworkId, uint8_t extensionId,
+                             std::string code);
+  /**
+   * If the last received bundle contains a Framework MEB it will return the
+   * BundleState (a json in string format) of the given framework.
+   *
+   * @param frameworkId The id of the framework.
+   * @return The BundleState (a json in string format).
+   */
+  std::string getBundleState(uint8_t frameworkId);
 
  private:
   /**
@@ -165,9 +195,13 @@ class adtnSocket {
    */
   int m_recvPort;
   /**
-   * The source name used to create the bundle.
+   * The source name used to notify the node.
    */
   std::string m_nodeName;
+  /**
+   * The source name used in the bundle source.
+   */
+  std::string m_sourceName;
   /**
    * The socket used to receive the bundles.
    */
@@ -176,6 +210,10 @@ class adtnSocket {
    * Lists of canonical blocks that need to be added when creating a new bundle.
    */
   std::vector<std::shared_ptr<CanonicalBlock>> m_blocksToAdd;
+  /**
+   * Map to save the frameworks and its extensions.
+   */
+  std::map<uint8_t, std::map<uint8_t, std::string>> m_frameworkExtensions;
   /**
    * The last received bundle.
    */

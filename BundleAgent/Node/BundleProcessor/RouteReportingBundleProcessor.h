@@ -52,7 +52,7 @@ class RouteReportingBundleProcessor : public BasicBundleProcessor {
    * @param The bundle received.
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
-      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle>);
+      std::unique_ptr<Bundle>);
   /**
    * Checks if the bundle contains a Route Repoting Metadata Extension Block.
    * If so, obtains the node id who sends the bundle, and the time when it

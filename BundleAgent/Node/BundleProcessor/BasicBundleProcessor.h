@@ -27,6 +27,9 @@
 #include <memory>
 #include <vector>
 #include <string>
+
+#include "Utils/Json.h"
+#include "Node/JsonFacades/NodeStateJson.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/Executor/Worker.h"
 
@@ -34,8 +37,9 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-class ListeningAppsTable;
+class ListeningEndpointsTable;
 class Neighbour;
+class BundleInfo;
 
 /**
  * CLASS BasicBundleProcessor
@@ -51,10 +55,21 @@ class BasicBundleProcessor : public BundleProcessor {
    * Destructor of the class.
    */
   virtual ~BasicBundleProcessor();
-
+  /**
+   * @brief Function that starts all the process.
+   *
+   * This function will start the process Bundles and receive Bundles process.
+   *
+   * The parameters are the configuration, the bundle queue, the neighbour table
+   * and the listening apps table.
+   *
+   * @param config The object holding all the configuration.
+   * @param bundleQueue The queue that will hold all the bundles.
+   * @param neighbourTable The neighbour table to check the neighbours.
+   */
   virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
                      std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
  protected:
   /**
@@ -66,11 +81,10 @@ class BasicBundleProcessor : public BundleProcessor {
   /**
    * Function that creates a bundle container.
    *
-   * @param from The neighbour who has sent the bundle.
    * @param Bundle The bundle received.
    */
-  std::unique_ptr<BundleContainer> createBundleContainer(
-      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle);
+  virtual std::unique_ptr<BundleContainer> createBundleContainer(
+      std::unique_ptr<Bundle> Bundle);
   /**
    * Function that checks the possible dispatching apps.
    *
@@ -84,7 +98,7 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleContainer The container with the bundle.
    * @return True if the lifetime has expired, false otherwise.
    */
-  bool checkLifetime(BundleContainer &bundleContainer);
+  virtual bool checkLifetime(BundleContainer &bundleContainer);
   /**
    * Function that checks the possible forwards.
    *
@@ -99,13 +113,38 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleContainer The container with the bundle.
    * @return True if the bundle is for us.
    */
-  bool checkDestination(BundleContainer &bundleContainer);
+  virtual bool checkDestination(BundleContainer &bundleContainer);
+  /**
+   * Function that checks the changes in the node state.
+   *
+   * This function implements which changes in the node state should be checked
+   * and what actions the node should do.
+   */
+  virtual void checkNodeStateChanges();
   /**
    * Worker to execute default forwarding code.
    */
-  Worker<std::vector<std::string>, std::string, std::vector<std::string>> m_worker;
+  Worker<std::vector<std::string>, Json> m_forwardWorker;
+  /**
+   * Worker to execute the default lifetime code.
+   */
+  Worker<bool, Json, BundleInfo> m_lifeWorker;
+  /**
+   * Worker to execute the default destination code.
+   */
+  Worker<bool, Json, BundleInfo> m_destinationWorker;
+  /**
+   * Variable that holds the parameters used in the processor calls.
+   */
+  NodeStateJson m_nodeState;
+  /**
+   * Variable that holds the old parameters to check what changed.
+   */
+  NodeStateJson m_oldNodeState;
 
-  static const std::string m_header;
+  static const std::string m_forwardHeader;
+  static const std::string m_lifeHeader;
+  static const std::string m_destinationHeader;
   static const std::string m_footer;
   static const std::string m_commandLine;
 };

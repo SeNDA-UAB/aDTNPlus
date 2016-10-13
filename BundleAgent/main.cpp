@@ -36,6 +36,10 @@
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;
 std::atomic<uint16_t> g_startedThread;
+std::atomic<uint32_t> g_processed;
+std::atomic<uint32_t> g_queueSize;
+std::mutex g_processorMutex;
+std::condition_variable g_processorConditionVariable;
 
 void stop(int signal) {
   g_stop = true;
@@ -52,6 +56,7 @@ int main(int argc, char **argv) {
     std::string config = std::string(argv[1]);
 
     sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGTERM, &sigIntHandler, NULL);
     g_stopped = 0;
     g_stop = false;
     Node n = Node(config);

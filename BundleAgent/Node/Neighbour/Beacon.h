@@ -26,6 +26,7 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 
 /**
  * CLASS Beacon
@@ -51,9 +52,10 @@ class Beacon {
    * @param nodeId identifier of the node.
    * @param nodeAddress IP address of the node.
    * @param nodePort port of the node.
+   * @param endpoints endpoints to announce.
    */
   Beacon(const std::string &nodeId, const std::string &nodeAddress,
-         const uint16_t &nodePort);
+         const uint16_t &nodePort , std::vector<std::string> endpoints);
   /**
    * Destructor of the class.
    */
@@ -67,18 +69,13 @@ class Beacon {
    */
   std::string getRaw();
 
-  /**
-   * Max size of a beacon.
-   * This is taking the max size of the nodeId of 1023 bytes, and the size
-   * of the ip address and the port.
-   */
-  static const int MAX_BEACON_SIZE = 1050;
-
   std::string getNodeAddress() const;
 
   std::string getNodeId() const;
 
   uint16_t getNodePort() const;
+
+  std::vector<std::string> getEndpoints() const;
 
  private:
   /**
@@ -97,6 +94,8 @@ class Beacon {
    * Port of the node.
    */
   uint16_t m_nodePort;
+
+  std::vector<std::string> m_endpoints;
 };
 
 #endif  // BUNDLEAGENT_NODE_NEIGHBOUR_BEACON_H_

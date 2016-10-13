@@ -48,7 +48,7 @@ RoutingSelectionBundleProcessor::~RoutingSelectionBundleProcessor() {
 std::vector<std::string> RoutingSelectionBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Looking for routing algorithm";
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
       .getBlocks();
   blocks.erase(blocks.begin());
@@ -74,11 +74,6 @@ std::vector<std::string> RoutingSelectionBundleProcessor::checkForward(
         }
       }
     }
-  }
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
   }
   return neighbours;
 }

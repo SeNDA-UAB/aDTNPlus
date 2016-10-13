@@ -11,6 +11,8 @@
 #include "Bundle/Bundle.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
+#include "Bundle/CodeDataCarrierMEB.h"
+#include "Utils/Logger.h"
 
 static void help(std::string program_name) {
   std::cout << program_name << " is part of the SeNDA aDTNPlus platform\n"
@@ -81,17 +83,36 @@ int main(int argc, char **argv) {
     }
     try {
       Bundle b = Bundle(source, destination, message);
-      /* std::shared_ptr<ForwardingMEB> fmeb = std::make_shared<ForwardingMEB>(
-              ForwardingMEB("return std::vector<std::string>();"));
-      b.addBlock(fmeb); */
-      std::shared_ptr<RouteReportingMEB> rrm =
+
+      // Code for Forwarding Metadata Extension Block
+      std::shared_ptr<ForwardingMEB> fmeb = std::make_shared<ForwardingMEB>(
+              ForwardingMEB("return std::vector<std::string>{\"node2\", "
+                  "\"node3\"};", false));
+      b.addBlock(fmeb);
+
+      // Code for Route Reporting Metadata Exension Block
+      /*std::shared_ptr<RouteReportingMEB> rrm =
           std::make_shared<RouteReportingMEB>(RouteReportingMEB());
-      /*time_t aTime = time(NULL);
+      time_t aTime = time(NULL);
       time_t dTime = aTime + 3600;
       std::shared_ptr<RouteReportingMEB> rrm =
           std::make_shared<RouteReportingMEB>(
-              RouteReportingMEB("node0", aTime, dTime));*/
-      b.addBlock(rrm);
+              RouteReportingMEB("node0", aTime, dTime));
+      b.addBlock(rrm);*/
+
+      // Code for Code Data Carrier Metadata Extension Block
+      /*std::string code = "auto it = find("
+          "info[\"neighbours\"].begin(), info[\"neighbours\"].end(), "
+          "info[\"from\"]); info[\"neighbours\"].erase(it);"
+          "return info[\"neighbours\"];";
+      std::string data =
+          "{ \"neighbours\" : [\"node1\", \"node2\"], \"from\" : \"node1\"}";
+
+      std::shared_ptr<CodeDataCarrierMEB> nm =
+          std::make_shared<CodeDataCarrierMEB>(CodeDataCarrierMEB(
+              code, data));
+      b.addBlock(nm);*/
+
       sockaddr_in remoteAddr = { 0 };
       remoteAddr.sin_family = AF_INET;
       remoteAddr.sin_port = htons(port);
@@ -106,7 +127,6 @@ int main(int argc, char **argv) {
           std::cout << "Cannot connect with node, reason: " << strerror(errno)
                     << std::endl;
         } else {
-          send(sock, source.c_str(), 1024, 0);
           std::string bundleRaw = b.toRaw();
           uint32_t bundleLength = bundleRaw.length();
           uint32_t nBundleLength = htonl(bundleLength);

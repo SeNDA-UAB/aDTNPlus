@@ -35,6 +35,7 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Node/Executor/Worker.h"
 #include "Node/BundleProcessor/PluginAPI.h"
+#include "Utils/Logger.h"
 
 NEW_PLUGIN(ActiveForwardingBundleProcessor,
            "Active forwarding bundle processor", "1.0",
@@ -49,7 +50,7 @@ ActiveForwardingBundleProcessor::~ActiveForwardingBundleProcessor() {
 
 std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   std::vector<std::shared_ptr<Block>> blocks = bundleContainer.getBundle()
       .getBlocks();
   blocks.erase(blocks.begin());
@@ -64,32 +65,15 @@ std::vector<std::string> ActiveForwardingBundleProcessor::checkForward(
           == MetadataTypes::FORWARDING_MEB) {
         std::shared_ptr<ForwardingMEB> fmeb = std::static_pointer_cast<
             ForwardingMEB>(meb);
-        std::string source = bundleContainer.getFrom();
-        std::string header = "#include <vector>\n"
-            "#include <string>\n"
-            "#include <algorithm>\n"
-            "extern \"C\" {std::vector<std::string> "
-            "activeForwardingAlgorithm("
-            "std::vector<std::string> neighbours, "
-            "std::string source) {";
-        std::string footer = "}}";
-        std::string functionName = "activeForwardingAlgorithm";
-        std::string commandLine = "g++ -w -fPIC -shared %s -o %s 2>&1";
         std::string code = fmeb->getSoftCode();
-
-        Worker<std::vector<std::string>, std::vector<std::string>, std::string> worker(
-            header, footer, functionName, commandLine);
+        Worker<std::vector<std::string>, Json> worker(m_forwardHeader,
+                        m_footer, "f", m_commandLine, m_config.getCodesPath());
         worker.generateFunction(code);
-        worker.execute(neighbours, source);
+        worker.execute(m_nodeState);
         std::vector<std::string> result = worker.getResult();
         return result;
       }
     }
-  }
-  auto it = std::find(neighbours.begin(), neighbours.end(),
-                      bundleContainer.getFrom());
-  if (it != neighbours.end()) {
-    neighbours.erase(it);
   }
   return neighbours;
 }

@@ -34,7 +34,7 @@ class Bundle;
 class BundleQueue;
 class BundleContainer;
 class NeighbourTable;
-class ListeningAppsTable;
+class ListeningEndpointsTable;
 class Neighbour;
 
 class ForwardException : public std::runtime_error {
@@ -72,9 +72,10 @@ class BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-             std::shared_ptr<NeighbourTable> neighbourTable,
-             std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  virtual void start(
+      Config config, std::shared_ptr<BundleQueue> bundleQueue,
+      std::shared_ptr<NeighbourTable> neighbourTable,
+      std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
   /**
    * @brief Function that restores a bundle container from disk.
    *
@@ -90,10 +91,11 @@ class BundleProcessor {
    *
    * This function will dispatch a bundle to the given destinations.
    *
-   * @param bundle Bundle to dispatch.
-   * @param destinations List of all the destinations to dispatch the bundle.
+   * @param bundle Bundle to delivery.
+   * @param destinations List of all the destinations to delivery the bundle.
    */
-  void dispatch(Bundle bundle, std::vector<std::string> destinations);
+  void delivery(BundleContainer &bundleContainer,
+                std::vector<std::string> destinations);
   /**
    * @brief Function that forwards a bundle.
    *
@@ -110,7 +112,7 @@ class BundleProcessor {
    *
    * @param bundleContainer The bundle container to discard.
    */
-  void discard(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual void discard(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * @brief Function that restores a bundle container.
    *
@@ -134,7 +136,7 @@ class BundleProcessor {
   /**
    * Variable that holds the listening apps table.
    */
-  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  std::shared_ptr<ListeningEndpointsTable> m_listeningAppsTable;
 
  private:
   /**
@@ -167,7 +169,7 @@ class BundleProcessor {
    * @param Bundle The bundle received.
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
-      std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> Bundle) = 0;
+      std::unique_ptr<Bundle> Bundle) = 0;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_

@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <chrono>
 #include <memory>
+#include <vector>
 
 /**
  * CLASS Neighbour
@@ -45,7 +46,7 @@ class Neighbour {
    * @param nodePort the port of the neighbour.
    */
   Neighbour(const std::string &nodeId, const std::string &nodeAddress,
-            const uint16_t &nodePort);
+            const uint16_t &nodePort, std::vector<std::string> endpoints);
   /**
    * Destructor of the class.
    */
@@ -88,6 +89,8 @@ class Neighbour {
    */
   uint16_t getNodePort();
 
+  std::vector<std::string> getEndpoints();
+
  private:
   /**
    * Identifier of the neighbour node.
@@ -101,6 +104,8 @@ class Neighbour {
    * Port of the neighbour node.
    */
   uint16_t m_nodePort;
+
+  std::vector<std::string> m_endpoints;
   /**
    * Time of the last activity of the neighbour.
    */

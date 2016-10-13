@@ -27,17 +27,22 @@
 #include <vector>
 #include <utility>
 #include <sstream>
+#include <map>
+#include "Bundle/BundleTypes.h"
+#include "Bundle/Block.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/CanonicalBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
-#include "Bundle/Block.h"
+#include "Bundle/CodeDataCarrierMEB.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
 #include "Utils/Logger.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
 
 Bundle::Bundle(const std::string &rawData)
     : m_raw(rawData),
@@ -91,6 +96,17 @@ Bundle::Bundle(const std::string &rawData)
             case MetadataTypes::ROUTE_REPORTING_MEB: {
               LOG(35) << "Generating RouteReporting Metadata Extension Block";
               b = std::make_shared<RouteReportingMEB>(RouteReportingMEB(data));
+              break;
+            }
+            case MetadataTypes::CODE_DATA_CARRIER_MEB: {
+              LOG(35) << "Generating New Metadata Extension Block";
+              b = std::make_shared<CodeDataCarrierMEB>(
+                  CodeDataCarrierMEB(data));
+              break;
+            }
+            case MetadataTypes::FRAMEWORK_MEB: {
+              LOG(35) << "Generating New Framework Metadata Extension Block";
+              b = std::make_shared<FrameworkMEB>(FrameworkMEB(data));
               break;
             }
           }
@@ -187,8 +203,8 @@ void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
 
 std::string Bundle::getId() {
   std::stringstream ss;
-  ss << m_primaryBlock->getSource() << m_primaryBlock->getCreationTimestamp()
-     << m_primaryBlock->getCreationTimestampSeqNumber();
+  ss << m_primaryBlock->getSource() << "_" << m_primaryBlock->getCreationTimestamp()
+     << "_" << m_primaryBlock->getCreationTimestampSeqNumber();
   return ss.str();
 }
 
@@ -198,4 +214,35 @@ std::string Bundle::toString() {
     ss << m_blocks[i]->toString();
   }
   return ss.str();
+}
+
+std::shared_ptr<FrameworkMEB> Bundle::getFwk(uint8_t fwkId) {
+  auto it = m_blocks.begin();
+  for (++it; it != m_blocks.end(); ++it) {
+    auto cb = std::static_pointer_cast<CanonicalBlock>(*it);
+    if (static_cast<CanonicalBlockTypes>(cb->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      auto meb = std::static_pointer_cast<MetadataExtensionBlock>(cb);
+      if (static_cast<MetadataTypes>(meb->getMetadataType())
+          == MetadataTypes::FRAMEWORK_MEB) {
+        auto fmeb = std::static_pointer_cast<FrameworkMEB>(meb);
+        if (fmeb->getFwkId() == fwkId) {
+          return fmeb;
+        }
+      }
+    }
+  }
+  throw FrameworkNotFoundException("[Bundle] Framework not found.");
+}
+
+std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(uint8_t fwkId,
+                                                      uint8_t fwkExtId) {
+  try {
+    auto fmeb = getFwk(fwkId);
+    return fmeb->getFwkExt(fwkExtId);
+  } catch (const ExtensionNotFoundException &e) {
+    throw FrameworkNotFoundException("[Bundle] Framework extension not found.");
+  } catch (const FrameworkNotFoundException &e) {
+    throw;
+  }
 }

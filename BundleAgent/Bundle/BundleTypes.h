@@ -61,12 +61,27 @@ enum class CanonicalBlockTypes : uint8_t {
 enum class MetadataTypes : uint8_t {
   ROUTING_SELECTION_MEB = 0x02,
   FORWARDING_MEB = 0x03,
-  ROUTE_REPORTING_MEB = 0x04
+  ROUTE_REPORTING_MEB = 0x04,
+  CODE_DATA_CARRIER_MEB = 0x05,
+  FRAMEWORK_MEB = 0x06
 };
 
 enum class RoutingAlgorithms : uint8_t {
   ANTI_REBOTING = 0x01,
   FLOODING = 0x02
+};
+
+enum class FrameworksIds : uint8_t {
+  FIRST_FRAMEWORK = 0x00,
+  FWK_2 = 0x01
+};
+
+enum class FirstFrameworkExtensionsIds : uint8_t {
+  CONTAINER_CREATION = 0x00,
+  CONTAINER_DELETION = 0x01,
+  DESTINATION = 0x02,
+  LIFETIME = 0x03,
+  FORWARD = 0x04
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

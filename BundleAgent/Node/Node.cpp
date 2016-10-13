@@ -22,7 +22,6 @@
  *
  */
 
-#include <dirent.h>
 #include <dlfcn.h>
 #include <string>
 #include <vector>
@@ -37,26 +36,9 @@
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
+#include "Utils/Functions.h"
 #include "Utils/globals.h"
-
-std::vector<std::string> getBundlesInFolder(std::string folder) {
-  DIR *dir = NULL;
-  std::vector<std::string> files;
-  if ((dir = opendir(folder.c_str())) == NULL) {
-    LOG(1) << "Cannot open bundles directory, reason: " << strerror(errno);
-  } else {
-    struct dirent *ent = NULL;
-    while ((ent = readdir(dir)) != NULL) {
-      if (ent->d_type != DT_REG)
-        continue;
-      std::stringstream ss;
-      ss << folder << ent->d_name;
-      files.push_back(ss.str());
-    }
-    closedir(dir);
-  }
-  return files;
-}
+#include "Node/JsonFacades/NodeStateJson.h"
 
 Node::Node(std::string filename) {
   m_config = Config(filename);
@@ -65,15 +47,18 @@ Node::Node(std::string filename) {
   LOG(6) << "Starting Node...";
   LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
+  m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
+      new ListeningEndpointsTable());
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
-      new NeighbourDiscovery(m_config, m_neighbourTable));
-  m_bundleQueue = std::shared_ptr<BundleQueue>(new BundleQueue());
-  m_listeningAppsTable = std::shared_ptr<ListeningAppsTable>(
-      new ListeningAppsTable());
-  m_appListener = std::shared_ptr<AppListener>(
-      new AppListener(m_config, m_listeningAppsTable));
-
-  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_LAZY);
+      new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
+  m_bundleQueue = std::shared_ptr<BundleQueue>(
+      new BundleQueue(m_config.getTrashReception()));
+  m_appListener = std::shared_ptr<EndpointListener>(
+      new EndpointListener(m_config, m_listeningAppsTable));
+  m_listeningAppsTable->update(
+      m_config.getNodeId(),
+      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, -1));
+  m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {
     LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
            << " reason: " << dlerror();
@@ -90,7 +75,7 @@ Node::Node(std::string filename) {
       reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
           m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
       // Try to restore the bundles.
-      std::vector<std::string> bundles = getBundlesInFolder(
+      std::vector<std::string> bundles = getFilesInFolder(
           m_config.getDataPath());
       if (m_config.getClean()) {
         // Delete all the bundles in the folder.
@@ -105,16 +90,14 @@ Node::Node(std::string filename) {
       } else {
         // Restore all the bundles in the folder.
         std::for_each(
-            bundles.begin(),
-            bundles.end(),
-            [this, info](std::string &bundle) {
+            bundles.begin(), bundles.end(), [this, info](std::string &bundle) {
               std::ifstream bundleF(bundle);
               std::string
               rawBundleContainer((std::istreambuf_iterator<char>(bundleF))
                   , std::istreambuf_iterator<char>());
               reinterpret_cast<BundleProcessor*>(
                   info->getPlugin())->restoreRawBundleContainer(
-                      rawBundleContainer);
+                  rawBundleContainer);
               bundleF.close();
             });
       }

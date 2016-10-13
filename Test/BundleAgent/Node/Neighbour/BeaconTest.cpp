@@ -23,6 +23,7 @@
  */
 
 #include <string>
+#include <vector>
 #include "Node/Neighbour/Beacon.h"
 #include "gtest/gtest.h"
 
@@ -31,7 +32,8 @@
  * Generate a Beacon and check that all the fields are the same.
  */
 TEST(BeaconTest, GenerateBeacon) {
-  Beacon b = Beacon("Node001", "192.168.1.2", 40000);
+  Beacon b = Beacon("Node001", "192.168.1.2", 40000,
+                    std::vector<std::string>());
   ASSERT_EQ("Node001", b.getNodeId());
   ASSERT_EQ("192.168.1.2", b.getNodeAddress());
   ASSERT_EQ(40000, b.getNodePort());
@@ -43,12 +45,14 @@ TEST(BeaconTest, GenerateBeacon) {
  * raw, the fields must be the same.
  */
 TEST(BeaconTest, RawFunctions) {
-  Beacon b = Beacon("Node001", "192.168.1.2", 40000);
+  std::vector<std::string> endpoints = { "e1", "e2", "e3" };
+  Beacon b = Beacon("Node001", "192.168.1.2", 40000, endpoints);
   std::string raw = b.getRaw();
   Beacon b1 = Beacon(raw);
   ASSERT_EQ(b.getNodeId(), b1.getNodeId());
   ASSERT_EQ(b.getNodeAddress(), b1.getNodeAddress());
   ASSERT_EQ(b.getNodePort(), b1.getNodePort());
+  ASSERT_EQ(b.getEndpoints(), b1.getEndpoints());
 }
 
 /**
@@ -57,16 +61,20 @@ TEST(BeaconTest, RawFunctions) {
  * After that change some fields and do the same.
  */
 TEST(BeaconTest, RawFunctionsWithChange) {
-  Beacon b = Beacon("Node001", "192.168.1.2", 40000);
+  std::vector<std::string> endpoints = { "e1", "e2", "e3" };
+  Beacon b = Beacon("Node001", "192.168.1.2", 40000, endpoints);
   std::string raw = b.getRaw();
   Beacon b1 = Beacon(raw);
   ASSERT_EQ(b.getNodeId(), b1.getNodeId());
   ASSERT_EQ(b.getNodeAddress(), b1.getNodeAddress());
   ASSERT_EQ(b.getNodePort(), b1.getNodePort());
-  b1 = Beacon("Node002", "192.168.1.2", 5000);
+  ASSERT_EQ(b.getEndpoints(), b1.getEndpoints());
+  endpoints = {"e3", "e4", "this"};
+  b1 = Beacon("Node002", "192.168.1.2", 5000, endpoints);
   raw = b1.getRaw();
   b = Beacon(raw);
   ASSERT_EQ(b1.getNodeId(), b.getNodeId());
   ASSERT_EQ(b1.getNodeAddress(), b.getNodeAddress());
   ASSERT_EQ(b1.getNodePort(), b.getNodePort());
+  ASSERT_EQ(b1.getEndpoints(), b.getEndpoints());
 }

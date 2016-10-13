@@ -23,11 +23,16 @@
  */
 
 #include "Node/BundleQueue/BundleQueue.h"
+#include <fstream>
+#include <sstream>
+#include <chrono>
 #include "Node/BundleQueue/BundleContainer.h"
+#include "Bundle/Bundle.h"
 
-BundleQueue::BundleQueue()
+BundleQueue::BundleQueue(const std::string &trashPath)
     : m_bundles(),
-      m_count(0) {
+      m_count(0),
+      m_trashPath(trashPath) {
 }
 
 BundleQueue::~BundleQueue() {
@@ -35,7 +40,9 @@ BundleQueue::~BundleQueue() {
 }
 
 BundleQueue::BundleQueue(BundleQueue&& bc)
-    : m_bundles(std::move(bc.m_bundles)) {
+    : m_bundles(std::move(bc.m_bundles)),
+      m_count(bc.m_count),
+      m_trashPath(bc.m_trashPath) {
 }
 
 void BundleQueue::wait_for(int time) {
@@ -50,19 +57,44 @@ void BundleQueue::wait_for(int time) {
 }
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
-  m_bundles.push_back(std::move(bundleContainer));
-  std::unique_lock<std::mutex> lck(m_mutex);
-  ++m_count;
-  m_conditionVariable.notify_one();
+  std::unique_lock<std::mutex> insertLock(m_insertMutex);
+  bool notExist = m_bundleIds.find(bundleContainer->getBundle().getId())
+      == m_bundleIds.end();
+  insertLock.unlock();
+  if (notExist) {
+    insertLock.lock();
+    m_bundles.push_back(std::move(bundleContainer));
+    m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
+    insertLock.unlock();
+    std::unique_lock<std::mutex> lck(m_mutex);
+    ++m_count;
+    m_conditionVariable.notify_one();
+  } else {
+    std::ofstream bundleFile;
+    std::stringstream ss;
+    auto time = std::chrono::high_resolution_clock::now();
+    ss << m_trashPath << bundleContainer->getBundle().getId() << "_"
+       << time.time_since_epoch().count() << ".bundle";
+    bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+    bundleFile << bundleContainer->serialize();
+    bundleFile.close();
+  }
 }
 
 std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
   if (m_bundles.size() > 0) {
+    std::unique_lock<std::mutex> lock(m_insertMutex);
     std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
+    m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
+    lock.unlock();
     return bc;
   } else {
     throw EmptyBundleQueueException("[BundleQueue] The queue is empty");
   }
+}
+
+uint32_t BundleQueue::getSize() {
+  return m_bundles.size();
 }
 

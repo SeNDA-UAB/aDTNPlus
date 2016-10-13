@@ -24,6 +24,7 @@
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <map>
 #include <string>
 #include <sstream>
 #include <cstdio>
@@ -37,6 +38,8 @@
 #include "Bundle/BundleTypes.h"
 #include "Utils/SDNV.h"
 #include "Utils/TimestampManager.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
 
 /**
  * Check the constructor with parameters.
@@ -47,7 +50,7 @@ TEST(BundleTest, FilledConstructor) {
   Bundle b = Bundle("source", "destination", "payload");
   ASSERT_EQ("source", b.getPrimaryBlock()->getSource());
   ASSERT_EQ("destination", b.getPrimaryBlock()->getDestination());
-  ASSERT_EQ(2, b.getBlocks().size());
+  ASSERT_EQ(static_cast<uint8_t>(2), b.getBlocks().size());
   ASSERT_EQ(static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK),
             b.getPayloadBlock()->getBlockType());
 }
@@ -94,7 +97,7 @@ TEST(BundleTest, ConstructorWithCanonical) {
       new CanonicalBlock(ss.str()));
   ASSERT_EQ(ss.str(), cb->toRaw());
   b.addBlock(cb);
-  ASSERT_EQ(3, b.getBlocks().size());
+  ASSERT_EQ(static_cast<uint8_t>(3), b.getBlocks().size());
   std::string raw = b.toRaw();
   Bundle b1 = Bundle(raw);
   ASSERT_EQ(b.getBlocks().size(), b1.getBlocks().size());
@@ -159,8 +162,8 @@ TEST(BundleTest, ConstructorWithTwoPayload) {
 TEST(BundleTest, BundleId) {
   Bundle b = Bundle("Source", "Destination", "This is a payload");
   std::stringstream ss;
-  ss << b.getPrimaryBlock()->getSource()
-     << b.getPrimaryBlock()->getCreationTimestamp()
+  ss << b.getPrimaryBlock()->getSource() << "_"
+     << b.getPrimaryBlock()->getCreationTimestamp() << "_"
      << b.getPrimaryBlock()->getCreationTimestampSeqNumber();
   ASSERT_EQ(ss.str(), b.getId());
 }
@@ -198,4 +201,41 @@ TEST(BundleTest, WiresharkTest) {
       0,
       sendto(sock, raw.c_str(), raw.size(), 0,
              reinterpret_cast<sockaddr*>(&destination), sizeof(destination)));
+}
+
+TEST(BundleTest, GetFrameworkExtension) {
+  Bundle b = Bundle("Source", "Destination", "This is a payload");
+
+  uint8_t fwkId = 1;
+  std::map<uint8_t, std::shared_ptr<FrameworkExtension>> extensions;
+  nlohmann::json state = {"source", "me"};
+
+  uint8_t fwkExtId = 2;
+  std::string code = "code";
+  std::shared_ptr<FrameworkExtension> ext =
+  std::shared_ptr<FrameworkExtension>(
+      new FrameworkExtension(fwkExtId, code));
+
+  extensions.insert(std::pair<uint8_t, std::shared_ptr<FrameworkExtension>>
+                    (fwkExtId, ext));
+  std::shared_ptr<FrameworkMEB> fmeb =
+      std::shared_ptr<FrameworkMEB>(new FrameworkMEB(fwkId, extensions, state));
+  b.addBlock(fmeb);
+
+  std::shared_ptr<FrameworkExtension> fe = b.getFwkExt(fwkId, fwkExtId);
+  ASSERT_EQ(fe->getCodeLength(), static_cast<uint16_t>(code.length()));
+  ASSERT_EQ(fe->getFwkExtId(), fwkExtId);
+  ASSERT_EQ(fe->getSwSrcCode(), code);
+
+  Bundle b2 = Bundle("Source", "Destination", "This is a payload");
+
+  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId), FrameworkNotFoundException);
+
+  b2.addBlock(fmeb);
+  uint8_t fwkId2 = 3;
+  uint8_t fwkExtId2 = 4;
+
+  ASSERT_THROW(b2.getFwkExt(fwkId, fwkExtId2), FrameworkNotFoundException);
+  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId), FrameworkNotFoundException);
+  ASSERT_THROW(b2.getFwkExt(fwkId2, fwkExtId2), FrameworkNotFoundException);
 }

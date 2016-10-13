@@ -157,11 +157,35 @@ class Config {
    */
   std::string getBundleProcessorName();
   /**
-   * Get the forwarding default code path.
+   * Get the node state file path.
    *
-   * @return The path to the default forwarding code.
+   * @return The path to the node state file.
    */
-  std::string getForwardingDefaultCodePath();
+  std::string getNodeStatePath();
+  /**
+   * Get the path to save the generated codes.
+   *
+   * @return The path to save the codes.
+   */
+  std::string getCodesPath();
+  /**
+   * Get the path to save the not delivered bundles.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getDeliveryPath();
+  /**
+   * Get the path to save the trashed bundles from the delivery aggregation.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getTrashDelivery();
+  /**
+   * Get the path to save the trashed bundles from the reception aggregation.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getTrashReception();
 
  private:
   /**
@@ -233,9 +257,25 @@ class Config {
    */
   std::string m_bundleProcessorName;
   /**
-   * The path to the default forwarding code.
+   * The path to the node state file.
    */
-  std::string m_forwardingDefaultCodePath;
+  std::string m_nodeStatePath;
+  /**
+   * The path to save the generated codes.
+   */
+  std::string m_codesPath;
+  /**
+   * The path to save the not delivered bundles.
+   */
+  std::string m_deliveredPath;
+  /**
+   * The path to save the trashed bundles when aggregating in delivery.
+   */
+  std::string m_trashDeliveryPath;
+  /**
+   * The path to save the trashed bundles when aggregating in reception.
+   */
+  std::string m_trashReceptionPath;
   /**
    * Variable that holds the Config Loader.
    */
@@ -260,7 +300,11 @@ class Config {
   static const int LISTENERPORT;
   static const bool CLEAN;
   static const std::string BUNDLEPROCESSORNAME;
-  static const std::string FORWARDINGDEFAULTCODEPATH;
+  static const std::string NODESTATEPATH;
+  static const std::string CODESPATH;
+  static const std::string DELIVEREDPATH;
+  static const std::string TRASHDELIVERYPATH;
+  static const std::string TRASHRECEPTIONPATH;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

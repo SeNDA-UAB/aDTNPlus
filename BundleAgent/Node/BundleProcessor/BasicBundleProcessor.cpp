@@ -28,6 +28,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/Neighbour/NeighbourTable.h"
@@ -35,12 +36,14 @@
 #include "Node/Config.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Bundle/BundleInfo.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
-#include "Node/AppListener/ListeningAppsTable.h"
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/BundleProcessor/RoutingSelectionBundleProcessor.h"
 #include "Node/BundleProcessor/PluginAPI.h"
+#include "Utils/globals.h"
 
 #ifdef BASE_PLUGIN
 NEW_PLUGIN(BasicBundleProcessor,
@@ -48,41 +51,82 @@ NEW_PLUGIN(BasicBundleProcessor,
     "Forwards a bundle this processor only checks for anti-rebooting.")
 #endif
 
-const std::string BasicBundleProcessor::m_header = "#include <vector>\n"
+const std::string BasicBundleProcessor::m_forwardHeader = "#include <vector>\n"
     "#include <string>\n"
     "#include <algorithm>\n"
+    "#include <cstdlib>\n"
+    "#include \"adtnPlus/Json.h\"\n"
     "extern \"C\" {"
-    " std::vector<std::string> f(std::string from,"
-    " std::vector<std::string> neighbours) {";
+    " std::vector<std::string> f(Json& ns) {";
+const std::string BasicBundleProcessor::m_lifeHeader = "#include <cstdint>\n"
+    "#include \"Bundle/BundleInfo.h\"\n"
+    "#include \"adtnPlus/Json.h\"\n"
+    "extern \"C\" {"
+    "const uint64_t g_timeFrom2000 = 946684800;"
+    "bool f(Json& ns, BundleInfo bi) {";
+const std::string BasicBundleProcessor::m_destinationHeader =
+    "#include <string>\n"
+        "#include \"adtnPlus/Json.h\"\n"
+        "#include \"Bundle/BundleInfo.h\"\n"
+        "extern \"C\" {"
+        "bool f(Json& ns, BundleInfo bi) {";
 const std::string BasicBundleProcessor::m_footer = "}}";
 const std::string BasicBundleProcessor::m_commandLine =
     "g++ -w -fPIC -shared -std=c++11 %s -o %s 2>&1";
 
 BasicBundleProcessor::BasicBundleProcessor()
-    : m_worker(m_header, m_footer, "f", m_commandLine) {
+    : m_forwardWorker(m_forwardHeader, m_footer, "f", m_commandLine, "./"),
+      m_lifeWorker(m_lifeHeader, m_footer, "f", m_commandLine, "./"),
+      m_destinationWorker(m_destinationHeader, m_footer, "f", m_commandLine,
+                          "./") {
 }
 
 BasicBundleProcessor::~BasicBundleProcessor() {
+  if (!m_nodeState.empty()) {
+    std::ofstream nodeState(m_config.getNodeStatePath());
+    nodeState << m_nodeState.dump(2);
+    nodeState.close();
+  }
 }
 
 void BasicBundleProcessor::start(
     Config config, std::shared_ptr<BundleQueue> bundleQueue,
     std::shared_ptr<NeighbourTable> neighbourTable,
-    std::shared_ptr<ListeningAppsTable> listeningAppsTable) {
+    std::shared_ptr<ListeningEndpointsTable> listeningAppsTable) {
   BundleProcessor::start(config, bundleQueue, neighbourTable,
                          listeningAppsTable);
-  std::ifstream code(m_config.getForwardingDefaultCodePath());
-  if (code) {
-    std::string defaultCode((std::istreambuf_iterator<char>(code)),
-                            std::istreambuf_iterator<char>());
+  std::ifstream nodeState(m_config.getNodeStatePath());
+  m_nodeState.start(
+      std::bind(&NeighbourTable::getConnectedEID, m_neighbourTable),
+      std::bind(&NeighbourTable::getSingletonConnectedEID, m_neighbourTable),
+      std::bind(&ListeningEndpointsTable::getValues, m_listeningAppsTable));
+  m_forwardWorker.setPath(m_config.getCodesPath());
+  m_lifeWorker.setPath(m_config.getCodesPath());
+  m_destinationWorker.setPath(m_config.getCodesPath());
+  if (nodeState) {
     try {
-      m_worker.generateFunction(defaultCode);
-    } catch (const WorkerException &e) {
-      LOG(11) << "Cannot create code worker, reason: " << e.what();
+      nodeState >> m_nodeState;
+      m_oldNodeState = m_nodeState;
+      nodeState.close();
+      std::string defaultForwardingCode =
+          m_nodeState["configuration"]["defaultCodes"]["forwarding"];
+      std::string defaultLifeCode =
+          m_nodeState["configuration"]["defaultCodes"]["lifetime"];
+      std::string defaultDestinationCode =
+          m_nodeState["configuration"]["defaultCodes"]["destination"];
+      try {
+        m_forwardWorker.generateFunction(defaultForwardingCode);
+        m_lifeWorker.generateFunction(defaultLifeCode);
+        m_destinationWorker.generateFunction(defaultDestinationCode);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create code worker, reason: " << e.what();
+      }
+    } catch (const std::invalid_argument &e) {
+      LOG(1) << "Error in NodeState json: " << e.what();
+      g_stop = true;
     }
   } else {
-    LOG(11) << "Cannot open the file "
-            << m_config.getForwardingDefaultCodePath();
+    LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
   }
 }
 
@@ -97,7 +141,7 @@ void BasicBundleProcessor::processBundle(
     if (destinations.size() > 0) {
       LOG(55) << "There is a listening app, dispatching the bundle.";
       try {
-        dispatch(bundleContainer->getBundle(), destinations);
+        delivery(*bundleContainer, destinations);
         discard(std::move(bundleContainer));
       } catch (const TableException &e) {
         LOG(55) << "Restoring not dispatched bundle.";
@@ -160,19 +204,24 @@ void BasicBundleProcessor::processBundle(
       }
     }
   }
+  checkNodeStateChanges();
 }
 
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(
-    std::shared_ptr<Neighbour> from, std::unique_ptr<Bundle> bundle) {
+    std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
-      new BundleContainer(from->getId(), std::move(bundle)));
+      new BundleContainer(std::move(bundle)));
 }
 
 bool BasicBundleProcessor::checkDestination(BundleContainer &bundleContainer) {
-  std::string destination = bundleContainer.getBundle().getPrimaryBlock()
-      ->getDestination();
-  std::string destinationId = destination.substr(0, destination.find(":"));
-  return destinationId == m_config.getNodeId();
+  try {
+    BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+    m_destinationWorker.execute(m_nodeState, bi);
+    return m_destinationWorker.getResult();
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot execute code, reason: " << e.what();
+  }
+  return false;
 }
 
 std::vector<std::string> BasicBundleProcessor::checkDispatch(
@@ -187,31 +236,61 @@ std::vector<std::string> BasicBundleProcessor::checkDispatch(
 
 std::vector<std::string> BasicBundleProcessor::checkForward(
     BundleContainer &bundleContainer) {
-  LOG(55) << "Removing bundle source if we have it as neighbour.";
-  std::vector<std::string> neighbours = m_neighbourTable->getValues();
+  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   try {
-    m_worker.execute(bundleContainer.getFrom(), neighbours);
-    LOG(55) << "THERE ARE NEIGHBOURS NUM.:" << neighbours.size();
-    // return m_worker.getResult();
-    return neighbours;
+    m_forwardWorker.execute(m_nodeState);
+    auto result = m_forwardWorker.getResult();
+    return m_neighbourTable->getMinNeighbours(result);
   } catch (const WorkerException &e) {
     LOG(11) << "Cannot execute code, reason: " << e.what()
-            << " Executing anti-rebooting.";
-    auto it = std::find(neighbours.begin(), neighbours.end(),
-                        bundleContainer.getFrom());
-    if (it != neighbours.end()) {
-      neighbours.erase(it);
-    }
+            << " Executing flooding.";
     return neighbours;
   }
 }
 
 bool BasicBundleProcessor::checkLifetime(BundleContainer &bundleContainer) {
-  uint64_t creationTimestamp = bundleContainer.getBundle().getPrimaryBlock()
-      ->getCreationTimestamp();
-  if (bundleContainer.getBundle().getPrimaryBlock()->getLifetime()
-      < (time(NULL) - g_timeFrom2000 - creationTimestamp))
-    return true;
-  else
-    return false;
+  try {
+    BundleInfo bi = BundleInfo(bundleContainer.getBundle());
+    m_lifeWorker.execute(m_nodeState, bi);
+    return m_lifeWorker.getResult();
+  } catch (const WorkerException &e) {
+    LOG(11) << "Cannot create code worker, reason: " << e.what();
+  }
+  return false;
+}
+
+void BasicBundleProcessor::checkNodeStateChanges() {
+  if (m_nodeState["state"]["changed"]) {
+    m_nodeState["state"]["changed"] = false;
+    // Check what changed and act accordingly
+    if (m_nodeState["state"]["stop"]) {
+      m_nodeState["state"]["stop"] = false;
+      g_stop = true;
+    }
+    if (m_nodeState["configuration"]["logLevel"]
+        != m_oldNodeState["configuration"]["logLevel"]) {
+      Logger::getInstance()->setLogLevel(
+          m_nodeState["configuration"]["logLevel"]);
+    }
+    std::string code =
+        m_nodeState["configuration"]["defaultCodes"]["forwarding"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["forwarding"]) != 0) {
+      try {
+        m_forwardWorker.generateFunction(code);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create forward code worker, reason: " << e.what();
+      }
+    }
+    code = m_nodeState["configuration"]["defaultCodes"]["lifetime"];
+    if (code.compare(
+        m_oldNodeState["configuration"]["defaultCodes"]["lifetime"]) != 0) {
+      try {
+        m_lifeWorker.generateFunction(code);
+      } catch (const WorkerException &e) {
+        LOG(11) << "Cannot create life code worker, reason: " << e.what();
+      }
+    }
+    m_oldNodeState = m_nodeState;
+  }
 }

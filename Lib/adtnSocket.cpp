@@ -33,11 +33,14 @@
 #include <iostream>
 #include "Bundle/Bundle.h"
 #include "Bundle/CanonicalBlock.h"
+#include "Bundle/PayloadBlock.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RoutingSelectionMEB.h"
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/BundleTypes.h"
+#include "Bundle/FrameworkMEB.h"
+#include "Bundle/FrameworkExtension.h"
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
                        std::string recvIp)
@@ -46,6 +49,7 @@ adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
       m_sendPort(sendPort),
       m_recvPort(recvPort),
       m_nodeName("_ADTN_LIB_"),
+      m_sourceName("_ADTN_LIB_"),
       m_recvSocket(-1),
       m_lastBundle(nullptr) {
 }
@@ -65,7 +69,7 @@ adtnSocket::~adtnSocket() {
     delete m_lastBundle;
 }
 
-void adtnSocket::connect(int appId) {
+void adtnSocket::connect(std::string appId) {
   std::string ip = m_listeningIp == "" ? m_nodeIp : m_listeningIp;
   sockaddr_in remoteAddr = { 0 };
   remoteAddr.sin_family = AF_INET;
@@ -75,27 +79,29 @@ void adtnSocket::connect(int appId) {
   if (m_recvSocket == -1) {
     std::stringstream ss;
     ss << "Cannot create socket, reason: " << strerror(errno);
-    throw(ss.str());
+    throw adtnSocketException(ss.str());
   } else {
     if (::connect(m_recvSocket, reinterpret_cast<sockaddr*>(&remoteAddr),
                   sizeof(remoteAddr)) < 0) {
       std::stringstream ss;
       ss << "Cannot connect with node, reason: " << strerror(errno);
-      throw(ss.str());
+      throw adtnSocketException(ss.str());
     } else {
       uint8_t type = htons(0);
-      uint32_t appIdn = htonl(appId);
       int writed = ::send(m_recvSocket, &type, sizeof(type), 0);
       if (writed < 0) {
         std::stringstream ss;
         ss << "Cannot write to socket, reason: " << strerror(errno);
-        throw(ss.str());
+        throw adtnSocketException(ss.str());
       } else {
-        writed = ::send(m_recvSocket, &appIdn, sizeof(appIdn), 0);
+        uint32_t appIdLength = appId.length();
+        uint32_t nAppId = htonl(appIdLength);
+        writed = ::send(m_recvSocket, &nAppId, sizeof(nAppId), 0);
+        writed = ::send(m_recvSocket, appId.c_str(), appIdLength, 0);
         if (writed < 0) {
           std::stringstream ss;
           ss << "Cannot write to socket, reason: " << strerror(errno);
-          throw(ss.str());
+          throw adtnSocketException(ss.str());
         }
       }
     }
@@ -123,7 +129,17 @@ std::string adtnSocket::recv() {
 
 void adtnSocket::send(std::string destination, std::string message) {
   try {
-    Bundle b = Bundle(m_nodeName, destination, message);
+    Bundle b = Bundle(m_sourceName, destination, message);
+    if (m_frameworkExtensions.size() > 0) {
+      for (auto it = m_frameworkExtensions.begin();
+          it != m_frameworkExtensions.end(); ++it) {
+        auto framework = std::make_shared<FrameworkMEB>(it->first);
+        for (auto ext = it->second.begin(); ext != it->second.end(); ++ext) {
+          framework->addExtension(ext->first, ext->second);
+        }
+        m_blocksToAdd.push_back(framework);
+      }
+    }
     for (auto c : m_blocksToAdd) {
       b.addBlock(c);
     }
@@ -135,13 +151,13 @@ void adtnSocket::send(std::string destination, std::string message) {
     if (sock == -1) {
       std::stringstream ss;
       ss << "Cannot create socket, reason: " << strerror(errno);
-      throw(ss.str());
+      throw adtnSocketException(ss.str());
     } else {
       if (::connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
                     sizeof(remoteAddr)) < 0) {
         std::stringstream ss;
         ss << "Cannot connect with node, reason: " << strerror(errno);
-        throw(ss.str());
+        throw adtnSocketException(ss.str());
       } else {
         ::send(sock, m_nodeName.c_str(), 1024, 0);
         std::string bundleRaw = b.toRaw();
@@ -158,7 +174,7 @@ void adtnSocket::send(std::string destination, std::string message) {
 }
 
 void adtnSocket::changeSource(std::string name) {
-  m_nodeName = name;
+  m_sourceName = name;
 }
 
 void adtnSocket::addRoutingSelection(uint8_t type) {
@@ -193,7 +209,27 @@ std::string adtnSocket::getRouteReporting() {
       }
     }
   } else {
-    throw adtnSocketException("No bundle has been received yet.");
+    throw adtnMissingBundleException("No bundle has been received yet.");
   }
   throw adtnSocketException("No route report block is present in the bundle.");
+}
+
+void adtnSocket::addFrameworkExtension(uint8_t frameworkId, uint8_t extensionId,
+                                       std::string code) {
+  m_frameworkExtensions[frameworkId][extensionId] = code;
+}
+
+std::string adtnSocket::getBundleState(uint8_t frameworkId) {
+  if (m_lastBundle != nullptr) {
+    try {
+      auto framework = m_lastBundle->getFwk(frameworkId);
+      return framework->getBundleState().dump(2);
+    } catch (const FrameworkNotFoundException &e) {
+      throw adtnSocketException(
+          "No framework block with id " + std::to_string(frameworkId)
+              + " is present in the bundle.");
+    }
+  } else {
+    throw adtnMissingBundleException("No bundle has been received yet.");
+  }
 }

@@ -29,17 +29,19 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
-#include "Bundle/Bundle.h"
+#include <iostream>
 
-BundleContainer::BundleContainer(std::string from,
-                                 std::unique_ptr<Bundle> bundle)
+#include "Bundle/Bundle.h"
+#include <iostream>
+
+BundleContainer::BundleContainer(std::unique_ptr<Bundle> bundle)
     : m_bundle(std::move(bundle)),
-      m_from(from) {
+      m_state() {
 }
 
-BundleContainer::BundleContainer() :
-    m_bundle(),
-    m_from() {
+BundleContainer::BundleContainer()
+    : m_bundle(),
+      m_state() {
 }
 
 BundleContainer::~BundleContainer() {
@@ -51,25 +53,32 @@ BundleContainer::BundleContainer(const std::string &data) {
 
 BundleContainer::BundleContainer(BundleContainer&& bc)
     : m_bundle(std::move(bc.m_bundle)),
-      m_from(bc.m_from) {
+      m_state(bc.m_state) {
 }
 
 Bundle& BundleContainer::getBundle() {
   return *m_bundle;
 }
 
-std::string BundleContainer::getFrom() const {
-  return m_from;
+nlohmann::json& BundleContainer::getState() {
+  return m_state;
+}
+
+void BundleContainer::setState(nlohmann::json state) {
+  m_state = state;
+}
+
+void BundleContainer::setFrom(const std::string& from) {
+  m_state["from"] = from;
 }
 
 std::string BundleContainer::serialize() {
   std::stringstream ss;
-  ss << m_header << m_from << std::ends << m_bundle->toRaw() << m_footer;
+  ss << m_header << m_state << " " << m_bundle->toRaw() << m_footer;
   return ss.str();
 }
 
-void BundleContainer::deserialize(
-    const std::string &data) {
+void BundleContainer::deserialize(const std::string &data) {
   // Check header
   std::stringstream size;
   // Get the header size in chars
@@ -80,13 +89,18 @@ void BundleContainer::deserialize(
     std::string newData = data.substr(headerSize);
     size.clear();
     size.str(std::string());
-    // Get the neighbour id
-    char buff[1024];
-    snprintf(&buff[0], sizeof(buff), "%s", newData.c_str());
-    int length = strlen(buff);
-    m_from = std::string(buff);
-    // Remove node id and \0
-    newData = newData.substr(length + 1);
+    // Get the state
+    std::stringstream aux(newData);
+    std::string state;
+    aux >> state;
+    try {
+      m_state = nlohmann::json::parse(state);
+    } catch (const std::invalid_argument &e) {
+      std::stringstream error;
+      error << "[BundleContainer] Bad state format: " << e.what();
+      throw BundleContainerCreationException(error.str());
+    }
+    newData = aux.str().substr(state.size() + 1);
     size << m_footer;
     int footerSize = size.str().length();
     // The raw bundle is from the start to the size - footer size
@@ -112,7 +126,7 @@ void BundleContainer::deserialize(
 
 std::string BundleContainer::toString() {
   std::stringstream ss;
-  ss << "From: " << m_from << std::endl << "Bundle: " << std::endl
-     << m_bundle->toString();
+  ss << "State: " << std::setw(2) << m_state << std::endl << "Bundle: "
+     << std::endl << m_bundle->toString();
   return ss.str();
 }

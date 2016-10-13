@@ -32,7 +32,7 @@
 
 Beacon::Beacon(std::string rawData) {
   LOG(69) << "Generating beacon from raw Data";
-  char buff[MAX_BEACON_SIZE];
+  char buff[2048];
   const char* dataChar = rawData.c_str();
   strcpy(&buff[0], dataChar);
   m_nodeId = std::string(buff);
@@ -42,14 +42,24 @@ Beacon::Beacon(std::string rawData) {
   size += strlen(buff) + 1;
   strcpy(&buff[0], dataChar + size * sizeof(char));
   m_nodePort = static_cast<uint16_t>(atoi(buff));
+  size += strlen(buff) + 1;
+  strcpy(&buff[0], dataChar + size * sizeof(char));
+  int endpoints = static_cast<size_t>(atoi(buff));
+  size += strlen(buff) + 1;
+  dataChar += size;
+  for (int i = 0; i < endpoints; ++i) {
+    m_endpoints.push_back(dataChar);
+    dataChar += m_endpoints.back().size() + 1;
+  }
   m_raw = rawData;
 }
 
 Beacon::Beacon(const std::string &nodeId, const std::string &nodeAddress,
-               const uint16_t &nodePort)
+               const uint16_t &nodePort, std::vector<std::string> endpoints)
     : m_nodeId(nodeId),
       m_nodeAddress(nodeAddress),
-      m_nodePort(nodePort) {
+      m_nodePort(nodePort),
+      m_endpoints(endpoints) {
   LOG(69) << "Generating beacon from parameters [nodeId: " << nodeId
           << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
           << "]";
@@ -60,6 +70,10 @@ Beacon::Beacon(const std::string &nodeId, const std::string &nodeAddress,
   ss << std::ends;
   ss << m_nodePort;
   ss << std::ends;
+  ss << m_endpoints.size() << std::ends;
+  for (auto s : m_endpoints) {
+    ss << s << std::ends;
+  }
   m_raw = ss.str();
 }
 
@@ -80,5 +94,9 @@ std::string Beacon::getNodeAddress() const {
 
 uint16_t Beacon::getNodePort() const {
   return m_nodePort;
+}
+
+std::vector<std::string> Beacon::getEndpoints() const {
+  return m_endpoints;
 }
 

@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <string>
 #include <bitset>
+#include <utility>
 #include "Bundle/BundleTypes.h"
 #include "Bundle/Block.h"
 
@@ -151,6 +152,18 @@ class PrimaryBlock : public Block {
    * @param lifetime new lifetime to set.
    */
   void setLifetime(const uint64_t &lifetime);
+  /**
+   * Sets the timestamp to the given value.
+   *
+   * @param timestamp The new timestamp.
+   */
+  void setTimestamp(std::pair<uint64_t, uint64_t> timestamp);
+  /**
+   * Sets the source to the given value.
+   *
+   * @param source The new source.
+   */
+  void setSource(const std::string &source);
   /**
    * @brief Returns an string with a nice view of the block information.
    *

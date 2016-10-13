@@ -29,10 +29,13 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
-#include "Bundle/PrimaryBlock.h"
-#include "Bundle/PayloadBlock.h"
-#include "Bundle/Block.h"
-#include "Bundle/CanonicalBlock.h"
+
+class PrimaryBlock;
+class PayloadBlock;
+class Block;
+class CanonicalBlock;
+class FrameworkExtension;
+class FrameworkMEB;
 
 class BundleCreationException : public std::runtime_error {
  public:
@@ -45,6 +48,13 @@ class BundleException : public std::runtime_error {
  public:
   explicit BundleException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class FrameworkNotFoundException : public std::runtime_error {
+ public:
+  explicit FrameworkNotFoundException(const std::string &what)
+    : runtime_error(what) {
   }
 };
 
@@ -140,6 +150,13 @@ class Bundle {
    * @return The string with the bundle information.
    */
   std::string toString();
+  /**
+   *
+   */
+  std::shared_ptr<FrameworkExtension> getFwkExt(uint8_t fwkId,
+                                                uint8_t fwkExtId);
+
+  std::shared_ptr<FrameworkMEB> getFwk(uint8_t fwkId);
 
  private:
   /**

@@ -26,6 +26,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <iostream>
 #include "Node/Neighbour/NeighbourTable.h"
 #include "gtest/gtest.h"
 #include "Node/Neighbour/Neighbour.h"
@@ -40,9 +41,9 @@
  */
 TEST(NeighbourTableTest, AddAndRemove) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40000));
-  // Get the neighbours
-  auto neighbours = nt->getValues();
+  nt->update(
+      std::make_shared<Neighbour>("node100", "192.168.1.1", 40000,
+                                  std::vector<std::string>()));
   // Check neighbour
   ASSERT_EQ("node100", nt->getValue("node100")->getId());
   sleep(2);
@@ -51,9 +52,7 @@ TEST(NeighbourTableTest, AddAndRemove) {
   nt->clean(1);
   // Check that we still hold the pointer
   ASSERT_EQ("node100", node->getId());
-  neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_THROW(nt->getValue("node100"), TableException);
+  ASSERT_THROW(nt->getValue("node100"), NeighbourTableException);
   delete nt;
 }
 
@@ -63,32 +62,63 @@ TEST(NeighbourTableTest, AddAndRemove) {
  */
 TEST(NeighbourTableTest, AddAndRemoveMore) {
   NeighbourTable* nt = new NeighbourTable();
-  nt->update(std::make_shared<Neighbour>("node100", "192.168.1.1", 40100));
+  nt->update(
+      std::make_shared<Neighbour>("node100", "192.168.1.1", 40100,
+                                  std::vector<std::string>()));
   sleep(1);
-  nt->update(std::make_shared<Neighbour>("node101", "192.168.1.1", 40101));
+  nt->update(
+      std::make_shared<Neighbour>("node101", "192.168.1.1", 40101,
+                                  std::vector<std::string>()));
   sleep(1);
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40102));
-  auto neighbours = nt->getValues();
-  ASSERT_EQ(3, neighbours.size());
+  nt->update(
+      std::make_shared<Neighbour>("node102", "192.168.1.1", 40102,
+                                  std::vector<std::string>()));
   ASSERT_EQ(40100, nt->getValue("node100")->getNodePort());
   ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
   ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
   nt->clean(2);
-  neighbours.clear();
-  neighbours = nt->getValues();
-  ASSERT_EQ(2, neighbours.size());
-  ASSERT_EQ(40101, nt->getValue("node101")->getNodePort());
-  ASSERT_EQ(40102, nt->getValue("node102")->getNodePort());
+  ASSERT_EQ(static_cast<uint16_t>(40101),
+            nt->getValue("node101")->getNodePort());
+  ASSERT_EQ(static_cast<uint16_t>(40102),
+            nt->getValue("node102")->getNodePort());
   nt->clean(1);
-  neighbours.clear();
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.1", 40105));
-  neighbours = nt->getValues();
-  ASSERT_EQ(1, neighbours.size());
-  ASSERT_EQ(40105, nt->getValue("node102")->getNodePort());
-  neighbours.clear();
-  nt->update(std::make_shared<Neighbour>("node102", "192.168.1.102", 40105));
-  neighbours = nt->getValues();
-  ASSERT_EQ(1, neighbours.size());
+  nt->update(
+      std::make_shared<Neighbour>("node102", "192.168.1.1", 40105,
+                                  std::vector<std::string>()));
+  ASSERT_EQ(static_cast<uint16_t>(40105),
+            nt->getValue("node102")->getNodePort());
+  nt->update(
+      std::make_shared<Neighbour>("node102", "192.168.1.102", 40105,
+                                  std::vector<std::string>()));
   ASSERT_EQ("192.168.1.102", nt->getValue("node102")->getNodeAddress());
   delete nt;
+}
+
+TEST(NeighbourTableTest, Endpoints) {
+  NeighbourTable *nt = new NeighbourTable();
+  nt->update(
+      std::make_shared<Neighbour>("node1", "1.0.0.0", 0,
+                                  std::vector<std::string>({ "e1", "e2" })));
+  ASSERT_EQ(static_cast<uint16_t>(3), nt->getConnectedEID().size());
+  nt->update(
+      std::make_shared<Neighbour>("node2", "1.0.0.0", 0,
+                                  std::vector<std::string>({ "e3", "e4" })));
+  ASSERT_EQ(static_cast<uint16_t>(6), nt->getConnectedEID().size());
+  sleep(1);
+  nt->update(
+      std::make_shared<Neighbour>("node3", "1.0.0.0", 0,
+                                  std::vector<std::string>({ "e1", "e4" })));
+  ASSERT_EQ(static_cast<uint16_t>(7), nt->getConnectedEID().size());
+  ASSERT_EQ(
+      static_cast<uint16_t>(3), nt->getMinNeighbours(std::vector<std::string>({
+          "e1", "e4" })).size());
+  ASSERT_EQ(
+      static_cast<uint16_t>(2), nt->getMinNeighbours(std::vector<std::string>({
+          "e2", "e3" })).size());
+  ASSERT_EQ(static_cast<uint16_t>(2),
+            nt->getMinNeighbours(std::vector<std::string>({ "e1" })).size());
+  ASSERT_EQ(static_cast<uint16_t>(1),
+            nt->getMinNeighbours(std::vector<std::string>({ "e2" })).size());
+  nt->clean(1);
+  ASSERT_EQ(static_cast<uint16_t>(3), nt->getConnectedEID().size());
 }

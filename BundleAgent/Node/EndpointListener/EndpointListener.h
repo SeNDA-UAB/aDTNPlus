@@ -15,22 +15,23 @@
  *
  */
 /**
- * FILE AppListener.h
+ * FILE EndpointListener.h
  * AUTHOR Blackcatn13
  * DATE Jan 19, 2016
  * VERSION 1
- * This file contains the App listener class.
+ * This file contains the Endpoint listener class.
  */
-#ifndef BUNDLEAGENT_NODE_APPLISTENER_APPLISTENER_H_
-#define BUNDLEAGENT_NODE_APPLISTENER_APPLISTENER_H_
+#ifndef BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_
+#define BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_
 
 #include <memory>
-#include "Node/AppListener/ListeningAppsTable.h"
+#include <string>
+#include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/Config.h"
 
 /**
- * CLASS AppListener
- * This class implements the App listener system.
+ * CLASS EndpointListener
+ * This class implements the Endpoint listener system.
  * A socket will be listening for incoming connections, this connections are
  * used to subscribe for receiving them.
  *
@@ -38,34 +39,34 @@
  * This messages has the following format:
  *
  * an uint8_t with the value 0.
- * an int with the App value.
+ * an string with the endpoint value.
  *
  * The connection will be maintained open, an used
  * when a bundle is received and dispatched to the application.
  *
  * This class use the following parameters (all of them are in the adtn.ini file
- * under the AppListener section) :
+ * under the EndpointListener section) :
  *
  * listenerAddres : address where the socket must listen.
  *
  * listenerPort : port where the socket must listen.
  */
-class AppListener {
+class EndpointListener {
  public:
   /**
    * @brief Constructor
    *
-   * This will create a AppListener object using the values in the Config.
+   * This will create a EndpointListener object using the values in the Config.
    *
    * @param config Config with the parameters.
-   * @param listeningAppsTable a listeningAppsTable.
+   * @param listeningEndpointsTable a listeningEndpointsTable.
    */
-  AppListener(Config config,
-              std::shared_ptr<ListeningAppsTable> listeningAppsTable);
+  EndpointListener(Config config,
+              std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable);
   /**
    * Destructor of the class.
    */
-  virtual ~AppListener();
+  virtual ~EndpointListener();
 
  protected:
   /**
@@ -73,19 +74,19 @@ class AppListener {
    */
   Config m_config;
   /**
-   * The Listening Apps table reference.
+   * The Listening Endpoints table reference.
    */
-  std::shared_ptr<ListeningAppsTable> m_listeningAppsTable;
+  std::shared_ptr<ListeningEndpointsTable> m_listeningEndpointsTable;
 
  private:
   /**
    * Function to start the listening socket.
    */
-  void listenApps();
+  void listenEndpoints();
   /**
-   * Function that gets the app to listen.
+   * Function that gets the Endpoint to listen.
    */
   void startListening(int sock);
 };
 
-#endif  // BUNDLEAGENT_NODE_APPLISTENER_APPLISTENER_H_
+#endif  // BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_

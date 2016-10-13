@@ -36,20 +36,19 @@
 #include <fstream>
 #include <functional>
 #include <memory>
-#include <vector>
-#include "Utils/Logger.h"
-
-class SigFaultException : public std::runtime_error {
- public:
-  explicit SigFaultException(const std::string &what)
-      : runtime_error(what) {
-  }
-};
+#include <map>
 
 class WorkerException : public std::runtime_error {
  public:
   explicit WorkerException(const std::string &what)
       : runtime_error(what) {
+  }
+};
+
+class SigFaultException : public WorkerException {
+ public:
+  explicit SigFaultException(const std::string &what)
+      : WorkerException(what) {
   }
 };
 
@@ -95,6 +94,10 @@ inline std::string stringFormat(const std::string& format, Args ... args) {
   return std::string(buffer.get(), buffer.get() + size - 1);
 }
 
+inline bool existsFile(const std::string& path) {
+  return std::ifstream(path).good();
+}
+
 /**
  * CLASS Worker
  * This class is a code executor. It generates a code file, compiles into a
@@ -104,7 +107,7 @@ inline std::string stringFormat(const std::string& format, Args ... args) {
  * T: return type of the function.
  * T1: type of the argument to pass to the function.
  */
-template<class T, typename... Args>
+template<class T, typename ... Args>
 class Worker {
  public:
   /**
@@ -119,11 +122,13 @@ class Worker {
    *                    second for the library output name.)
    */
   Worker(std::string header, std::string footer, std::string functionName,
-         std::string commandLine)
+         std::string commandLine, std::string path, bool deleteFiles = true)
       : m_header(header),
         m_footer(footer),
         m_functionName(functionName),
         m_commandLine(commandLine),
+        m_path(path),
+        m_deleteFiles(deleteFiles),
         m_handler(0) {
     struct sigaction action;
     action.sa_handler = signalHandler;
@@ -137,11 +142,13 @@ class Worker {
   virtual ~Worker() {
     if (m_handler)
       dlclose(m_handler);
-    for (std::string s : m_fileNames) {
-      std::string code = s + ".cpp";
-      std::string library = s + ".so";
-      std::remove(code.c_str());
-      std::remove(library.c_str());
+    if (m_deleteFiles) {
+      for (auto& kv : m_fileNames) {
+        std::string code = m_path + kv.first + ".cpp";
+        std::string library = m_path + kv.first + ".so";
+        std::remove(code.c_str());
+        std::remove(library.c_str());
+      }
     }
   }
   /**
@@ -151,78 +158,91 @@ class Worker {
    * @param code Code to compile.
    */
   void generateFunction(std::string code) {
-    if (m_handler)
-          dlclose(m_handler);
+    if (m_handler) {
+      dlclose(m_handler);
+      m_handler = 0;
+    }
     std::stringstream fullCode;
     fullCode << m_header << code << m_footer;
     std::hash<std::string> hash_fn;
     size_t hash = hash_fn(fullCode.str());
     std::string fileName = std::to_string(hash);
-    std::string codeFileName = fileName + ".cpp";
-    std::string libraryFileName = fileName + ".so";
-    m_fileNames.push_back(fileName);
-    std::ofstream codeFile(codeFileName);
-    codeFile << fullCode.str();
-    codeFile.close();
-    std::string command = stringFormat(m_commandLine, codeFileName.c_str(),
-                                       libraryFileName.c_str());
-    std::unique_ptr<char[]> buffer(new char[2048]);
-    FILE *output = popen(command.c_str(), "r");
-    std::stringstream commandOutput;
-    int status = 0;
-    if (output) {
-      while (!feof(output)) {
-        if (fgets(buffer.get(), 2048, output) != NULL) {
-          commandOutput << buffer.get();
+    std::string codeFileName = m_path + fileName + ".cpp";
+    std::string libraryFileName = m_path + fileName + ".so";
+    if (m_fileNames.find(fileName) == m_fileNames.end()
+        && !existsFile(libraryFileName)) {
+      m_fileNames[fileName] = nullptr;
+      std::ofstream codeFile(codeFileName);
+      codeFile << fullCode.str();
+      codeFile.close();
+      std::string command = stringFormat(m_commandLine, codeFileName.c_str(),
+                                         libraryFileName.c_str());
+      std::unique_ptr<char[]> buffer(new char[2048]);
+      FILE *output = popen(command.c_str(), "r");
+      std::stringstream commandOutput;
+      int status = 0;
+      if (output) {
+        while (!feof(output)) {
+          if (fgets(buffer.get(), 2048, output) != NULL) {
+            commandOutput << buffer.get();
+          }
         }
+        status = pclose(output);
       }
-      status = pclose(output);
-    }
-    if (WIFEXITED(status)) {
-      if (WEXITSTATUS(status) != 0) {
-        std::stringstream errorMessage;
-        errorMessage << "Error while compiling code:\n" << commandOutput.str();
-        throw WorkerException(errorMessage.str());
-      } else {
-        std::stringstream sharedName;
-        sharedName << "./" << libraryFileName;
-        m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
-        if (!m_handler) {
+      if (WIFEXITED(status)) {
+        if (WEXITSTATUS(status) != 0) {
           std::stringstream errorMessage;
-          errorMessage << "Cannot open the shared library, reason: "
-                       << dlerror();
+          errorMessage << "Error while compiling code:\n"
+                       << commandOutput.str();
           throw WorkerException(errorMessage.str());
         }
       }
     }
+    std::stringstream sharedName;
+    sharedName << libraryFileName;
+    m_handler = dlopen(sharedName.str().c_str(), RTLD_LAZY | RTLD_LOCAL);
+    if (!m_handler) {
+      std::stringstream errorMessage;
+      errorMessage << "Cannot open the shared library, reason: " << dlerror();
+      throw WorkerException(errorMessage.str());
+    }
   }
   /**
    * This function gets the function and runs it, with the given parameters.
+   * This function executes the worker function asynchronously.
    * @param params The parameters to pass to the function.
    */
-  void execute(Args... params) {
+  void execute(Args &... params) {
     try {
-      std::function<T(Args...)> function = loadFunction<T(Args...)>(
+      std::function<T(Args&...)> function = loadFunction<T(Args&...)>(
           m_handler, m_functionName.c_str());
-      std::packaged_task<T(Args...)> task(function);
+      std::packaged_task<T(Args&...)> task(function);
       m_future = task.get_future();
-      std::thread t(std::move(task), params...);
-      t.detach();
+      std::thread t(std::move(task), std::ref(params)...);
+      t.join();
     } catch (...) {
       throw WorkerException("Worker could not execute the code correctly.");
     }
   }
   /**
    * This function gets the result of the called function in execute(T1).
+   * This function blocks until the result is given.
    * @return The result that the function returned.
    */
   T getResult() {
     try {
-      auto result = m_future.get();
-      return result;
+      if (m_future.valid()) {
+        return m_future.get();
+      } else {
+        throw WorkerException("Worker could not retrieve function result.");
+      }
     } catch (...) {
       throw WorkerException("Worker could not retrieve function result.");
     }
+  }
+
+  void setPath(const std::string& newPath) {
+    m_path = newPath;
   }
 
  private:
@@ -247,13 +267,21 @@ class Worker {
    */
   std::string m_commandLine;
   /**
+   * Path to save the codes.
+   */
+  std::string m_path;
+  /**
+   * Variable to check if the generated files must be deleted or not.
+   */
+  bool m_deleteFiles;
+  /**
    * The shared library handler.
    */
   void *m_handler;
   /**
    * Vector with all the generated names.
    */
-  std::vector<std::string> m_fileNames;
+  std::map<std::string, uint8_t*> m_fileNames;
 };
 
 #endif  // BUNDLEAGENT_NODE_EXECUTOR_WORKER_H_

@@ -31,6 +31,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <chrono>
+#include <unordered_map>
 
 class EmptyBundleQueueException : public std::runtime_error {
  public:
@@ -50,7 +51,7 @@ class BundleQueue {
   /**
    * Default constructor.
    */
-  BundleQueue();
+  explicit BundleQueue(const std::string &trashPath);
   /**
    * Destructor of the class.
    */
@@ -75,6 +76,11 @@ class BundleQueue {
    * @param time Wait timeout.
    */
   void wait_for(int time);
+  /**
+   * Returns the number of bundles in the queue.
+   * @return The size of the queue.
+   */
+  uint32_t getSize();
 
  private:
   /**
@@ -82,9 +88,18 @@ class BundleQueue {
    */
   std::list<std::unique_ptr<BundleContainer>> m_bundles;
   /**
+   * Map to check if a id already exists in the queue.
+   */
+  std::unordered_map<std::string,
+      std::list<std::unique_ptr<BundleContainer>>::reverse_iterator> m_bundleIds;
+  /**
    * Mutex for the condition variable.
    */
   std::mutex m_mutex;
+  /**
+   * Mutex for the insert.
+   */
+  std::mutex m_insertMutex;
   /**
    * Condition variable.
    */
@@ -93,6 +108,10 @@ class BundleQueue {
    * Count of elements to consume.
    */
   int m_count;
+  /**
+   * Path to save trashed bundles.
+   */
+  std::string m_trashPath;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_

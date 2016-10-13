@@ -98,13 +98,13 @@ TEST(CanonicalBlockTest, GetMultipleLenght) {
   ss << rawBlock;
   rawBlock = ss.str();
   uint64_t calSize = CanonicalBlock(rawBlock).getLength();
-  ASSERT_EQ(size1, calSize);
+  ASSERT_EQ(static_cast<uint64_t>(size1), calSize);
   rawBlock = rawBlock.substr(calSize);
   calSize = CanonicalBlock(rawBlock).getLength();
-  ASSERT_EQ(size2, calSize);
+  ASSERT_EQ(static_cast<uint64_t>(size2), calSize);
   rawBlock = rawBlock.substr(calSize);
   calSize = CanonicalBlock(rawBlock).getLength();
-  ASSERT_EQ(size3, calSize);
+  ASSERT_EQ(static_cast<uint64_t>(size3), calSize);
 }
 
 /**

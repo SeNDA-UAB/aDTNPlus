@@ -39,10 +39,10 @@ static void help(std::string program_name) {
             << " -d 'node2:50' -m 'This is a message for node2.'\n"
             << "Required options:\n"
             << "   [-i | --listeningIP] Ip\t\t\tIP of the listening node.\n"
-            << "   [-p | --port] port\t\t\tPort where the node is listening.\n"
-            << "   [-d | --destination] destination node\t\t\t"
+            << "   [-p | --port] port\t\t\t\tPort where the node is listening.\n"
+            << "   [-d | --destination] destination node\t"
             << "Which node is the destination.\n"
-            << "   [-m | --message] message to send\t\t\tThe message to send.\n"
+            << "   [-m | --message] message to send\t\tThe message to send.\n"
             << "Supported options:\n"
             << "   [-h | --help]\t\t\t\tShows this help message.\n"
             << std::endl;

@@ -43,7 +43,7 @@ class MetadataExtensionBlock : public CanonicalBlock {
    * This will generate an empty Metadata extension block.
    */
   MetadataExtensionBlock(const uint8_t metadataType,
-                         const std::string metadata);
+                         const std::string &metadata);
   /**
    * @brief Raw constructor.
    *
