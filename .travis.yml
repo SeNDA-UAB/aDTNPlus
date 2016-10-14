@@ -13,6 +13,6 @@ before_install:
 script: 
   - mkdir build
   - cd build
-  - cmake -DTEST=ON .. 
+  - cmake -DTESTS=ON .. 
   - make 
   - ./Test/BundleAgent_test
