@@ -6,7 +6,7 @@
 CURRENT_DIR=${PWD}
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Profile
+cmake -DCMAKE_BUILD_TYPE=Profile -DTESTS=ON ..
 make
 RET=$?
 ./Test/BundleAgent_test
