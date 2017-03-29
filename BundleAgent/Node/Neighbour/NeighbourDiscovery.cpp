@@ -184,10 +184,12 @@ void NeighbourDiscovery::receiveBeacons() {
             int receivedSize = recv(sock, buffer, beaconLength, 0);
             if (receivedSize == -1) {
               LOG(1) << "Error receiving beacon, reason: " << strerror(errno);
-              break;
+              delete[](buffer);
+              continue;
             } else if (receivedSize == 0) {
               LOG(1) << "Peer closed the connection.";
-              break;
+              delete[](buffer);
+              continue;
             }
             // Create a thread to add the new neighbour and let this
             // receiving more beacons

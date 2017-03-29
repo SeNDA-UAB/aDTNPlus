@@ -77,7 +77,7 @@ const std::string FirstADTNPlusFwk::m_littleSignature =
     "%s f(Json& ns, json bps, Json& bs) {\n";
 const std::string FirstADTNPlusFwk::m_footer = "return %s;}}";
 const std::string FirstADTNPlusFwk::m_commandLine =
-    "g++ -w -fPIC -shared -std=c++14 %s -o %s -lpthread 2>&1";
+    "g++ -w -fPIC -shared -std=c++14 %s -Wl,--no-whole-archive -o %s -lpthread 2>&1";
 
 FirstADTNPlusFwk::FirstADTNPlusFwk()
     : m_voidWorker(m_header + stringFormat(m_bigSignature, "bool", "bool"),
