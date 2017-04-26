@@ -400,28 +400,32 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                   throw ForwardException(ss.str());
                 } else {
                   LOG(46) << "Sending bundle...";
-                  writed = send(sock, bundleRaw.c_str(), bundleLength, 0);
-                  if (writed < 0) {
-                    std::stringstream ss;
-                    ss << "Cannot write to socket, reason: "
-                    << strerror(errno);
-                    close(sock);
-                    throw ForwardException(ss.str());
-                  } else {
-                    sockaddr_in bundleSrc = {0};
-                    socklen_t bundleSrcLength = sizeof(bundleSrc);
-                    if (getsockname(sock,
-                            reinterpret_cast<sockaddr*>(&bundleSrc),
-                            &bundleSrcLength) != 0) {
-                      LOG(3) << "Cannot get peer name, reason: "
+                  uint32_t bundleSizeSend = 0;
+                  while (bundleSizeSend < bundleLength) {
+                    writed = send(sock, bundleRaw.c_str() + bundleSizeSend,
+                        bundleLength - bundleSizeSend, 0);
+                    if (writed < 0) {
+                      std::stringstream ss;
+                      ss << "Cannot write to socket, reason: "
                       << strerror(errno);
-                    } else {
-                      LOG(11) << "A bundle of length " << bundleLength
-                      << " has been sent to " << nb->getNodeAddress()
-                      << ":" << nb->getNodePort() << " from "
-                      << inet_ntoa(bundleSrc.sin_addr) << ":"
-                      << ntohs(bundleSrc.sin_port);
+                      close(sock);
+                      throw ForwardException(ss.str());
                     }
+                    bundleSizeSend += writed;
+                  }
+                  sockaddr_in bundleSrc = {0};
+                  socklen_t bundleSrcLength = sizeof(bundleSrc);
+                  if (getsockname(sock,
+                          reinterpret_cast<sockaddr*>(&bundleSrc),
+                          &bundleSrcLength) != 0) {
+                    LOG(3) << "Cannot get peer name, reason: "
+                    << strerror(errno);
+                  } else {
+                    LOG(11) << "A bundle of length " << bundleLength
+                    << " has been sent to " << nb->getNodeAddress()
+                    << ":" << nb->getNodePort() << " from "
+                    << inet_ntoa(bundleSrc.sin_addr) << ":"
+                    << ntohs(bundleSrc.sin_port);
                   }
                 }
               }
@@ -440,9 +444,10 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
         LOG(10) << e.what();
       }
     }
-    if (hops == 0)
+    if (hops == 0) {
       g_processed--;
       throw ForwardException("The bundle has not been send to any neighbour.");
+    }
   }
 }
 
@@ -450,7 +455,7 @@ void BundleProcessor::discard(
     std::unique_ptr<BundleContainer> bundleContainer) {
   std::stringstream ss;
   ss << m_config.getDataPath() << bundleContainer->getBundle().getId()
-     << ".bundle";
+  << ".bundle";
   int success = std::remove(ss.str().c_str());
   if (success != 0) {
     LOG(3) << "Cannot delete bundle " << ss.str();
@@ -467,7 +472,7 @@ void BundleProcessor::restore(
 void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
   try {
     std::unique_ptr<BundleContainer> bundleContainer = std::unique_ptr<
-        BundleContainer>(new BundleContainer(data));
+    BundleContainer>(new BundleContainer(data));
     m_bundleQueue->enqueue(std::move(bundleContainer));
   } catch (const BundleContainerCreationException &e) {
     LOG(1) << e.what();
