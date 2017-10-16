@@ -12,7 +12,7 @@ endif()
 string(REPLACE "+" "" PYTHONLIBS_VERSION_STRING "+${PYTHONLIBS_VERSION_STRING}")
 
 include_directories(${PYTHON_INCLUDE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/pybind11-1.2/include)
+include_directories(${PROJECT_SOURCE_DIR}/pybind11/include)
 include_directories(../Lib)
 include_directories(../BundleAgent)
 add_library(aDTNPlus SHARED

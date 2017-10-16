@@ -163,7 +163,7 @@ PYBIND11_PLUGIN(aDTNPlus) {
       .value("FLOODING", RoutingAlgorithms::FLOODING)
       .export_values();
 
-  pybind11::class_<PyBlock, std::shared_ptr<PyBlock>> block(m, "Block");
+  /*pybind11::class_<PyBlock, std::shared_ptr<PyBlock>> block(m, "Block");
   block.alias<Block>()
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
       .def(pybind11::init<>(), "")
@@ -230,7 +230,7 @@ PYBIND11_PLUGIN(aDTNPlus) {
       .def(pybind11::init<uint8_t>(), "", pybind11::arg("selection"))
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
       .def_property_readonly("selection", &RoutingSelectionMEB::getSelection,
-                             "");
+                             "");*/
   return m.ptr();
 }
 
