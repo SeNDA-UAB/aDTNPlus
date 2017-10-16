@@ -36,8 +36,6 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RoutingSelectionMEB.h"
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
-
 /**
  * Helper class to define a Block
  */
@@ -54,9 +52,9 @@ class PyBlock : public Block  {
   }
 };
 
-PYBIND11_PLUGIN(aDTNPlus) {
-  pybind11::module m("aDTNPlus", "This module contains a library to interact "
-      "with the aDTNPlus platform.");
+PYBIND11_MODULE(aDTNPlus, m) {
+  m.doc() =
+      "This module contains a library to interact with the aDTNPlus platform.";
 
   pybind11::class_<adtnSocket>(m, "Socket")
       .def(pybind11::init<std::string, int, bool>(), "Generates an adtnSocket, "
@@ -231,6 +229,5 @@ PYBIND11_PLUGIN(aDTNPlus) {
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
       .def_property_readonly("selection", &RoutingSelectionMEB::getSelection,
                              "");*/
-  return m.ptr();
 }
 
