@@ -95,7 +95,16 @@ PYBIND11_MODULE(aDTNPlus, m) {
           "the arrival and the depart time of the bundle in the different"
           "node it travels.")
       .def("getRoute", &adtnSocket::getRouteReporting, "If the last received "
-          "bundle contains a routeReporting MEB it will return the route.");
+          "bundle contains a routeReporting MEB it will return the route.")
+      .def("addFrameworkExtension", &adtnSocket::addFrameworkExtension, "Adds "
+           "a framework extension.\nIf the extension already exists it will "
+           "overwrite it, otherwise it will be created",
+           pybind11::arg("frameworkId"), pybind11::arg("extensionId"),
+           pybind11::arg("code"))
+      .def("getBundleState", &adtnSocket::getBundleState, "If the last "
+           "received bundle contains a Framework MEB it will return the "
+           "BundleState (a json in string format) of the given framework",
+           pybind11::arg("frameworkId"));
 
   pybind11::class_<Bundle, std::shared_ptr<Bundle>>(m, "Bundle")
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
@@ -154,12 +163,31 @@ PYBIND11_MODULE(aDTNPlus, m) {
   pybind11::enum_<MetadataTypes>(m, "MetadataTypes")
       .value("ROUTING_SELECTION_MEB", MetadataTypes::ROUTING_SELECTION_MEB)
       .value("FORWARDING_MEB", MetadataTypes::FORWARDING_MEB)
+      .value("ROUTE_REPORTING_MEB", MetadataTypes::ROUTE_REPORTING_MEB)
+      .value("CODE_DATA_CARRIER_MEB", MetadataTypes::CODE_DATA_CARRIER_MEB)
+      .value("FRAMEWORK_MEB", MetadataTypes::FRAMEWORK_MEB)
       .export_values();
 
   pybind11::enum_<RoutingAlgorithms>(m, "RoutingAlgorithms")
       .value("ANTI_REBOTING", RoutingAlgorithms::ANTI_REBOTING)
       .value("FLOODING", RoutingAlgorithms::FLOODING)
       .export_values();
+
+  pybind11::enum_<FrameworksIds>(m, "FrameworksIds")
+      .value("FIRST_FRAMEWORK", FrameworksIds::FIRST_FRAMEWORK)
+      .export_values();
+
+  pybind11::enum_<FirstFrameworkExtensionsIds>(m, "FirstFrameworkExtensionsIds")
+      .value("CONTAINER_CREATION",
+             FirstFrameworkExtensionsIds::CONTAINER_CREATION)
+      .value("CONTAINER_DELETION",
+             FirstFrameworkExtensionsIds::CONTAINER_DELETION)
+      .value("DESTINATION", FirstFrameworkExtensionsIds::DESTINATION)
+      .value("LIFETIME", FirstFrameworkExtensionsIds::LIFETIME)
+      .value("FORWARD", FirstFrameworkExtensionsIds::FORWARD)
+      .export_values();
+
+
 
   /*pybind11::class_<PyBlock, std::shared_ptr<PyBlock>> block(m, "Block");
   block.alias<Block>()
