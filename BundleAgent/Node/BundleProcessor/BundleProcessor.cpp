@@ -77,7 +77,7 @@ void BundleProcessor::processBundles() {
   g_processed = 0;
   while (!g_stop.load()) {
     g_queueSize = m_bundleQueue->getSize();
-    while (g_processed.load() < g_queueSize.load()) {
+    while (g_processed.load() < g_queueSize.load() && !g_stop.load()) {
       if (g_processed.load() == 0) {
         g_queueSize = m_bundleQueue->getSize();
       }
