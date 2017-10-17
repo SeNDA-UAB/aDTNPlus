@@ -36,27 +36,10 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RoutingSelectionMEB.h"
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
 
-/**
- * Helper class to define a Block
- */
-class PyBlock : public Block  {
- public:
-  using Block::Block;
-
-  std::string toRaw() {
-    PYBIND11_OVERLOAD_PURE(std::string, Block, toRaw);
-  }
-
-  std::string toString() {
-    PYBIND11_OVERLOAD_PURE(std::string, Block, toString);
-  }
-};
-
-PYBIND11_PLUGIN(aDTNPlus) {
-  pybind11::module m("aDTNPlus", "This module contains a library to interact "
-      "with the aDTNPlus platform.");
+PYBIND11_MODULE(aDTNPlus, m) {
+  m.doc() =
+      "This module contains a library to interact with the aDTNPlus platform.";
 
   pybind11::class_<adtnSocket>(m, "Socket")
       .def(pybind11::init<std::string, int, bool>(), "Generates an adtnSocket, "
@@ -97,7 +80,16 @@ PYBIND11_PLUGIN(aDTNPlus) {
           "the arrival and the depart time of the bundle in the different"
           "node it travels.")
       .def("getRoute", &adtnSocket::getRouteReporting, "If the last received "
-          "bundle contains a routeReporting MEB it will return the route.");
+          "bundle contains a routeReporting MEB it will return the route.")
+      .def("addFrameworkExtension", &adtnSocket::addFrameworkExtension, "Adds "
+           "a framework extension.\nIf the extension already exists it will "
+           "overwrite it, otherwise it will be created",
+           pybind11::arg("frameworkId"), pybind11::arg("extensionId"),
+           pybind11::arg("code"))
+      .def("getBundleState", &adtnSocket::getBundleState, "If the last "
+           "received bundle contains a Framework MEB it will return the "
+           "BundleState (a json in string format) of the given framework",
+           pybind11::arg("frameworkId"));
 
   pybind11::class_<Bundle, std::shared_ptr<Bundle>>(m, "Bundle")
       .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
@@ -156,6 +148,9 @@ PYBIND11_PLUGIN(aDTNPlus) {
   pybind11::enum_<MetadataTypes>(m, "MetadataTypes")
       .value("ROUTING_SELECTION_MEB", MetadataTypes::ROUTING_SELECTION_MEB)
       .value("FORWARDING_MEB", MetadataTypes::FORWARDING_MEB)
+      .value("ROUTE_REPORTING_MEB", MetadataTypes::ROUTE_REPORTING_MEB)
+      .value("CODE_DATA_CARRIER_MEB", MetadataTypes::CODE_DATA_CARRIER_MEB)
+      .value("FRAMEWORK_MEB", MetadataTypes::FRAMEWORK_MEB)
       .export_values();
 
   pybind11::enum_<RoutingAlgorithms>(m, "RoutingAlgorithms")
@@ -163,74 +158,18 @@ PYBIND11_PLUGIN(aDTNPlus) {
       .value("FLOODING", RoutingAlgorithms::FLOODING)
       .export_values();
 
-  pybind11::class_<PyBlock, std::shared_ptr<PyBlock>> block(m, "Block");
-  block.alias<Block>()
-      .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
-      .def(pybind11::init<>(), "")
-      .def_property_readonly("raw", &Block::getRaw, "")
-      .def("toRaw", &Block::toRaw, "")
-      .def("__str__", &Block::toString, "");
+  pybind11::enum_<FrameworksIds>(m, "FrameworksIds")
+      .value("FIRST_FRAMEWORK", FrameworksIds::FIRST_FRAMEWORK)
+      .export_values();
 
-  pybind11::class_<PrimaryBlock, std::shared_ptr<Block>>(m, "PrimaryBlock",
-      block)
-      .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
-      .def(pybind11::init<std::string, std::string, uint64_t, uint64_t>(), "",
-           pybind11::arg("source"), pybind11::arg("destination"),
-           pybind11::arg("timestamp"), pybind11::arg("seqNumber"))
-      .def("set", &PrimaryBlock::setPrimaryProcFlag, "")
-      .def("unset", &PrimaryBlock::unsetPrimaryProcFlag, "")
-      .def("check", &PrimaryBlock::checkPrimaryProcFlag, "")
-      .def_property_readonly("destination", &PrimaryBlock::getDestination, "")
-      .def_property_readonly("source", &PrimaryBlock::getSource, "")
-      .def_property("reportTo", &PrimaryBlock::getReportTo,
-                    &PrimaryBlock::setReportTo, "")
-      .def_property("custodian", &PrimaryBlock::getCustodian,
-                    &PrimaryBlock::setCustodian, "")
-      .def_property_readonly("timestamp",
-                             &PrimaryBlock::getCreationTimestamp, "")
-      .def_property("lifetime", &PrimaryBlock::getLifetime,
-                    &PrimaryBlock::setLifetime, "")
-      .def_property_readonly("timestampSeqNumber",
-                    &PrimaryBlock::getCreationTimestampSeqNumber, "");
-
-  pybind11::class_<CanonicalBlock, std::shared_ptr<Block>> canonicalBlock(m,
-                                                       "CanonicalBlock", block);
-  canonicalBlock.def(pybind11::init<std::string>(), "",
-                     pybind11::arg("rawData"))
-      .def(pybind11::init<>(), "")
-      .def_property_readonly("blockType", &CanonicalBlock::getBlockType)
-      .def("set", &CanonicalBlock::setProcFlag, "")
-      .def("unset", &CanonicalBlock::unsetProcFlag, "")
-      .def("check", &CanonicalBlock::checkProcFlag, "");
-
-  pybind11::class_<PayloadBlock, std::shared_ptr<Block>> payloadBlock(m,
-                                                "PayloadBlock", canonicalBlock);
-  payloadBlock.def(pybind11::init<std::string, bool>(), "",
-                   pybind11::arg("payload"), pybind11::arg("isRaw") = false)
-      .def_property_readonly("payload", &PayloadBlock::getPayload, "");
-
-  pybind11::class_<MetadataExtensionBlock> metadata(m, "MetadataExtensionBlock",
-                                                    canonicalBlock);
-  metadata.def(pybind11::init<uint8_t, std::string>(), "",
-               pybind11::arg("metadataType"), pybind11::arg("metadata"))
-      .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
-      .def_property_readonly("type", &MetadataExtensionBlock::getMetadataType,
-                              "")
-      .def_property_readonly("metadata", &MetadataExtensionBlock::getMetadata,
-                              "");
-
-  pybind11::class_<ForwardingMEB, std::shared_ptr<Block>>(m,
-      "ForwardingMEB", metadata)
-      .def(pybind11::init<std::string, bool>(), "", pybind11::arg("softCode"),
-           pybind11::arg("isRaw") = false)
-      .def_property_readonly("softCode", &ForwardingMEB::getSoftCode, "");
-
-  pybind11::class_<RoutingSelectionMEB, std::shared_ptr<Block>>(m,
-      "RoutingSelectionMEB", metadata)
-      .def(pybind11::init<uint8_t>(), "", pybind11::arg("selection"))
-      .def(pybind11::init<std::string>(), "", pybind11::arg("rawData"))
-      .def_property_readonly("selection", &RoutingSelectionMEB::getSelection,
-                             "");
-  return m.ptr();
+  pybind11::enum_<FirstFrameworkExtensionsIds>(m, "FirstFrameworkExtensionsIds")
+      .value("CONTAINER_CREATION",
+             FirstFrameworkExtensionsIds::CONTAINER_CREATION)
+      .value("CONTAINER_DELETION",
+             FirstFrameworkExtensionsIds::CONTAINER_DELETION)
+      .value("DESTINATION", FirstFrameworkExtensionsIds::DESTINATION)
+      .value("LIFETIME", FirstFrameworkExtensionsIds::LIFETIME)
+      .value("FORWARD", FirstFrameworkExtensionsIds::FORWARD)
+      .export_values();
 }
 
