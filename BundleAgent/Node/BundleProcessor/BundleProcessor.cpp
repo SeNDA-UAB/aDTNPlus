@@ -148,7 +148,7 @@ void BundleProcessor::receiveBundles() {
             int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
                                  &clientLen);
             if (newsock == -1) {
-              LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+              LOG(3) << "Cannot accept connection, reason: " << strerror(errno);
               continue;
             }
             LOG(41) << "Connection received.";
@@ -180,7 +180,7 @@ void BundleProcessor::receiveMessage(int sock) {
   char buff[1024];
   int receivedSize = recv(sock, buff, sizeof(buff), 0);
   if (receivedSize != sizeof(buff)) {
-    LOG(1) << "Error receiving origin's platform id from "
+    LOG(3) << "Error receiving origin's platform id from "
            << inet_ntoa(bundleSrc.sin_addr);
     close(sock);
   } else {
@@ -190,14 +190,14 @@ void BundleProcessor::receiveMessage(int sock) {
     receivedSize = recv(sock, &bundleLength, sizeof(bundleLength), 0);
     if (receivedSize != sizeof(bundleLength)) {
       if (receivedSize == 0) {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(3) << "Error receiving bundle length from "
                << inet_ntoa(bundleSrc.sin_addr)
                << " Probably peer has disconnected.";
       } else if (receivedSize < 0) {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(3) << "Error receiving bundle length from "
                << inet_ntoa(bundleSrc.sin_addr);
       } else {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(3) << "Error receiving bundle length from "
                << inet_ntoa(bundleSrc.sin_addr)
                << " Length not in the correct format.";
       }
@@ -212,19 +212,19 @@ void BundleProcessor::receiveMessage(int sock) {
         receivedSize = recv(sock, rawBundle + receivedLength,
                             bundleLength - receivedLength, 0);
         if (receivedSize == -1) {
-          LOG(1) << "Error receiving bundle from "
+          LOG(3) << "Error receiving bundle from "
                  << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
                  << strerror(errno);
           break;
         } else if (receivedSize == 0) {
-          LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
+          LOG(3) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
                  << " closed the connection.";
           break;
         }
         receivedLength += receivedSize;
       }
       if (receivedLength != bundleLength) {
-        LOG(1) << "Bundle not received correctly from "
+        LOG(3) << "Bundle not received correctly from "
                << inet_ntoa(bundleSrc.sin_addr);
         close(sock);
       } else {
@@ -269,7 +269,7 @@ void BundleProcessor::receiveMessage(int sock) {
           std::unique_lock<std::mutex> lck(g_processorMutex);
           g_processorConditionVariable.notify_one();
         } catch (const BundleCreationException &e) {
-          LOG(1) << "Error constructing received bundle, reason: " << e.what();
+          LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }
       }
     }
@@ -301,7 +301,7 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
             continue;
           }
           send(endpoint->getSocket(), payload.c_str(), payloadSize, 0);
-          LOG(17) << "Send the payload: " << payload << " to the appId: "
+          LOG(60) << "Send the payload: " << payload << " to the appId: "
                   << destination;
           endpoint->addDeliveredId(bundleContainer.getBundle().getId());
         } else {
@@ -318,7 +318,7 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
         }
       }
     } catch (const TableException &e) {
-      LOG(10) << "Error getting appId, reason: " << e.what();
+      LOG(3) << "Error getting appId, reason: " << e.what();
       LOG(11) << "Saving not delivered bundle to disk.";
       std::ofstream bundleFile;
       std::stringstream ss;
@@ -337,7 +337,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
 // Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
   uint32_t bundleLength = bundleRaw.length();
   if (bundleLength <= 0) {
-    LOG(1) << "The bundle to forward has a length of 0, aborting forward.";
+    LOG(3) << "The bundle to forward has a length of 0, aborting forward.";
   } else {
     auto forwardFunction = [this, bundleRaw, bundleLength](std::string &nh) {
       LOG(45) << "Forwarding bundle to " << nh;
@@ -478,6 +478,6 @@ void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
     BundleContainer>(new BundleContainer(data));
     m_bundleQueue->enqueue(std::move(bundleContainer));
   } catch (const BundleContainerCreationException &e) {
-    LOG(1) << e.what();
+    LOG(3) << e.what();
   }
 }

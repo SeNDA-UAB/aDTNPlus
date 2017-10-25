@@ -172,7 +172,7 @@ void FirstADTNPlusFwk::start(
       g_stop = true;
     }
   } else {
-    LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
+    LOG(3) << "Cannot open the file " << m_config.getNodeStatePath();
   }
 }
 
@@ -208,7 +208,7 @@ void FirstADTNPlusFwk::processBundle(
           restore(std::move(bundleContainer));
         }
       } catch (const ForwardException &e) {
-        LOG(1) << e.what();
+        LOG(3) << e.what();
         LOG(55) << "The bundle has not been send, restoring the bundle.";
         restore(std::move(bundleContainer));
       }
@@ -256,14 +256,13 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
     LOG(51) << "The code in the bundle has not been executed, : " << e.what();
     try {
       std::unique_lock<std::mutex> lck1(m_mutex, std::defer_lock);
-      LOG(11) << "Trying to execute default code";
       LOG(55) << "Trying to execute the default code.";
       lck1.lock();
       m_ext1DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext1DefaultWorker.getResult();
       lck1.unlock();
     } catch (...) {
-      LOG(11) << "[Extension 1] Cannot execute any code in "
+      LOG(3) << "[Extension 1] Cannot execute any code in "
               "Bundle container creation.";
     }
   }
@@ -299,7 +298,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkDestination(
       m_ext3DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       return m_ext3DefaultWorker.getResult();
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 3] Cannot execute any code to check destination.";
+      LOG(3) << "[Extension 3] Cannot execute any code to check destination.";
       return std::vector<std::string>();
     }
   }
@@ -340,7 +339,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
           result);
       return forward;
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 5] Cannot execute any code to check forward."
+      LOG(3) << "[Extension 5] Cannot execute any code to check forward."
               << e.what();
       return std::vector<std::string>();
     }
@@ -375,7 +374,7 @@ bool FirstADTNPlusFwk::checkLifetime(BundleContainer &bundleContainer) {
       m_ext4DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       return m_ext4DefaultWorker.getResult();
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 4] Cannot execute any code to check lifetime.";
+      LOG(3) << "[Extension 4] Cannot execute any code to check lifetime.";
       return false;
     }
   }
@@ -406,7 +405,7 @@ void FirstADTNPlusFwk::discard(
       m_ext2DefaultWorker.execute(m_nodeState, bundleProcessState, bundleState);
       m_ext2DefaultWorker.getResult();
     } catch (const WorkerException &e) {
-      LOG(11) << "[Extension 2] Cannot execute any code in "
+      LOG(3) << "[Extension 2] Cannot execute any code in "
               "Bundle container deletion.";
     }
   }

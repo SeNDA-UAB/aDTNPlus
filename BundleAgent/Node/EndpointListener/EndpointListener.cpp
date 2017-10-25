@@ -91,7 +91,7 @@ void EndpointListener::listenEndpoints() {
             int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
                                  &clientLen);
             if (newsock == -1) {
-              LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
+              LOG(4) << "Cannot accept connection, reason: " << strerror(errno);
               continue;
             }
             LOG(80) << "Connection received.";
@@ -112,9 +112,10 @@ void EndpointListener::startListening(int sock) {
   socklen_t bundleSrcLength = sizeof(bundleSrc);
   if (getpeername(sock, reinterpret_cast<sockaddr*>(&bundleSrc),
                   &bundleSrcLength) != 0) {
-    LOG(3) << "Cannot get peer name, reason: " << strerror(errno);
+    LOG(4) << "Cannot get peer name, reason: " << strerror(errno);
   } else {
-    LOG(10) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
+    LOG(17) << "Receiving endpoint petition from "
+            << inet_ntoa(bundleSrc.sin_addr) << ":"
             << ntohs(bundleSrc.sin_port);
   }
   uint8_t type = 100;
@@ -132,12 +133,12 @@ void EndpointListener::startListening(int sock) {
                           0);
 
       if (receivedSize == -1) {
-        LOG(1) << "Error receiving bundle from "
+        LOG(4) << "Error receiving endpoint from "
                << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
                << strerror(errno);
         break;
       } else if (receivedSize == 0) {
-        LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
+        LOG(4) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
                << " closed the connection.";
         break;
       }
@@ -147,21 +148,21 @@ void EndpointListener::startListening(int sock) {
     delete[] (buffer);
     if (static_cast<uint32_t>(receivedSize) != eid) {
       if (receivedSize == 0) {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(4) << "Error receiving endpoint length from "
                << inet_ntoa(bundleSrc.sin_addr)
                << " Probably peer has disconnected.";
       } else if (receivedSize < 0) {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(4) << "Error receiving endpoint length from "
                << inet_ntoa(bundleSrc.sin_addr);
       } else {
-        LOG(1) << "Error receiving bundle length from "
+        LOG(4) << "Error receiving endpoint length from "
                << inet_ntoa(bundleSrc.sin_addr)
                << " Length not in the correct format.";
       }
     } else {
       m_listeningEndpointsTable->update(
           endpointId, std::make_shared<Endpoint>(endpointId, "", 0, sock));
-      LOG(1) << "Registered endpoint: " << endpointId;
+      LOG(17) << "Registered endpoint: " << endpointId;
     }
   }
 }

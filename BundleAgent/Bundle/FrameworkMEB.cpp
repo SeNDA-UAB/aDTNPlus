@@ -137,7 +137,7 @@ FrameworkMEB::~FrameworkMEB() {
 }
 
 std::string FrameworkMEB::toRaw() {
-  LOG(39) << "Generating raw data from Framework MEB";
+  LOG(87) << "Generating raw data from Framework MEB";
   std::stringstream ss1;
   ss1 << m_fwkId << std::to_string(static_cast<uint8_t>(m_fwkExts.size()));
   for (auto &ext : m_fwkExts) {

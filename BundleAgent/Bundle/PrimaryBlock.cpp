@@ -64,7 +64,7 @@ PrimaryBlock::PrimaryBlock(const std::string &rawData)
    * Fragment offset (if IS_FRAGMENT flag is active) - SDNV
    * Fragment Application Data length (if IS_FRAGMENT flag is active) - SDNV
    */
-  LOG(40) << "Generating Primary block from raw data";
+  LOG(82) << "Generating Primary block from raw data";
   try {
     std::string data = rawData;
     size_t length = 1;
@@ -167,7 +167,7 @@ PrimaryBlock::PrimaryBlock(const std::string &source,
       m_creationTimestamp(timestamp),
       m_creationTimestampSeqNumber(seqNumber),
       m_lifetime(3600) {
-  LOG(40) << "Generating primary block from parameters - [Source: " << source
+  LOG(82) << "Generating primary block from parameters - [Source: " << source
           << "][Destination: " << destination << "][Timestamp: " << timestamp
           << "][Timestamp SeqNumber: " << seqNumber << "]";
 }
@@ -176,7 +176,7 @@ PrimaryBlock::~PrimaryBlock() {
 }
 
 void PrimaryBlock::setPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
-  LOG(40) << "Setting flag " << static_cast<uint32_t>(procFlag);
+  LOG(82) << "Setting flag " << static_cast<uint32_t>(procFlag);
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
       && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
@@ -204,7 +204,7 @@ void PrimaryBlock::setPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
 }
 
 void PrimaryBlock::unsetPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
-  LOG(40) << "Clearing flag " << static_cast<uint32_t>(procFlag);
+  LOG(82) << "Clearing flag " << static_cast<uint32_t>(procFlag);
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
       && procFlag != PrimaryBlockControlFlags::PRIORITY_EXPEDITED) {
@@ -218,7 +218,7 @@ void PrimaryBlock::unsetPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
 }
 
 bool PrimaryBlock::checkPrimaryProcFlag(PrimaryBlockControlFlags procFlag) {
-  LOG(40) << "Testing flag " << static_cast<uint32_t>(procFlag);
+  LOG(82) << "Testing flag " << static_cast<uint32_t>(procFlag);
   bool flagActive = false;
   if (procFlag != PrimaryBlockControlFlags::PRIORITY_BULK
       && procFlag != PrimaryBlockControlFlags::PRIORITY_NORMAL
@@ -267,7 +267,7 @@ std::string PrimaryBlock::toRaw() {
    * Fragment offset (if IS_FRAGMENT flag is active) - SDNV
    * Fragment Application Data length (if IS_FRAGMENT flag is active) - SDNV
    */
-  LOG(40) << "Generating raw data from Primary block";
+  LOG(82) << "Generating raw data from Primary block";
   std::stringstream ss;
   std::stringstream ss1;
   std::stringstream dictionary;
@@ -369,17 +369,17 @@ const uint64_t PrimaryBlock::getCreationTimestampSeqNumber() const {
 }
 
 void PrimaryBlock::setReportTo(const std::string &reportTo) {
-  LOG(40) << "Setting new reportTo [" << reportTo << "]";
+  LOG(82) << "Setting new reportTo [" << reportTo << "]";
   m_reportTo = reportTo;
 }
 
 void PrimaryBlock::setCustodian(const std::string &custodian) {
-  LOG(40) << "Setting new custodian [" << custodian << "]";
+  LOG(82) << "Setting new custodian [" << custodian << "]";
   m_custodian = custodian;
 }
 
 void PrimaryBlock::setLifetime(const uint64_t &lifetime) {
-  LOG(40) << "Setting new lifetime [" << lifetime << "]";
+  LOG(82) << "Setting new lifetime [" << lifetime << "]";
   m_lifetime = lifetime;
 }
 
