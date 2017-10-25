@@ -199,6 +199,7 @@ void FirstADTNPlusFwk::processBundle(
       LOG(55) << "There are some neighbours. Sending the bundle to neighbours.";
       try {
         forward(bundleContainer->getBundle(), neighbours);
+        bundleContainer->getState()["forwarded"] = true;
         if (bundleContainer->getState()["discard"]) {
           LOG(55) << "Discarding the bundle.";
           discard(std::move(bundleContainer));
