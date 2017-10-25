@@ -72,7 +72,7 @@ std::string MetadataExtensionBlock::toRaw() {
    * Metadata Type as SDNV
    * Metadata variable length
    */
-  LOG(39) << "Generating raw data from metadataExtension block";
+  LOG(86) << "Generating raw data from metadataExtension block";
   std::stringstream ss;
   ss << m_blockType;
   ss << SDNV::encode(m_procFlags.to_ulong());

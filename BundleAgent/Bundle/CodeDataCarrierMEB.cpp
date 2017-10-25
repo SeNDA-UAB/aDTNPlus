@@ -79,7 +79,7 @@ void CodeDataCarrierMEB::initFromRaw(const std::string& rawData) {
 }
 
 std::string CodeDataCarrierMEB::toRaw() {
-  LOG(39) << "Generating raw data from Code Data Carrier MEB";
+  LOG(88) << "Generating raw data from Code Data Carrier MEB";
   m_metadata = std::to_string(m_code.length()) + m_code + m_data.dump();
   std::stringstream ss;
   ss << m_blockType;

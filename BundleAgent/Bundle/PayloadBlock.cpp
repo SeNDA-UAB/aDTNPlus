@@ -32,7 +32,7 @@
 
 PayloadBlock::PayloadBlock(const std::string &payload, bool isRaw)
     : CanonicalBlock() {
-  LOG(39) << "Generating new payload block";
+  LOG(84) << "Generating new payload block";
   if (isRaw) {
     try {
       initFromRaw(payload);
@@ -58,7 +58,7 @@ std::string PayloadBlock::toRaw() {
    * Block Length as SDNV
    * Payload variable length
    */
-  LOG(39) << "Generating raw data from payload block";
+  LOG(84) << "Generating raw data from payload block";
   std::stringstream ss;
   ss << m_blockType;
   ss << SDNV::encode(m_procFlags.to_ulong());

@@ -127,7 +127,7 @@ void NeighbourTable::clean(int expirationTime) {
   m_mutex.lock();
   for (auto it = m_neigbours.begin(); it != m_neigbours.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(17) << "Neighbour " << (*it).second->getId() << " has disappeared";
+      LOG(21) << "Neighbour " << (*it).second->getId() << " has disappeared";
       remove(it->second->getEndpoints(), it->second->getId());
       it = m_neigbours.erase(it);
     } else {
