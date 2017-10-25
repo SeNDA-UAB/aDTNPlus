@@ -182,6 +182,7 @@ void BundleProcessor::receiveMessage(int sock) {
   if (receivedSize != sizeof(buff)) {
     LOG(1) << "Error receiving origin's platform id from "
            << inet_ntoa(bundleSrc.sin_addr);
+    close(sock);
   } else {
     std::string srcNodeId = std::string(buff);
     LOG(42) << "Received node id: " << srcNodeId;
@@ -200,6 +201,7 @@ void BundleProcessor::receiveMessage(int sock) {
                << inet_ntoa(bundleSrc.sin_addr)
                << " Length not in the correct format.";
       }
+      close(sock);
     } else {
       bundleLength = ntohl(bundleLength);
       LOG(42) << "Received bundle length: " << bundleLength;
@@ -224,6 +226,7 @@ void BundleProcessor::receiveMessage(int sock) {
       if (receivedLength != bundleLength) {
         LOG(1) << "Bundle not received correctly from "
                << inet_ntoa(bundleSrc.sin_addr);
+        close(sock);
       } else {
         LOG(10) << "Received bundle from " << inet_ntoa(bundleSrc.sin_addr)
                 << ":" << ntohs(bundleSrc.sin_port) << " with length: "
