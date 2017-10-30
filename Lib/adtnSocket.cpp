@@ -165,6 +165,8 @@ void adtnSocket::send(std::string destination, std::string message) {
         uint32_t nBundleLength = htonl(bundleLength);
         ::send(sock, &nBundleLength, sizeof(nBundleLength), 0);
         ::send(sock, bundleRaw.c_str(), bundleLength, 0);
+        uint16_t ack;
+        ::recv(sock, &ack, sizeof(ack), 0);
       }
       close(sock);
     }
