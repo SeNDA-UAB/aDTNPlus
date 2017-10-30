@@ -231,45 +231,55 @@ void BundleProcessor::receiveMessage(int sock) {
         LOG(10) << "Received bundle from " << inet_ntoa(bundleSrc.sin_addr)
                 << ":" << ntohs(bundleSrc.sin_port) << " with length: "
                 << receivedLength;
-        close(sock);
-        std::string bundleStringRaw = std::string(rawBundle, bundleLength);
-        try {
-          // Create the bundle
-          LOG(42) << "Creating bundle from received raw";
-          std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
-              new Bundle(bundleStringRaw));
-          // If the source node is the library, change the timestamp to a one
-          // generated from this node
-          if (srcNodeId == "_ADTN_LIB_") {
-            b->getPrimaryBlock()->setTimestamp(
-                TimestampManager::getInstance()->getTimestamp());
-            // If the source of the bundle is the library,
-            // change it to this node id.
-            if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
-              b->getPrimaryBlock()->setSource(m_config.getNodeId());
+        // ACK is defined has 1 at the moment, it can have more values later.
+        uint16_t ack = 1;
+        LOG(42) << "Sending Bundle ACK: " << ack;
+        ack = htons(ack);
+        int writed = send(sock, &ack, sizeof(ack), 0);
+        if (writed < 0) {
+          LOG(3) << "Cannot write to socket, reason: " << strerror(errno);
+          close(sock);
+        } else {
+          close(sock);
+          std::string bundleStringRaw = std::string(rawBundle, bundleLength);
+          try {
+            // Create the bundle
+            LOG(42) << "Creating bundle from received raw";
+            std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+                new Bundle(bundleStringRaw));
+            // If the source node is the library, change the timestamp to a one
+            // generated from this node
+            if (srcNodeId == "_ADTN_LIB_") {
+              b->getPrimaryBlock()->setTimestamp(
+                  TimestampManager::getInstance()->getTimestamp());
+              // If the source of the bundle is the library,
+              // change it to this node id.
+              if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
+                b->getPrimaryBlock()->setSource(m_config.getNodeId());
+              }
             }
+            LOG(42) << "Creating bundle container";
+            // Create the bundleContainer
+            std::unique_ptr<BundleContainer> bc = createBundleContainer(
+                std::move(b));
+            // Save the bundleContainer to disk
+            LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
+            std::ofstream bundleFile;
+            std::stringstream ss;
+            ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
+            bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+            bundleFile << bc->serialize();
+            bundleFile.close();
+            // Enqueue the bundleContainer
+            LOG(42) << "Saving bundle to queue";
+            m_bundleQueue->enqueue(std::move(bc));
+            // Notify Processor that a new bundle can be processed
+            g_processed = 0;
+            std::unique_lock<std::mutex> lck(g_processorMutex);
+            g_processorConditionVariable.notify_one();
+          } catch (const BundleCreationException &e) {
+            LOG(3) << "Error constructing received bundle, reason: " << e.what();
           }
-          LOG(42) << "Creating bundle container";
-          // Create the bundleContainer
-          std::unique_ptr<BundleContainer> bc = createBundleContainer(
-              std::move(b));
-          // Save the bundleContainer to disk
-          LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
-          std::ofstream bundleFile;
-          std::stringstream ss;
-          ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
-          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-          bundleFile << bc->serialize();
-          bundleFile.close();
-          // Enqueue the bundleContainer
-          LOG(42) << "Saving bundle to queue";
-          m_bundleQueue->enqueue(std::move(bc));
-          // Notify Processor that a new bundle can be processed
-          g_processed = 0;
-          std::unique_lock<std::mutex> lck(g_processorMutex);
-          g_processorConditionVariable.notify_one();
-        } catch (const BundleCreationException &e) {
-          LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }
       }
     }
@@ -416,19 +426,50 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     }
                     bundleSizeSend += writed;
                   }
-                  sockaddr_in bundleSrc = {0};
-                  socklen_t bundleSrcLength = sizeof(bundleSrc);
-                  if (getsockname(sock,
-                          reinterpret_cast<sockaddr*>(&bundleSrc),
-                          &bundleSrcLength) != 0) {
-                    LOG(3) << "Cannot get peer name, reason: "
-                    << strerror(errno);
+                  uint16_t ack;
+                  int receivedSize = recv(sock, &ack, sizeof(ack), 0);
+                  if (receivedSize != sizeof(ack)) {
+                    if (receivedSize == 0) {
+                      std::stringstream ss;
+                      ss << "Error receiving bundle ACK"
+                         << " Probably peer has disconnected.";
+                      close(sock);
+                      throw ForwardException(ss.str());
+                    } else if (receivedSize < 0) {
+                      std::stringstream ss;
+                      ss << "Error receiving bundle ACK";
+                      close(sock);
+                      throw ForwardException(ss.str());
+                    } else {
+                      std::stringstream ss;
+                      ss << "Error receiving bundle ACK"
+                         << " Length not in the correct format.";
+                      close(sock);
+                      throw ForwardException(ss.str());
+                    }
                   } else {
-                    LOG(11) << "A bundle of length " << bundleLength
-                    << " has been sent to " << nb->getNodeAddress()
-                    << ":" << nb->getNodePort() << " from "
-                    << inet_ntoa(bundleSrc.sin_addr) << ":"
-                    << ntohs(bundleSrc.sin_port);
+                    ack = ntohs(ack);
+                    LOG(46) << "Received bundle ACK: " << ack;
+                    if (ack == 1) {
+                      sockaddr_in bundleSrc = {0};
+                      socklen_t bundleSrcLength = sizeof(bundleSrc);
+                      if (getsockname(sock,
+                              reinterpret_cast<sockaddr*>(&bundleSrc),
+                              &bundleSrcLength) != 0) {
+                        LOG(3) << "Cannot get peer name, reason: "
+                        << strerror(errno);
+                      } else {
+                        LOG(11) << "A bundle of length " << bundleLength
+                        << " has been sent to " << nb->getNodeAddress()
+                        << ":" << nb->getNodePort() << " from "
+                        << inet_ntoa(bundleSrc.sin_addr) << ":"
+                        << ntohs(bundleSrc.sin_port);
+                      }
+                    } else {
+                      std::stringstream ss;
+                      ss << "No correct ACK";
+                      throw ForwardException(ss.str());
+                    }
                   }
                 }
               }
