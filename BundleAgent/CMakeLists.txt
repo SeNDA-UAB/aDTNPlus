@@ -1,5 +1,3 @@
-project("BundleAgent" C CXX)
-
 include(../aDTNPlusConfig.cmake.in)
 
 add_subdirectory(Bundle)
@@ -83,8 +81,8 @@ if (CMAKE_BUILD_TYPE)
   endif()
 endif()
 set(data_path ${BundleAgent_BINARY_DIR})
-configure_file(${BundleAgent_SOURCE_DIR}/Config/adtn.ini.in ${BundleAgent_BINARY_DIR}/adtn.ini)
-configure_file(${BundleAgent_SOURCE_DIR}/Config/NodeState.json.in ${BundleAgent_BINARY_DIR}/NodeState.json)
+configure_file(${BundleAgent_SOURCE_DIR}/BundleAgent/Config/adtn.ini.in ${BundleAgent_BINARY_DIR}/adtn.ini)
+configure_file(${BundleAgent_SOURCE_DIR}/BundleAgent/Config/NodeState.json.in ${BundleAgent_BINARY_DIR}/NodeState.json)
 file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
 
 install(TARGETS aDTNPlus_BasicBundleProcessor aDTNPlus_RoutingSelectionBundleProcessor
