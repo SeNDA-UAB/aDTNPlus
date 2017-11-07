@@ -1,0 +1,28 @@
+#!/bin/bash
+
+INIPATH=/usr/local/etc/adtnPlus/adtn.ini
+
+# Get default values
+idplat=`grep -oP "nodeId \: \K.+" $INIPATH`
+ipplat=`grep -oP "nodeAddress \:\s+\K\d*.\d*.\d*.\d*" $INIPATH`
+# Get suggested values
+sugIdPlat=`hostname`
+sugIpPlat=`/sbin/ip r | grep default | cut -d \  -f 5 | xargs ip a l dev | grep inet\ | cut -d \  -f 6 | cut -d/ -f 1`
+
+echo -e "\e[92mStarting adtnPlus configuration process..."
+read -p "Set the adtnPlus identifier (default is ${sugIdPlat}): " id
+read -p "Set the ip (default is ${sugIpPlat}): " ip
+
+if [ -n "$id" ]; then
+    sed -i "s/nodeId : $idplat/nodeId : $id/g" $INIPATH
+else
+    sed -i "s/nodeId : $idplat/nodeId : $sugIdPlat/g" $INIPATH
+fi
+
+if [ -n "$ip" ]; then
+    sed -i "s/nodeAddress : $ipplat/nodeAddress : $ip/g" $INIPATH
+else
+    sed -i "s/nodeAddress : $ipplat/nodeAddress : $sugIpPlat/g" $INIPATH
+fi
+
+exit 0;

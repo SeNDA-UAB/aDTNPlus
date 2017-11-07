@@ -1,0 +1,15 @@
+FROM debian:jessie
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y \
+	build-essential \
+	cmake \
+	git 
+
+RUN git clone --recursive https://github.com/SeNDA-UAB/aDTNPlus.git
+RUN git checkout DebPackage
+WORKDIR aDTNPlus
+RUN mkdir build
+RUN cd build && cmake ..
+WORKDIR build
+RUN make package
