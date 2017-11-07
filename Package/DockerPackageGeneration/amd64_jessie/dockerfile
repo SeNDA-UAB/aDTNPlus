@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
 	git 
 
 RUN git clone --recursive https://github.com/SeNDA-UAB/aDTNPlus.git
-RUN git checkout DebPackage
 WORKDIR aDTNPlus
+RUN git checkout DebPackage
 RUN mkdir build
 RUN cd build && cmake ..
 WORKDIR build

@@ -1,13 +1,12 @@
 amd64_jessie:
-	build: ./amd64_jessie
-	command: sh -c 'cp build/*deb /pkg'
-	volumes:
-		- /pkg:/pkg
+  build: ./amd64_jessie
+  command: sh -c 'cp build/*deb /pkg'
+  volumes:
+    - /pkg:/pkg
   working_dir: /aDTNPlus
 
 arm6_jessie:
   build: ./arm6_jessie
-  entrypoint: /usr/bin/qemu-arm-static
   command: sh -c 'cp build/*.deb /pkg'
   volumes:
     - /pkg:/pkg
@@ -16,7 +15,6 @@ arm6_jessie:
 
 arm6_stretch:
   build: ./arm6_stretch
-  entrypoint: /usr/bin/qemu-arm-static
   command: sh -c 'cp build/*.deb /pkg'
   volumes:
     - /pkg:/pkg
