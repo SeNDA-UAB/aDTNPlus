@@ -1,5 +1,3 @@
-project("BundleAgent" C CXX)
-
 include(../aDTNPlusConfig.cmake.in)
 
 add_subdirectory(Bundle)
@@ -82,10 +80,10 @@ if (CMAKE_BUILD_TYPE)
     set(log_level "100")
   endif()
 endif()
-set(data_path ${BundleAgent_BINARY_DIR})
-configure_file(${BundleAgent_SOURCE_DIR}/Config/adtn.ini.in ${BundleAgent_BINARY_DIR}/adtn.ini)
-configure_file(${BundleAgent_SOURCE_DIR}/Config/NodeState.json.in ${BundleAgent_BINARY_DIR}/NodeState.json)
-file(MAKE_DIRECTORY "${BundleAgent_BINARY_DIR}/Bundles")
+set(data_path ${aDTNPlus_BINARY_DIR})
+configure_file(${aDTNPlus_SOURCE_DIR}/BundleAgent/Config/adtn.ini.in ${aDTNPlus_BINARY_DIR}/adtn.ini)
+configure_file(${aDTNPlus_SOURCE_DIR}/BundleAgent/Config/NodeState.json.in ${aDTNPlus_BINARY_DIR}/NodeState.json)
+file(MAKE_DIRECTORY "${aDTNPlus_BINARY_DIR}/Bundles")
 
 install(TARGETS aDTNPlus_BasicBundleProcessor aDTNPlus_RoutingSelectionBundleProcessor
   aDTNPlus_ActiveForwardingBundleProcessor aDTNPlus_RouteReportingBundleProcessor
@@ -97,11 +95,13 @@ install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Bundles)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Delivered)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Codes)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Plugins)")
+install(DIRECTORY DESTINATION ${DATADIR}/Bundles)
+install(DIRECTORY DESTINATION ${DATADIR}/Delivered)
+install(DIRECTORY DESTINATION ${DATADIR}/Codes)
+install(DIRECTORY DESTINATION ${DATADIR}/Plugins)
+install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/reception)
+install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/delivery)
 
-install(FILES ${BundleAgent_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
-install(FILES ${BundleAgent_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})
+install(FILES ${aDTNPlus_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
+install(FILES ${aDTNPlus_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})
   

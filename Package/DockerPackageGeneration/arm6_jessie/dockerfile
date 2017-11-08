@@ -1,0 +1,17 @@
+FROM resin/rpi-raspbian:jessie
+
+RUN [ "cross-build-start" ]
+RUN apt-get update && apt-get install -y \
+	build-essential \
+	cmake \
+	git
+
+RUN git clone --recursive https://github.com/SeNDA-UAB/aDTNPlus.git
+WORKDIR aDTNPlus
+RUN git checkout DebPackage
+RUN mkdir build
+RUN cd build && cmake ..
+WORKDIR build
+RUN make package
+
+RUN [ "cross-build-end" ]

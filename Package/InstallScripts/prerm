@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Remove log file and possible bundles and codes saves in data directory
+
+INIPATH=/usr/local/etc/adtnPlus/adtn.ini
+
+logFile=`grep -oP "filename \:\s+\K.+" $INIPATH`
+rm $logFile
+bundles=`grep -oP "dataPath \:\s+\K.+" $INIPATH`
+rm $bundles/*
+codes=`grep -oP "codePath \:\s+\K.+" $INIPATH`
+rm $codes/*
+delivery=`grep -oP "deliveryPath \:\s+\K.+" $INIPATH`
+rm $delivery/*
+receptionTrash=`grep -oP "trashAggregationReception \:\s+\K.+" $INIPATH`
+rm $receptionTrash/*
+deliveryTrash=`grep -oP "trashAggregationDelivery \:\s+\K.+" $INIPATH`
+rm $deliveryTrash/*
+
+exit 0;
