@@ -2,9 +2,13 @@
 
 INIPATH=/usr/local/etc/adtnPlus/adtn.ini
 
+#Get state path
+nodeStatePath=`grep -oP "path \:\s+\K.+" $INIPATH
+
 # Get default values
 idplat=`grep -oP "nodeId \: \K.+" $INIPATH`
 ipplat=`grep -oP "nodeAddress \:\s+\K\d*.\d*.\d*.\d*" $INIPATH`
+idplatNode=`grep -oP "\"id\" \:\s+\K.+" $nodeStatePath`
 # Get suggested values
 sugIdPlat=`hostname`
 sugIpPlat=`/sbin/ip r | grep default | cut -d \  -f 5 | xargs ip a l dev | grep inet\ | cut -d \  -f 6 | cut -d/ -f 1`
@@ -15,8 +19,10 @@ read -p "Set the ip (default is ${sugIpPlat}): " ip
 
 if [ -n "$id" ]; then
     sed -i "s/nodeId : $idplat/nodeId : $id/g" $INIPATH
+    sed -i "s/\"id\" : $idplatNode/\"id\" : \"$id\"/g" $nodeStatePATH
 else
     sed -i "s/nodeId : $idplat/nodeId : $sugIdPlat/g" $INIPATH
+    sed -i "s/\"id\" : $idplatNode/\"id\" : \"$sugIdPlat\"/g" $nodeStatePATH
 fi
 
 if [ -n "$ip" ]; then
