@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 cmake_policy(SET CMP0048 NEW)
 
-project(BundleAgent LANGUAGES C CXX VERSION 3.2)
+project(aDTNPlus LANGUAGES C CXX VERSION 3.2)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # require at least gcc 4.9
@@ -45,6 +45,7 @@ if(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
   set(CPACK_GENERATOR "DEB")
   set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
   set(CPACK_DEBIAN_COMPRESSION_TYPE "gzip")
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/Package/InstallScripts/postinst")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/Package/InstallScripts/postinst;${CMAKE_CURRENT_SOURCE_DIR}/Package/InstallScripts/prerm")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "g++ (>=4.9)")
   include(CPack)
 endif()

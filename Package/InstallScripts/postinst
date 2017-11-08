@@ -25,4 +25,6 @@ else
     sed -i "s/nodeAddress : $ipplat/nodeAddress : $sugIpPlat/g" $INIPATH
 fi
 
+ldconfig
+
 exit 0;
