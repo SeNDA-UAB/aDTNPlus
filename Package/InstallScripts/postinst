@@ -3,7 +3,7 @@
 INIPATH=/usr/local/etc/adtnPlus/adtn.ini
 
 #Get state path
-nodeStatePath=`grep -oP "path \:\s+\K.+" $INIPATH
+nodeStatePath=`grep -oP "path \:\s+\K.+" $INIPATH`
 
 # Get default values
 idplat=`grep -oP "nodeId \: \K.+" $INIPATH`
