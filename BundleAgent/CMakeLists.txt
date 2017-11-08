@@ -95,10 +95,12 @@ install(TARGETS ${APPLICATION_NAME} ${BUNDLE_LIB_NAME} ${LIB_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Bundles)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Delivered)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Codes)")
-install(CODE "file(MAKE_DIRECTORY ${DATADIR}/Plugins)")
+install(DIRECTORY DESTINATION ${DATADIR}/Bundles)
+install(DIRECTORY DESTINATION ${DATADIR}/Delivered)
+install(DIRECTORY DESTINATION ${DATADIR}/Codes)
+install(DIRECTORY DESTINATION ${DATADIR}/Plugins)
+install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/reception)
+install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/delivery)
 
 install(FILES ${BundleAgent_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
 install(FILES ${BundleAgent_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})
