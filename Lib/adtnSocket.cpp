@@ -137,7 +137,7 @@ void adtnSocket::send(std::string destination, std::string message) {
         for (auto ext = it->second.begin(); ext != it->second.end(); ++ext) {
           framework->addExtension(ext->first, ext->second);
         }
-        m_blocksToAdd.push_back(framework);
+        b.addBlock(framework);
       }
     }
     for (auto c : m_blocksToAdd) {
