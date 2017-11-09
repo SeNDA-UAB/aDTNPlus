@@ -47,13 +47,27 @@ If you want to install to the system.
 
 `sudo make install`
 
+To execute the platform.
+
+`sudo BundleAgent /usr/local/etc/adtnPlus/adtn.ini`
+
 ## Installation
 
 Explain how to install from deb packages
 
 ## Libraries
 
-Explain how the libraries work
+There are two libraries to interact with the platform, one in C++ and another one in Python.
+
+The C++ one is installed by default with the name **adtnSocket.h**.
+
+If you prefer to use the Python one you need to generate the module, for this its necessary to install [setuptools](https://pypi.python.org/pypi/setuptools).
+
+When installed you can do.
+
+`cd Python && sudo python setup.py install`
+
+To generate the module and install it to the system, the module can be used by **import adtnPlus**
 
 ### C++
 
@@ -68,7 +82,7 @@ Explain how to generated the python library and dependencies, link to docs.
 * **Marc Dalmau** - [Blackcatn13](https://github.com/Blackcatn13)
 * **Angela Fabregues** - [AngelaFabreques](https://github.com/AngelaFabregues)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/SeNDA-UAB/aDTNPlus/contributors) who participated in this project.
 
 ## License
 
