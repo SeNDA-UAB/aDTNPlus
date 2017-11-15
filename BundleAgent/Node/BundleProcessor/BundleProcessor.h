@@ -122,6 +122,12 @@ class BundleProcessor {
    */
   void restore(std::unique_ptr<BundleContainer> bundleContainer);
   /**
+   * @bief Function that is called when a drop occur.
+   *
+   * This function by default does nothing.
+   */
+  virtual void drop();
+  /**
    * Variable that holds the configuration.
    */
   Config m_config;
