@@ -101,6 +101,7 @@ install(DIRECTORY DESTINATION ${DATADIR}/Codes)
 install(DIRECTORY DESTINATION ${DATADIR}/Plugins)
 install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/reception)
 install(DIRECTORY DESTINATION ${DATADIR}/Trash/aggregation/delivery)
+install(DIRECTORY DESTINATION ${DATADIR}/Trash/drop)
 
 install(FILES ${aDTNPlus_BINARY_DIR}/adtn.ini DESTINATION ${SYSCONFDIR})
 install(FILES ${aDTNPlus_BINARY_DIR}/NodeState.json DESTINATION ${DATADIR})

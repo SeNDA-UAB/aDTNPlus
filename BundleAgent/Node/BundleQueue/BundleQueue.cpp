@@ -26,13 +26,19 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <string>
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
 
-BundleQueue::BundleQueue(const std::string &trashPath)
+BundleQueue::BundleQueue(const std::string &trashPath,
+                         const std::string &dropPath,
+                         const uint64_t &queueByteSize)
     : m_bundles(),
       m_count(0),
-      m_trashPath(trashPath) {
+      m_trashPath(trashPath),
+      m_dropPath(dropPath),
+      m_queueMaxByteSize(queueByteSize),
+      m_queueByteSize(0) {
 }
 
 BundleQueue::~BundleQueue() {
@@ -42,7 +48,10 @@ BundleQueue::~BundleQueue() {
 BundleQueue::BundleQueue(BundleQueue&& bc)
     : m_bundles(std::move(bc.m_bundles)),
       m_count(bc.m_count),
-      m_trashPath(bc.m_trashPath) {
+      m_trashPath(bc.m_trashPath),
+      m_dropPath(bc.m_dropPath),
+      m_queueMaxByteSize(bc.m_queueMaxByteSize),
+      m_queueByteSize(bc.m_queueByteSize) {
 }
 
 void BundleQueue::wait_for(int time) {
@@ -62,13 +71,28 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
       == m_bundleIds.end();
   insertLock.unlock();
   if (notExist) {
-    insertLock.lock();
-    m_bundles.push_back(std::move(bundleContainer));
-    m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
-    insertLock.unlock();
-    std::unique_lock<std::mutex> lck(m_mutex);
-    ++m_count;
-    m_conditionVariable.notify_one();
+    // Check if by size it can be pushed
+    uint64_t bundleSize = bundleContainer->getBundle().toRaw().length();
+    if (m_queueByteSize + bundleSize <= m_queueMaxByteSize) {
+      m_queueByteSize += bundleSize;
+      insertLock.lock();
+      m_bundles.push_back(std::move(bundleContainer));
+      m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
+      insertLock.unlock();
+      std::unique_lock<std::mutex> lck(m_mutex);
+      ++m_count;
+      m_conditionVariable.notify_one();
+    } else {
+      std::ofstream bundleFile;
+      std::stringstream ss;
+      auto time = std::chrono::high_resolution_clock::now();
+      ss << m_dropPath << bundleContainer->getBundle().getId() << "_"
+         << time.time_since_epoch().count() << ".bundle";
+      bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+      bundleFile << bundleContainer->serialize();
+      bundleFile.close();
+      throw DroppedBundleQueueException("[BundleQueue] Full queue");
+    }
   } else {
     std::ofstream bundleFile;
     std::stringstream ss;
@@ -88,6 +112,7 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
     m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
     lock.unlock();
+    m_queueByteSize -= bc->getBundle().getRaw().length();
     return bc;
   } else {
     throw EmptyBundleQueueException("[BundleQueue] The queue is empty");

@@ -40,6 +40,13 @@ class EmptyBundleQueueException : public std::runtime_error {
   }
 };
 
+class DroppedBundleQueueException : public std::runtime_error {
+ public:
+  explicit DroppedBundleQueueException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
+
 class BundleContainer;
 
 /**
@@ -51,7 +58,8 @@ class BundleQueue {
   /**
    * Default constructor.
    */
-  explicit BundleQueue(const std::string &trashPath);
+  explicit BundleQueue(const std::string &trashPath, const std::string &dropPath,
+      const uint64_t &queueByteSize);
   /**
    * Destructor of the class.
    */
@@ -112,6 +120,18 @@ class BundleQueue {
    * Path to save trashed bundles.
    */
   std::string m_trashPath;
+  /**
+   * Path to save dropped bundles.
+   */
+  std::string m_dropPath;
+  /**
+   * Max size in bytes of the queue.
+   */
+  uint64_t m_queueMaxByteSize;
+  /**
+   * Current size in bytes of the queue.
+   */
+  uint64_t m_queueByteSize;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_

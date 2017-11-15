@@ -53,7 +53,8 @@ Node::Node(std::string filename) {
       new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
   LOG(6) << "Starting BundleQueue";
   m_bundleQueue = std::shared_ptr<BundleQueue>(
-      new BundleQueue(m_config.getTrashReception()));
+      new BundleQueue(m_config.getTrashReception(), m_config.getTrashDrop(),
+                      m_config.getQueueByteSize()));
   LOG(6) << "Starting EndpointListener";
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
