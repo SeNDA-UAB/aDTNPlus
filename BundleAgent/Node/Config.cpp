@@ -24,6 +24,7 @@
 
 #include "Node/Config.h"
 #include <string>
+#include <sstream>
 #include "Utils/ConfigLoader.h"
 
 /**
@@ -54,6 +55,9 @@ const std::string Config::TRASHDELIVERYPATH =
     "/tmp/adtn/trash/aggregation/delivery/";
 const std::string Config::TRASHRECEPTIONPATH =
     "/tmp/adtn/trash/aggregation/reception";
+const std::string Config::TRASHDROPPATH = "/tmp/adtn/trash/drop";
+const std::string Config::QUEUEBYTESIZE = "100M";
+const uint64_t Config::QUEUEBYTESIZEVALUE = 100 * 1024 * 1024;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -77,7 +81,9 @@ Config::Config()
       m_codesPath(CODESPATH),
       m_deliveredPath(DELIVEREDPATH),
       m_trashDeliveryPath(TRASHDELIVERYPATH),
-      m_trashReceptionPath(TRASHRECEPTIONPATH) {
+      m_trashReceptionPath(TRASHRECEPTIONPATH),
+      m_trashDropPath(TRASHDROPPATH),
+      m_queueByteSize(QUEUEBYTESIZEVALUE) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -133,6 +139,20 @@ Config::Config(const std::string &configFilename) {
         "BundleProcess", "trashAggregationDelivery", TRASHDELIVERYPATH);
     m_trashReceptionPath = m_configLoader.m_reader.Get(
         "BundleProcess", "trashAggregationReception", TRASHRECEPTIONPATH);
+    m_trashDropPath = m_configLoader.m_reader.Get("BundleProcess", "trashDropp",
+                                                  TRASHDROPPATH);
+    std::string queueByteSize = m_configLoader.m_reader.Get("Constants",
+                                                            "queueByteSize",
+                                                            QUEUEBYTESIZE);
+    std::stringstream ss(queueByteSize);
+    char exponent;
+    ss >> m_queueByteSize >> exponent;
+    if (exponent == 'K' || exponent == 'k')
+      m_queueByteSize *= 1024;
+    else if (exponent == 'M' || exponent == 'm')
+      m_queueByteSize = m_queueByteSize * 1024 * 1024;
+    else if (exponent == 'G' || exponent == 'g')
+      m_queueByteSize = m_queueByteSize * 1024 * 1024 * 1024;
   }
 }
 
@@ -225,4 +245,12 @@ std::string Config::getTrashDelivery() {
 
 std::string Config::getTrashReception() {
   return m_trashReceptionPath;
+}
+
+std::string Config::getTrashDrop() {
+  return m_trashDropPath;
+}
+
+uint64_t Config::getQueueByteSize() {
+  return m_queueByteSize;
 }

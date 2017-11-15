@@ -272,7 +272,16 @@ void BundleProcessor::receiveMessage(int sock) {
             bundleFile.close();
             // Enqueue the bundleContainer
             LOG(42) << "Saving bundle to queue";
-            m_bundleQueue->enqueue(std::move(bc));
+            try {
+              m_bundleQueue->enqueue(std::move(bc));
+            } catch (const DroppedBundleQueueException &e) {
+              int success = std::remove(ss.str().c_str());
+              if (success != 0) {
+                LOG(3) << "Cannot delete bundle " << ss.str();
+              }
+              LOG(40) << e.what();
+              drop();
+            }
             // Notify Processor that a new bundle can be processed
             g_processed = 0;
             std::unique_lock<std::mutex> lck(g_processorMutex);
@@ -510,15 +519,28 @@ void BundleProcessor::discard(
 
 void BundleProcessor::restore(
     std::unique_ptr<BundleContainer> bundleContainer) {
-  m_bundleQueue->enqueue(std::move(bundleContainer));
+  try {
+    m_bundleQueue->enqueue(std::move(bundleContainer));
+  } catch (const DroppedBundleQueueException &e) {
+    LOG(40) << e.what();
+    drop();
+  }
 }
 
 void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
   try {
     std::unique_ptr<BundleContainer> bundleContainer = std::unique_ptr<
     BundleContainer>(new BundleContainer(data));
-    m_bundleQueue->enqueue(std::move(bundleContainer));
+    try {
+      m_bundleQueue->enqueue(std::move(bundleContainer));
+    } catch (const DroppedBundleQueueException &e) {
+      LOG(40) << e.what();
+      drop();
+    }
   } catch (const BundleContainerCreationException &e) {
     LOG(3) << e.what();
   }
+}
+
+void BundleProcessor::drop() {
 }
