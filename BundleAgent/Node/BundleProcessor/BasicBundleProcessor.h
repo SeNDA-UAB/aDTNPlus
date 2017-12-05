@@ -91,7 +91,7 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleContainer The container with the bundle.
    * @return A list with the possible dispatching apps.
    */
-  std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
+  virtual std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
   /**
    * Function that checks the lifetime of a bundle.
    *

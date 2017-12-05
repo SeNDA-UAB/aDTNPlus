@@ -24,7 +24,7 @@
 #ifndef BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
 #define BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
 
-#include <cstdio>
+#include <cstdint>
 
 enum class PrimaryBlockControlFlags : uint32_t {
   IS_FRAGMENT = 0,
@@ -63,7 +63,10 @@ enum class MetadataTypes : uint8_t {
   FORWARDING_MEB = 0x03,
   ROUTE_REPORTING_MEB = 0x04,
   CODE_DATA_CARRIER_MEB = 0x05,
-  FRAMEWORK_MEB = 0x06
+  FRAMEWORK_MEB = 0x06,
+  SPRAYANDWAIT_MEB = 0x07,
+  EPIDEMIC_MEB = 0x08,
+  PROPHET_MEB = 0x09
 };
 
 enum class RoutingAlgorithms : uint8_t {

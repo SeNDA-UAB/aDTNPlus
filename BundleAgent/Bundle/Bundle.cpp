@@ -37,6 +37,7 @@
 #include "Bundle/ForwardingMEB.h"
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/CodeDataCarrierMEB.h"
+#include "Bundle/SprayAndWaitMEB.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
@@ -107,6 +108,11 @@ Bundle::Bundle(const std::string &rawData)
             case MetadataTypes::FRAMEWORK_MEB: {
               LOG(81) << "Generating New Framework Metadata Extension Block";
               b = std::make_shared<FrameworkMEB>(FrameworkMEB(data));
+              break;
+            }
+            case MetadataTypes::SPRAYANDWAIT_MEB: {
+              LOG(81) << "Generating New SPRAYANDWAIT Metadata Extension Block";
+              b = std::make_shared<SprayAndWaitMEB>(SprayAndWaitMEB(data));
               break;
             }
           }
@@ -203,8 +209,9 @@ void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
 
 std::string Bundle::getId() {
   std::stringstream ss;
-  ss << m_primaryBlock->getSource() << "_" << m_primaryBlock->getCreationTimestamp()
-     << "_" << m_primaryBlock->getCreationTimestampSeqNumber();
+  ss << m_primaryBlock->getSource() << "_"
+     << m_primaryBlock->getCreationTimestamp() << "_"
+     << m_primaryBlock->getCreationTimestampSeqNumber();
   return ss.str();
 }
 

@@ -12,6 +12,7 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/FrameworkMEB.cpp
   Bundle/FrameworkExtension.cpp
   Bundle/BundleInfo.cpp
+  Bundle/SprayAndWaitMEB.cpp
   PARENT_SCOPE
 )
 
