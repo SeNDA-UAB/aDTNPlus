@@ -13,5 +13,16 @@
     "stop" : false,
     "changed" : false
   },
+  "oppnetFlow" : {
+      "active" : true,   
+      "sprayandwait" : {
+        "nrofCopies" : 10,
+        "binaryMode" : true
+      },
+      "metrics" : {
+        "congestionWindow" : 5
+      },  
+      "forwardingAlgorithm" : "sprayandwait"
+  },
   "id" : "${hostname}"
 }
