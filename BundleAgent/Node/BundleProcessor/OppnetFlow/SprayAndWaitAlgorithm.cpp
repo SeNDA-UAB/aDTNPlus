@@ -71,7 +71,15 @@ void SprayAndWaitAlgorithm::doForward(
     std::static_pointer_cast<SprayAndWaitMEB>(forwarding_meb)->setNrofCopies(
         nrofCopies);
     LOG(55) << "Forwarding a bundle with L= " << nrofCopies;
-    forward(bundle, std::vector<std::string> { neighbors[i] });
+    try{
+      forward(bundle, std::vector<std::string> { neighbors[i] });
+    }catch (const ForwardException &e) {
+      LOG(55) << "The bundle has not been send, restoring the L.";
+      nrofCopies = nrofCopies * 2;
+      std::static_pointer_cast<SprayAndWaitMEB>(forwarding_meb)->setNrofCopies(
+          nrofCopies);
+      throw;
+    }
   }
 
 }
