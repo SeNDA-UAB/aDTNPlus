@@ -24,7 +24,7 @@
 #ifndef BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
 #define BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
 
-#include <cstdio>
+#include <cstdint>
 
 enum class PrimaryBlockControlFlags : uint32_t {
   IS_FRAGMENT = 0,

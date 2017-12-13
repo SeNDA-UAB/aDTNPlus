@@ -24,6 +24,7 @@
 #ifndef BUNDLEAGENT_UTILS_GLOBALS_H_
 #define BUNDLEAGENT_UTILS_GLOBALS_H_
 
+#include <cstdint>
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
