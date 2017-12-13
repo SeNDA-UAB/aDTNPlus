@@ -113,6 +113,8 @@ deliveryPath : %s/adtnPlus/Delivered/
 trashAggregationReception : %s/adtnPlus/Trash/aggregation/reception/
 # Path to save the trashed bundles when aggregating in the delivery.
 trashAggregationDelivery : %s/adtnPlus/Trash/aggregation/delivery/
+# Path to save the trashed bundles when dropped by full queue.
+trashDropp : %s/adtnPlus/Trash/drop/
 
 [AppListener]
 # IP address to listen
@@ -124,8 +126,8 @@ listenerPort : 50000
 # Default node state path
 path : %s/adtnPlus/NodeState.json
 """ % (node.name, nodeip, node.nodedir, node.nodedir,
-            node.nodedir, node.nodedir, node.nodedir, node.nodedir,node.nodedir,
-            nodeip, node.nodedir)
+            node.nodedir, node.nodedir, node.nodedir, node.nodedir,
+            node.nodedir, node.nodedir, nodeip, node.nodedir)
 
     @classmethod
     def generatenodeState(cls, node, filename, services):
@@ -174,6 +176,7 @@ mkdir -p adtnPlus/Delivered
 mkdir -p adtnPlus/Codes
 mkdir -p adtnPlus/Trash/aggregation/delivery
 mkdir -p adtnPlus/Trash/aggregation/reception
+mkdir -p adtnPlus/Trash/drop
 CFGPATH=%s
 sleep 2
 # launch aDTNPlus platform service

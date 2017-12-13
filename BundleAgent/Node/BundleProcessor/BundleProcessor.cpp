@@ -50,6 +50,7 @@
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
+#include "Utils/Functions.h"
 
 BundleProcessor::BundleProcessor() {
 }
@@ -264,7 +265,11 @@ void BundleProcessor::receiveMessage(int sock) {
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           try {
-            m_bundleQueue->enqueue(std::move(bc));
+            if (inQueue(bc->getBundle().getId())) {
+              ack = static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE);  
+            } else {
+              m_bundleQueue->enqueue(std::move(bc));
+            }
           } catch (const DroppedBundleQueueException &e) {
             int success = std::remove(ss.str().c_str());
             if (success != 0) {
@@ -556,4 +561,10 @@ void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
 }
 
 void BundleProcessor::drop() {
+}
+
+bool BundleProcessor::inQueue(const std::string &bundleId) {
+  std::vector<std::string> bundles = getFilesInFolder(m_config.getDataPath());
+  auto it = find(bundles.begin(), bundles.end(), bundleId);
+  return (it != bundles.end());
 }
