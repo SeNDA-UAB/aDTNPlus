@@ -102,6 +102,7 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
     bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
     bundleFile << bundleContainer->serialize();
     bundleFile.close();
+    throw InBundleQueueException("[BundleQueue] Bundle already in queue");
   }
 }
 
@@ -122,4 +123,3 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
 uint32_t BundleQueue::getSize() {
   return m_bundles.size();
 }
-

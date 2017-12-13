@@ -228,68 +228,69 @@ void BundleProcessor::receiveMessage(int sock) {
                << inet_ntoa(bundleSrc.sin_addr);
         close(sock);
       } else {
+        uint8_t ack = static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED);
         LOG(10) << "Received bundle from " << inet_ntoa(bundleSrc.sin_addr)
                 << ":" << ntohs(bundleSrc.sin_port) << " with length: "
                 << receivedLength;
-        // ACK is defined has 1 at the moment, it can have more values later.
-        uint16_t ack = 1;
-        LOG(42) << "Sending Bundle ACK: " << ack;
-        ack = htons(ack);
-        int writed = send(sock, &ack, sizeof(ack), 0);
-        if (writed < 0) {
-          LOG(3) << "Cannot write to socket, reason: " << strerror(errno);
-          close(sock);
-        } else {
-          close(sock);
-          std::string bundleStringRaw = std::string(rawBundle, bundleLength);
-          try {
-            // Create the bundle
-            LOG(42) << "Creating bundle from received raw";
-            std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
-                new Bundle(bundleStringRaw));
-            // If the source node is the library, change the timestamp to a one
-            // generated from this node
-            if (srcNodeId == "_ADTN_LIB_") {
-              b->getPrimaryBlock()->setTimestamp(
-                  TimestampManager::getInstance()->getTimestamp());
-              // If the source of the bundle is the library,
-              // change it to this node id.
-              if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
-                b->getPrimaryBlock()->setSource(m_config.getNodeId());
-              }
+        std::string bundleStringRaw = std::string(rawBundle, bundleLength);
+        try {
+          // Create the bundle
+          LOG(42) << "Creating bundle from received raw";
+          std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+              new Bundle(bundleStringRaw));
+          // If the source node is the library, change the timestamp to a one
+          // generated from this node
+          if (srcNodeId == "_ADTN_LIB_") {
+            b->getPrimaryBlock()->setTimestamp(
+                TimestampManager::getInstance()->getTimestamp());
+            // If the source of the bundle is the library,
+            // change it to this node id.
+            if (b->getPrimaryBlock()->getSource() == "_ADTN_LIB_") {
+              b->getPrimaryBlock()->setSource(m_config.getNodeId());
             }
-            LOG(42) << "Creating bundle container";
-            // Create the bundleContainer
-            std::unique_ptr<BundleContainer> bc = createBundleContainer(
-                std::move(b));
-            // Save the bundleContainer to disk
-            LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
-            std::ofstream bundleFile;
-            std::stringstream ss;
-            ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
-            bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-            bundleFile << bc->serialize();
-            bundleFile.close();
-            // Enqueue the bundleContainer
-            LOG(42) << "Saving bundle to queue";
-            try {
-              m_bundleQueue->enqueue(std::move(bc));
-            } catch (const DroppedBundleQueueException &e) {
-              int success = std::remove(ss.str().c_str());
-              if (success != 0) {
-                LOG(3) << "Cannot delete bundle " << ss.str();
-              }
-              LOG(40) << e.what();
-              drop();
-            }
-            // Notify Processor that a new bundle can be processed
-            g_processed = 0;
-            std::unique_lock<std::mutex> lck(g_processorMutex);
-            g_processorConditionVariable.notify_one();
-          } catch (const BundleCreationException &e) {
-            LOG(3) << "Error constructing received bundle, reason: " << e.what();
           }
+          LOG(42) << "Creating bundle container";
+          // Create the bundleContainer
+          std::unique_ptr<BundleContainer> bc = createBundleContainer(
+              std::move(b));
+          // Save the bundleContainer to disk
+          LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
+          std::ofstream bundleFile;
+          std::stringstream ss;
+          ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
+          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+          bundleFile << bc->serialize();
+          bundleFile.close();
+          // Enqueue the bundleContainer
+          LOG(42) << "Saving bundle to queue";
+          try {
+            m_bundleQueue->enqueue(std::move(bc));
+          } catch (const DroppedBundleQueueException &e) {
+            int success = std::remove(ss.str().c_str());
+            if (success != 0) {
+              LOG(3) << "Cannot delete bundle " << ss.str();
+            }
+            LOG(40) << e.what();
+            drop();
+            ack = static_cast<uint8_t>(BundleACK::QUEUE_FULL);
+          } catch (const InBundleQueueException &e) {
+            LOG(40) << e.what();
+            ack = static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE);
+          }
+          // Sending ACK
+          LOG(42) << "Sending Bundle ACK: " << static_cast<unsigned int>(ack);
+          int writed = send(sock, &ack, sizeof(ack), 0);
+          if (writed < 0)
+            LOG(3) << "Cannot write to socket, reason: " << strerror(errno);
+          close(sock);
+          // Notify Processor that a new bundle can be processed
+          g_processed = 0;
+          std::unique_lock<std::mutex> lck(g_processorMutex);
+          g_processorConditionVariable.notify_one();
+        } catch (const BundleCreationException &e) {
+          LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }
+        
       }
     }
   }
@@ -435,7 +436,7 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                     }
                     bundleSizeSend += writed;
                   }
-                  uint16_t ack;
+                  uint8_t ack;
                   int receivedSize = recv(sock, &ack, sizeof(ack), 0);
                   if (receivedSize != sizeof(ack)) {
                     if (receivedSize == 0) {
@@ -457,9 +458,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                       throw ForwardException(ss.str());
                     }
                   } else {
-                    ack = ntohs(ack);
-                    LOG(46) << "Received bundle ACK: " << ack;
-                    if (ack == 1) {
+                    LOG(46) << "Received bundle ACK: " << static_cast<unsigned int>(ack);
+                    if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
                       sockaddr_in bundleSrc = {0};
                       socklen_t bundleSrcLength = sizeof(bundleSrc);
                       if (getsockname(sock,
@@ -476,7 +476,13 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                       }
                     } else {
                       std::stringstream ss;
-                      ss << "No correct ACK";
+                      if (ack == static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE)) {
+                        ss << "Node already has the bundle in queue.";
+                      } else if (ack == static_cast<uint8_t>(BundleACK::QUEUE_FULL)) {
+                        ss << "Full queue of neighbour.";
+                      } else {
+                        ss << "Bad ack received.";
+                      }
                       throw ForwardException(ss.str());
                     }
                   }
