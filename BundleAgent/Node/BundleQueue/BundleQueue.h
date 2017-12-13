@@ -47,6 +47,13 @@ class DroppedBundleQueueException : public std::runtime_error {
   }
 };
 
+class InBundleQueueException : public std::runtime_error {
+ public:
+  explicit InBundleQueueException(const std::string &what)
+      : runtime_error(what) {
+  }
+};
+
 class BundleContainer;
 
 /**

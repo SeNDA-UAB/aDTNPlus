@@ -95,6 +95,8 @@ level : 21
 [Constants]
 # Socket timeout in seconds.
 timeout : 10
+# Queue max size it bytes, K M and G can be used to express KB, MB and GB
+queueByteSize : 1M
 
 [BundleProcess]
 # Path to save the bundles, it has to exist and the application has to have

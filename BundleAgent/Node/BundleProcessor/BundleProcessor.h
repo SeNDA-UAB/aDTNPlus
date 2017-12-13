@@ -45,6 +45,15 @@ class ForwardException : public std::runtime_error {
 };
 
 /**
+ * Enum for ACK possible values
+ */
+enum class BundleACK : uint8_t {
+  CORRECT_RECEIVED = 0x00,
+  ALREADY_IN_QUEUE = 0x01,
+  QUEUE_FULL = 0x02
+};
+
+/**
  * CLASS BundleProcessor
  * This class implements the receiving and process bundle methods.
  * It also defines an interface to process a single bundle and to create the
