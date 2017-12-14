@@ -15,6 +15,7 @@
   },
   "oppnetFlow" : {
       "active" : true,   
+      "controllerId" : "n1",
       "sprayandwait" : {
         "nrofCopies" : 10,
         "binaryMode" : true
