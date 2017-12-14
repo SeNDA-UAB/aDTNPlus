@@ -46,7 +46,7 @@ class SprayAndWaitMEB : public MetadataExtensionBlock {
   /**
    * @brief Raw constructor.
    *
-   * This will generate SprayAndWait MEB from raw data.
+   * Destructor.
    *
    */
   virtual ~SprayAndWaitMEB();
@@ -67,7 +67,7 @@ class SprayAndWaitMEB : public MetadataExtensionBlock {
 
  private:
   /**
-   * Type of routing algorithm.
+   * Number of copies allowed in the network: L.
    */
   uint16_t m_nrofCopies;
 };
