@@ -265,11 +265,7 @@ void BundleProcessor::receiveMessage(int sock) {
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           try {
-            if (inQueue(bc->getBundle().getId())) {
-              ack = static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE);  
-            } else {
-              m_bundleQueue->enqueue(std::move(bc));
-            }
+            m_bundleQueue->enqueue(std::move(bc));
           } catch (const DroppedBundleQueueException &e) {
             int success = std::remove(ss.str().c_str());
             if (success != 0) {
@@ -533,6 +529,7 @@ void BundleProcessor::discard(
   }
   LOG(51) << "Deleting bundleContainer.";
   bundleContainer.reset();
+  m_bundleQueue->resetLast();
 }
 
 void BundleProcessor::restore(
@@ -561,10 +558,4 @@ void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
 }
 
 void BundleProcessor::drop() {
-}
-
-bool BundleProcessor::inQueue(const std::string &bundleId) {
-  std::vector<std::string> bundles = getFilesInFolder(m_config.getDataPath());
-  auto it = find(bundles.begin(), bundles.end(), bundleId);
-  return (it != bundles.end());
 }

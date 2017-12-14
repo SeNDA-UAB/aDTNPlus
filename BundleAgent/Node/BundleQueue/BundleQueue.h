@@ -96,6 +96,10 @@ class BundleQueue {
    * @return The size of the queue.
    */
   uint32_t getSize();
+  /**
+   * Resets the last bundle dequeued to empty.
+   */
+  void resetLast();
 
  private:
   /**
@@ -139,6 +143,10 @@ class BundleQueue {
    * Current size in bytes of the queue.
    */
   uint64_t m_queueByteSize;
+  /**
+   * The id of the last bundle dequeued.
+   */
+  std::string m_lastBundleId;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_

@@ -67,8 +67,9 @@ void BundleQueue::wait_for(int time) {
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   std::unique_lock<std::mutex> insertLock(m_insertMutex);
-  bool notExist = m_bundleIds.find(bundleContainer->getBundle().getId())
-      == m_bundleIds.end();
+  std::string bundleId = bundleContainer->getBundle().getId();
+  bool notExist = (m_bundleIds.find(bundleId) == m_bundleIds.end() ||
+    bundleId == m_lastBundleId);
   insertLock.unlock();
   if (notExist) {
     // Check if by size it can be pushed
@@ -122,4 +123,8 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
 
 uint32_t BundleQueue::getSize() {
   return m_bundles.size();
+}
+
+void BundleQueue::resetLast() {
+  m_lastBundleId = "";
 }
