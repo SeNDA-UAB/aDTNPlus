@@ -24,10 +24,12 @@
 #ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
 #define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <string>
 #include <exception>
+#include <map>
 #include "Node/Config.h"
 
 class Bundle;
@@ -37,11 +39,40 @@ class NeighbourTable;
 class ListeningEndpointsTable;
 class Neighbour;
 
+/**
+ * Esception with a list of what error occurred at each neighbour.
+ */
 class ForwardException : public std::runtime_error {
  public:
-  explicit ForwardException(const std::string &what)
-      : runtime_error(what) {
+  explicit ForwardException(const std::string &what, std::map<std::string, uint8_t> errorList)
+      : runtime_error(what),
+        m_errorList(errorList) {
   }
+
+  std::map<std::string, uint8_t> errors() const {
+    return m_errorList;
+  }
+
+ private:
+  std::map<std::string, uint8_t> m_errorList;
+};
+
+/**
+ * Exception that saves the error value
+ */
+class ForwardNetworkException : public std::runtime_error {
+ public:
+  explicit ForwardNetworkException(const std::string &what, uint8_t error)
+      : runtime_error(what),
+        m_error(error) {
+  }
+
+  uint8_t error() const {
+    return m_error;
+  }
+
+ private:
+  uint8_t m_error;
 };
 
 /**
@@ -51,6 +82,20 @@ enum class BundleACK : uint8_t {
   CORRECT_RECEIVED = 0x00,
   ALREADY_IN_QUEUE = 0x01,
   QUEUE_FULL = 0x02
+};
+
+/**
+ * Error codes for network.
+ */
+enum class NetworkError : uint8_t {
+  SOCKET_ERROR = 0x00,
+  SOCKET_TIMEOUT_ERROR = 0x01,
+  SOCKET_CONNECT_ERROR = 0x02,
+  SOCKET_WRITE_ERROR = 0x03,
+  SOCKET_RECEIVE_ERROR = 0x04,
+  NEIGHBOUR_FULL_QUEUE = 0x05,
+  NEIGHBOUR_IN_QUEUE = 0x06,
+  NEIGHBOUR_BAD_ACK = 0x07
 };
 
 /**
@@ -185,6 +230,14 @@ class BundleProcessor {
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
       std::unique_ptr<Bundle> Bundle) = 0;
+
+  /**
+   * Checks if exist the bundle id in the queue folder
+   * @param  bundleId Bundle if to check
+   * @return          True if the bundle is in the queue,
+   *                  False otherwise
+   */
+  bool inQueue(const std::string &bundleId);
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
