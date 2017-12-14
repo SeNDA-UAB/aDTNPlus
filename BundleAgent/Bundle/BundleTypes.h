@@ -66,7 +66,9 @@ enum class MetadataTypes : uint8_t {
   FRAMEWORK_MEB = 0x06,
   SPRAYANDWAIT_MEB = 0x07,
   EPIDEMIC_MEB = 0x08,
-  PROPHET_MEB = 0x09
+  PROPHET_MEB = 0x09,
+  CONTROL_METRICS_MEB = 0x10,
+  CONTROL_DIRECTIVE_MEB = 0x11
 };
 
 enum class RoutingAlgorithms : uint8_t {
