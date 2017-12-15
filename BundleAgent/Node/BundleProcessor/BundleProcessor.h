@@ -231,13 +231,6 @@ class BundleProcessor {
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
       std::unique_ptr<Bundle> Bundle) = 0;
 
-  /**
-   * Checks if exist the bundle id in the queue folder
-   * @param  bundleId Bundle if to check
-   * @return          True if the bundle is in the queue,
-   *                  False otherwise
-   */
-  bool inQueue(const std::string &bundleId);
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
