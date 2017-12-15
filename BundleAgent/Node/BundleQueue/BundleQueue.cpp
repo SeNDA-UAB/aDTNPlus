@@ -38,7 +38,8 @@ BundleQueue::BundleQueue(const std::string &trashPath,
       m_trashPath(trashPath),
       m_dropPath(dropPath),
       m_queueMaxByteSize(queueByteSize),
-      m_queueByteSize(0) {
+      m_queueByteSize(0),
+      m_lastBundleId("") {
 }
 
 BundleQueue::~BundleQueue() {
@@ -51,7 +52,8 @@ BundleQueue::BundleQueue(BundleQueue&& bc)
       m_trashPath(bc.m_trashPath),
       m_dropPath(bc.m_dropPath),
       m_queueMaxByteSize(bc.m_queueMaxByteSize),
-      m_queueByteSize(bc.m_queueByteSize) {
+      m_queueByteSize(bc.m_queueByteSize),
+      m_lastBundleId(bc.m_lastBundleId) {
 }
 
 void BundleQueue::wait_for(int time) {
@@ -68,15 +70,13 @@ void BundleQueue::wait_for(int time) {
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   std::unique_lock<std::mutex> insertLock(m_insertMutex);
   std::string bundleId = bundleContainer->getBundle().getId();
-  bool notExist = (m_bundleIds.find(bundleId) == m_bundleIds.end() ||
+  bool notExist = !(m_bundleIds.find(bundleId) != m_bundleIds.end() ||
     bundleId == m_lastBundleId);
-  insertLock.unlock();
   if (notExist) {
     // Check if by size it can be pushed
     uint64_t bundleSize = bundleContainer->getBundle().toRaw().length();
     if (m_queueByteSize + bundleSize <= m_queueMaxByteSize) {
       m_queueByteSize += bundleSize;
-      insertLock.lock();
       m_bundles.push_back(std::move(bundleContainer));
       m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
       insertLock.unlock();
@@ -84,6 +84,7 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
       ++m_count;
       m_conditionVariable.notify_one();
     } else {
+      insertLock.unlock();
       std::ofstream bundleFile;
       std::stringstream ss;
       auto time = std::chrono::high_resolution_clock::now();
@@ -95,6 +96,7 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
       throw DroppedBundleQueueException("[BundleQueue] Full queue");
     }
   } else {
+    insertLock.unlock();
     std::ofstream bundleFile;
     std::stringstream ss;
     auto time = std::chrono::high_resolution_clock::now();
@@ -113,6 +115,7 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
     std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
     m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
+    m_lastBundleId = bc->getBundle().getId();
     lock.unlock();
     m_queueByteSize -= bc->getBundle().getRaw().length();
     return bc;

@@ -533,6 +533,7 @@ void BundleProcessor::discard(
 }
 
 void BundleProcessor::restore(
+  m_bundleQueue->resetLast();
     std::unique_ptr<BundleContainer> bundleContainer) {
   try {
     m_bundleQueue->enqueue(std::move(bundleContainer));
