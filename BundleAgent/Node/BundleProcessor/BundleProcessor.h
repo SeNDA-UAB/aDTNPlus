@@ -44,7 +44,8 @@ class Neighbour;
  */
 class ForwardException : public std::runtime_error {
  public:
-  explicit ForwardException(const std::string &what, std::map<std::string, uint8_t> errorList)
+  explicit ForwardException(const std::string &what,
+                            std::map<std::string, uint8_t> errorList)
       : runtime_error(what),
         m_errorList(errorList) {
   }
@@ -78,8 +79,9 @@ class ForwardNetworkException : public std::runtime_error {
 /**
  * Enum for ACK possible values
  */
-enum class BundleACK : uint8_t {
-  CORRECT_RECEIVED = 0x00,
+enum class BundleACK
+  : uint8_t {
+    CORRECT_RECEIVED = 0x00,
   ALREADY_IN_QUEUE = 0x01,
   QUEUE_FULL = 0x02
 };
@@ -87,8 +89,9 @@ enum class BundleACK : uint8_t {
 /**
  * Error codes for network.
  */
-enum class NetworkError : uint8_t {
-  SOCKET_ERROR = 0x00,
+enum class NetworkError
+  : uint8_t {
+    SOCKET_ERROR = 0x00,
   SOCKET_TIMEOUT_ERROR = 0x01,
   SOCKET_CONNECT_ERROR = 0x02,
   SOCKET_WRITE_ERROR = 0x03,
@@ -182,6 +185,12 @@ class BundleProcessor {
    */
   virtual void drop();
   /**
+   * Function to execute code control when a new bundle is received.
+   *
+   * @param bundleContainer The bundle received.
+   */
+  virtual void processControl(BundleContainer &bundleContainer);
+  /**
    * Variable that holds the configuration.
    */
   Config m_config;
@@ -230,7 +239,6 @@ class BundleProcessor {
    */
   virtual std::unique_ptr<BundleContainer> createBundleContainer(
       std::unique_ptr<Bundle> Bundle) = 0;
-
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_

@@ -65,8 +65,9 @@ class BundleQueue {
   /**
    * Default constructor.
    */
-  explicit BundleQueue(const std::string &trashPath, const std::string &dropPath,
-      const uint64_t &queueByteSize);
+  explicit BundleQueue(const std::string &trashPath,
+                       const std::string &dropPath,
+                       const uint64_t &queueByteSize);
   /**
    * Destructor of the class.
    */
@@ -100,6 +101,14 @@ class BundleQueue {
    * Resets the last bundle dequeued to empty.
    */
   void resetLast();
+  /**
+   * Function to save a bundle to disk at the given path.
+   * @param path Path to save the bundle.
+   * @param timestamp True if timestamp must be append to the bundle name.
+   */
+  void saveBundleToDisk(const std::string &path,
+                        BundleContainer &bundleContainer,
+                        bool timestamp = false);
 
  private:
   /**

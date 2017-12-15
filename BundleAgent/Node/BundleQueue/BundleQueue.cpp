@@ -70,8 +70,8 @@ void BundleQueue::wait_for(int time) {
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   std::unique_lock<std::mutex> insertLock(m_insertMutex);
   std::string bundleId = bundleContainer->getBundle().getId();
-  bool notExist = !(m_bundleIds.find(bundleId) != m_bundleIds.end() ||
-    bundleId == m_lastBundleId);
+  bool notExist = !(m_bundleIds.find(bundleId) != m_bundleIds.end()
+      || bundleId == m_lastBundleId);
   if (notExist) {
     // Check if by size it can be pushed
     uint64_t bundleSize = bundleContainer->getBundle().toRaw().length();
@@ -85,26 +85,12 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
       m_conditionVariable.notify_one();
     } else {
       insertLock.unlock();
-      std::ofstream bundleFile;
-      std::stringstream ss;
-      auto time = std::chrono::high_resolution_clock::now();
-      ss << m_dropPath << bundleContainer->getBundle().getId() << "_"
-         << time.time_since_epoch().count() << ".bundle";
-      bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-      bundleFile << bundleContainer->serialize();
-      bundleFile.close();
+      saveBundleToDisk(m_dropPath, *bundleContainer, true);
       throw DroppedBundleQueueException("[BundleQueue] Full queue");
     }
   } else {
     insertLock.unlock();
-    std::ofstream bundleFile;
-    std::stringstream ss;
-    auto time = std::chrono::high_resolution_clock::now();
-    ss << m_trashPath << bundleContainer->getBundle().getId() << "_"
-       << time.time_since_epoch().count() << ".bundle";
-    bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-    bundleFile << bundleContainer->serialize();
-    bundleFile.close();
+    saveBundleToDisk(m_trashPath, *bundleContainer, true);
     throw InBundleQueueException("[BundleQueue] Bundle already in queue");
   }
 }
@@ -131,3 +117,20 @@ uint32_t BundleQueue::getSize() {
 void BundleQueue::resetLast() {
   m_lastBundleId = "";
 }
+
+void BundleQueue::saveBundleToDisk(const std::string &path,
+                                   BundleContainer &bundleContainer,
+                                   bool timestamp) {
+  std::ofstream bundleFile;
+  std::stringstream ss;
+  ss << path << bundleContainer.getBundle().getId();
+  if (timestamp) {
+    auto time = std::chrono::high_resolution_clock::now();
+    ss << "_" << time.time_since_epoch().count();
+  }
+  ss << ".bundle";
+  bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+  bundleFile << bundleContainer.serialize();
+  bundleFile.close();
+}
+
