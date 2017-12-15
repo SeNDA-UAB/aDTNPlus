@@ -32,6 +32,8 @@
 #include <fstream>
 #include <string>
 #include <mutex>
+#include <map>
+#include <thread>
 #include "Utils/Logstream.h"
 #include "Utils/ConfigLoader.h"
 
@@ -103,6 +105,12 @@ class Logger {
    * @param filename File to save to logs.
    */
   void setLoggerConfigAndStart(std::string filename);
+  /**
+   * This function sets the name of the thread.
+   * @param id   The id of the thread.
+   * @param name The name of the thread.
+   */
+  void setThreadName(std::thread::id id, const std::string &name);
 
  private:
   /**
@@ -129,6 +137,10 @@ class Logger {
    * File to save the logs.
    */
   std::string m_filename;
+  /**
+   * Map to save the names of the threads.
+   */
+  std::map<std::thread::id, std::string> m_threadNames;
 };
 
 /**

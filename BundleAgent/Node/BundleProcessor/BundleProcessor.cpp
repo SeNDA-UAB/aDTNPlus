@@ -74,6 +74,7 @@ void BundleProcessor::start(
 }
 
 void BundleProcessor::processBundles() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Bundle Processor");
   g_startedThread++;
   g_processed = 0;
   while (!g_stop.load()) {
@@ -104,6 +105,7 @@ void BundleProcessor::processBundles() {
 }
 
 void BundleProcessor::receiveBundles() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Bundle Receiver");
   LOG(10) << "Creating receive bundles thread";
   sockaddr_in receiveAddr = { 0 };
   receiveAddr.sin_family = AF_INET;
@@ -168,6 +170,7 @@ void BundleProcessor::receiveBundles() {
 }
 
 void BundleProcessor::receiveMessage(int sock) {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Bundle connection");
   LOG(41) << "Processing new connection";
   sockaddr_in bundleSrc = { 0 };
   socklen_t bundleSrcLength = sizeof(bundleSrc);
@@ -292,7 +295,6 @@ void BundleProcessor::receiveMessage(int sock) {
         } catch (const BundleCreationException &e) {
           LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }
-        
       }
     }
   }
@@ -533,9 +535,9 @@ void BundleProcessor::discard(
 }
 
 void BundleProcessor::restore(
-  m_bundleQueue->resetLast();
     std::unique_ptr<BundleContainer> bundleContainer) {
   try {
+    m_bundleQueue->resetLast();
     m_bundleQueue->enqueue(std::move(bundleContainer));
   } catch (const DroppedBundleQueueException &e) {
     LOG(40) << e.what();
