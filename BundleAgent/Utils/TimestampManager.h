@@ -78,8 +78,6 @@ class TimestampManager {
   uint64_t m_lastSeqNum;
 
   std::mutex m_mutex;
-
-
 };
 
 #endif  // BUNDLEAGENT_UTILS_TIMESTAMPMANAGER_H_

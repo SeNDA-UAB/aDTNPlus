@@ -25,20 +25,22 @@
 #include "Node/Neighbour/Neighbour.h"
 #include <string>
 #include <cstdint>
+#include <vector>
 #include <chrono>
 #include "Utils/Logger.h"
 
 Neighbour::Neighbour(const std::string &nodeId, const std::string &nodeAddress,
-                     const uint16_t &nodePort, std::vector<std::string> endpoints)
+                     const uint16_t &nodePort,
+                     std::vector<std::string> endpoints)
     : m_nodeId(nodeId),
       m_nodeAddress(nodeAddress),
       m_nodePort(nodePort),
       m_endpoints(endpoints),
       m_lastActivity(std::chrono::steady_clock::now()) {
-  LOG(69)  << "Creating new neighbour from parameters [nodeId: " << nodeId
+  LOG(69) << "Creating new neighbour from parameters [nodeId: " << nodeId
 
-          << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
-          << "]";
+  << "][nodeAddress: "
+          << nodeAddress << "][nodePort: " << nodePort << "]";
 }
 
 Neighbour::~Neighbour() {

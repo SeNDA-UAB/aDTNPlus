@@ -263,7 +263,7 @@ std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(
       lck1.unlock();
     } catch (...) {
       LOG(3) << "[Extension 1] Cannot execute any code in "
-              "Bundle container creation.";
+             "Bundle container creation.";
     }
   }
   return std::move(bc);
@@ -307,7 +307,6 @@ std::vector<std::string> FirstADTNPlusFwk::checkDestination(
 std::vector<std::string> FirstADTNPlusFwk::checkForward(
     BundleContainer &bundleContainer) {
   LOG(55) << "Checking forward.";
-  std::vector<std::string> neighbours = m_neighbourTable->getConnectedEID();
   nlohmann::json &bundleProcessState = bundleContainer.getState();
   BundleStateJson bundleState(bundleContainer.getBundle());
   try {
@@ -340,7 +339,7 @@ std::vector<std::string> FirstADTNPlusFwk::checkForward(
       return forward;
     } catch (const WorkerException &e) {
       LOG(3) << "[Extension 5] Cannot execute any code to check forward."
-              << e.what();
+             << e.what();
       return std::vector<std::string>();
     }
   }
@@ -406,7 +405,7 @@ void FirstADTNPlusFwk::discard(
       m_ext2DefaultWorker.getResult();
     } catch (const WorkerException &e) {
       LOG(3) << "[Extension 2] Cannot execute any code in "
-              "Bundle container deletion.";
+             "Bundle container deletion.";
     }
   }
   BundleProcessor::discard(std::move(bundleContainer));
