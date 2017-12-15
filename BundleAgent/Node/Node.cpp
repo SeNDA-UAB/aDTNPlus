@@ -30,6 +30,7 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <thread>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
@@ -44,6 +45,7 @@ Node::Node(std::string filename) {
   m_config = Config(filename);
   Logger::getInstance()->setLoggerConfigAndStart(m_config.getLogFileName());
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Main");
   LOG(6) << "Starting Node...";
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(

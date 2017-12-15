@@ -48,6 +48,7 @@ EndpointListener::~EndpointListener() {
 }
 
 void EndpointListener::listenEndpoints() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Endpoint listener");
   LOG(17) << "Creating Listening Endpoints thread.";
   sockaddr_in listenAddr = { 0 };
   listenAddr.sin_family = AF_INET;
@@ -107,6 +108,7 @@ void EndpointListener::listenEndpoints() {
 }
 
 void EndpointListener::startListening(int sock) {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Connection thread");
   LOG(69) << "Processing new connection";
   sockaddr_in bundleSrc = { 0 };
   socklen_t bundleSrcLength = sizeof(bundleSrc);

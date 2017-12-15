@@ -49,6 +49,7 @@ void Logger::log(int level, std::string message) {
   char buffer[80];
   strftime(buffer, 80, "[%F %T]", timeinfo);
   os << buffer;
+  os << "[" << m_threadNames[std::this_thread::get_id()] << "]";
   if (level == 1)
     os << "[ERROR]";
   else if (level <= 5)
@@ -81,4 +82,8 @@ Logstream Logger::operator()(int level) {
 
 void Logger::setLoggerConfigAndStart(std::string filename) {
   os.open(filename, std::ios_base::app);
+}
+
+void Logger::setThreadName(std::thread::id id, const std::string &name) {
+  m_threadNames[id] = name;
 }
