@@ -31,6 +31,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <atomic>
+#include <exception>
 
 class MetadataExtensionBlock;
 
@@ -119,6 +121,13 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
       std::unique_ptr<Bundle> bundle);
 
   /**
+   * @bief Function that is called when a drop occur.
+   *
+   * This function by default does nothing.
+   */
+  virtual void drop();
+
+  /**
    * Variable that holds the parameters used in the processor calls.
    */
   NodeStateJson m_nodeState;
@@ -128,6 +137,58 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   ForwardingAlgorithmFactory m_forwardingAlgorithmFactory;
 
+ private:
+  /**
+   * Removes the bundle from disk.
+   * @param bundleID the ID of the bundle.
+   */
+  void removeBundleFromDisk(std::string bundleID);
+
+  /**
+   * Builds a bundle and adds a ControlMetrisMEB with the network information
+   * gathered in
+   */
+  void sendNetworkMetrics();
+
+  /**
+   * Function that can be called just by a thread. Through this function the
+   * thread calls the function sendNetworkMetrics.
+   * It implements  all the logic to add a new thread to the global threads counter
+   * and decreases the thread counter when the function finishes.
+   * After sending the metrics information the threads go to sleep for the
+   * time configured in the nodeState file.
+   */
+  void sendNetworkMetricsAndSleep();
+
+  /**
+   * Launches a thread that awakes each certain time and sends the network metrics.
+   */
+  void scheduleReportingNetworkMetrics();
+
+  /**
+   * Wrapper class for storing the collected network statistics
+   */
+  class NodeNetworkMetrics{
+   public:
+    std::atomic<uint32_t> m_nrofDrops;
+    std::atomic<uint32_t> m_nrofDelivered;
+    void addDrop();
+    void addDelivered();
+    std::string toString();
+  } m_networkMetrics;
+
+  /**
+    * Exception launched when it is not possible to delete a bundle from disk
+    */
+  class RemoveBundleFromDiskException : public std::exception{
+   public:
+    RemoveBundleFromDiskException(std::string bundleId);
+    virtual ~RemoveBundleFromDiskException();
+    virtual const char* what() const throw ();
+
+   private:
+    std::string m_bundleId;
+  };
 
 };
 

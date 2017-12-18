@@ -26,11 +26,13 @@
 #include "Bundle/BundleInfo.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/ControlMetricsMEB.h"
 #include "ExternTools/json/json.hpp"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.h"
 #include "Node/BundleProcessor/PluginAPI.h"
+#include "Node/BundleQueue/BundleQueue.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Node/Config.h"
 #include "Node/EndpointListener/ListeningEndpointsTable.h"
@@ -43,9 +45,12 @@
 #include <cstddef>
 #include <ctime>
 #include <fstream>
+#include <sstream>
 #include <functional>
 #include <iterator>
 #include <stdexcept>
+#include <memory>
+#include <thread>
 
 NEW_PLUGIN(OppnetFlowBundleProcessor, "Basic bundle processor", "1.0",
            "Implements oppnetFlow protocol.")
@@ -54,6 +59,93 @@ OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() {
 }
 
 OppnetFlowBundleProcessor::~OppnetFlowBundleProcessor() {
+}
+
+OppnetFlowBundleProcessor::RemoveBundleFromDiskException::RemoveBundleFromDiskException(
+    std::string bundleId)
+    : m_bundleId(bundleId) {
+}
+OppnetFlowBundleProcessor::RemoveBundleFromDiskException::~RemoveBundleFromDiskException(){}
+
+const char*  OppnetFlowBundleProcessor::RemoveBundleFromDiskException::what() const throw(){
+  std::stringstream ss;
+
+  ss << "The bundle with ID: " << m_bundleId <<
+      " has not been removed from disk";
+
+  return ss.str().c_str();
+}
+
+
+void OppnetFlowBundleProcessor::NodeNetworkMetrics::addDrop(){
+  m_nrofDrops++;
+}
+
+void OppnetFlowBundleProcessor::NodeNetworkMetrics::addDelivered(){
+  m_nrofDelivered++;
+}
+
+std::string OppnetFlowBundleProcessor::NodeNetworkMetrics::toString(){
+  std::stringstream ss;
+
+  ss << "nrofDrops: " << m_nrofDrops << std::endl;
+  ss << "nrofDelivered: " << m_nrofDelivered << std::endl;
+
+  return ss.str();
+}
+
+void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
+  std::stringstream ss;
+  ss << m_config.getDataPath() << bundleId << ".bundle";
+  int success = std::remove(ss.str().c_str());
+  if (success != 0) {
+    throw OppnetFlowBundleProcessor::RemoveBundleFromDiskException(bundleId);
+  }
+}
+
+void OppnetFlowBundleProcessor::sendNetworkMetrics() {
+  std::unique_ptr<Bundle> bundle_ptr(
+      new Bundle(m_nodeState["id"], m_nodeState["controllerId"], ""));
+  std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
+      new ControlMetricsMEB(m_networkMetrics.m_nrofDrops,
+                            m_networkMetrics.m_nrofDelivered));
+  std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
+      std::move(bundle_ptr));
+
+  bundle_ptr->addBlock(
+      std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
+  m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
+
+  //modificar la varible al json m_state per indicar que és un bundle de control meu.
+  try {
+    m_bundleQueue->enqueue(std::move(bc_ptr));
+    removeBundleFromDisk(bundle_ptr->getId());
+  } catch (const DroppedBundleQueueException &e) {
+    LOG(40) << e.what();
+  } catch (OppnetFlowBundleProcessor::RemoveBundleFromDiskException &e) {
+    LOG(40) << e.what();
+  }
+}
+
+void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
+  uint32_t sleepTime = m_nodeState["oppnetFlow"]["controlReportings"]["frequency"];
+  g_startedThread++;
+
+  LOG(14) << "Creating reportingNetworkMetrics thread";
+  while (!g_stop.load()) {
+    std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+    LOG(55) << "[OppnetFlowProcessor] " <<
+        "Sending network control metrics: " << m_networkMetrics.toString();
+    sendNetworkMetrics();
+  }//end while true loop
+  LOG(14) << "Exit reportingNetworkMetrics thread.";
+  g_stopped++;
+}
+
+void OppnetFlowBundleProcessor::scheduleReportingNetworkMetrics() {
+  std::thread networkMetricsReporter(
+      &OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep, this);
+  networkMetricsReporter.detach();
 }
 
 void OppnetFlowBundleProcessor::start(
@@ -82,7 +174,12 @@ void OppnetFlowBundleProcessor::start(
   } else {
     LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
   }
+  scheduleReportingNetworkMetrics();
 
+}
+
+void OppnetFlowBundleProcessor::drop(){
+  m_networkMetrics.addDrop();
 }
 
 std::vector<std::string> OppnetFlowBundleProcessor::checkDispatch(
@@ -142,6 +239,7 @@ void OppnetFlowBundleProcessor::processBundle(
   LOG(55) << "Checking destination node.";
   if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
+    m_networkMetrics.addDelivered();
     LOG(55) << "Checking destination app listening.";
     std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {
@@ -194,10 +292,6 @@ void OppnetFlowBundleProcessor::processBundle(
                                 _2);
             forwardingAlgorithm->doForward(bundleContainer->getBundle(),
                                            neighbours, fp);
-            /*
-             nextHop.push_back(neighbours[0]);
-             forward(bundleContainer->getBundle(), neighbours);
-             */
             restore(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
@@ -217,4 +311,8 @@ std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContaine
     std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
+  //Afegir varible al json m_state per indicar que és un bundle qeu no és de control.
+  //default value
 }
+
+
