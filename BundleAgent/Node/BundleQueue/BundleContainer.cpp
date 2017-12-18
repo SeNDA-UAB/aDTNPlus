@@ -30,9 +30,7 @@
 #include <cstring>
 #include <exception>
 #include <iostream>
-
 #include "Bundle/Bundle.h"
-#include <iostream>
 
 BundleContainer::BundleContainer(std::unique_ptr<Bundle> bundle)
     : m_bundle(std::move(bundle)),

@@ -59,6 +59,8 @@ NeighbourDiscovery::~NeighbourDiscovery() {
 }
 
 void NeighbourDiscovery::sendBeacons() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Beacon Sender");
   LOG(14) << "Creating send beacons thread";
 // Get node configuration
   std::string nodeId = m_config.getNodeId();
@@ -124,6 +126,8 @@ void NeighbourDiscovery::sendBeacons() {
 
 void NeighbourDiscovery::receiveBeacons() {
 // Get node configuration
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Beacon Receiver");
   LOG(15) << "Starting receiver beacon thread";
   std::string nodeId = m_config.getNodeId();
   std::string nodeAddress = m_config.getNodeAddress();
@@ -184,11 +188,11 @@ void NeighbourDiscovery::receiveBeacons() {
             int receivedSize = recv(sock, buffer, beaconLength, 0);
             if (receivedSize == -1) {
               LOG(4) << "Error receiving beacon, reason: " << strerror(errno);
-              delete[](buffer);
+              delete[] (buffer);
               continue;
             } else if (receivedSize == 0) {
               LOG(4) << "Peer closed the connection.";
-              delete[](buffer);
+              delete[] (buffer);
               continue;
             }
             // Create a thread to add the new neighbour and let this
@@ -205,7 +209,7 @@ void NeighbourDiscovery::receiveBeacons() {
                         b.getEndpoints()));
               }).detach();
             }
-            delete[](buffer);
+            delete[] (buffer);
           }
           // Leave from the multicast group
           if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP,
@@ -225,6 +229,8 @@ void NeighbourDiscovery::receiveBeacons() {
 }
 
 void NeighbourDiscovery::cleanNeighbours() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Neighbour cleaner");
   int sleepTime = m_config.getNeighbourCleanerTime();
   int expirationTime = m_config.getNeighbourExpirationTime();
   LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime

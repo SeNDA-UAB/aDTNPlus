@@ -27,8 +27,9 @@
 #include "FrameworkExtension.h"
 #include <iostream>
 
-FrameworkExtension::FrameworkExtension(uint8_t fwkExtId,
-                                       std::string swSrcCode) : m_fwkExtId(fwkExtId), m_swSrcCode(swSrcCode) {
+FrameworkExtension::FrameworkExtension(uint8_t fwkExtId, std::string swSrcCode)
+    : m_fwkExtId(fwkExtId),
+      m_swSrcCode(swSrcCode) {
 }
 
 FrameworkExtension::~FrameworkExtension() {
@@ -51,5 +52,4 @@ bool FrameworkExtension::operator ==(const FrameworkExtension &fe) const {
   bool code = m_swSrcCode == fe.m_swSrcCode;
   return (id && code);
 }
-
 

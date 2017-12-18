@@ -28,6 +28,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <sstream>
+#include <vector>
 #include "Utils/Logger.h"
 
 Beacon::Beacon(std::string rawData) {

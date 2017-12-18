@@ -74,6 +74,8 @@ void BundleProcessor::start(
 }
 
 void BundleProcessor::processBundles() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Bundle Processor");
   g_startedThread++;
   g_processed = 0;
   while (!g_stop.load()) {
@@ -104,6 +106,8 @@ void BundleProcessor::processBundles() {
 }
 
 void BundleProcessor::receiveBundles() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Bundle Receiver");
   LOG(10) << "Creating receive bundles thread";
   sockaddr_in receiveAddr = { 0 };
   receiveAddr.sin_family = AF_INET;
@@ -168,6 +172,8 @@ void BundleProcessor::receiveBundles() {
 }
 
 void BundleProcessor::receiveMessage(int sock) {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Bundle connection");
   LOG(41) << "Processing new connection";
   sockaddr_in bundleSrc = { 0 };
   socklen_t bundleSrcLength = sizeof(bundleSrc);
@@ -256,21 +262,17 @@ void BundleProcessor::receiveMessage(int sock) {
               std::move(b));
           // Save the bundleContainer to disk
           LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
-          std::ofstream bundleFile;
-          std::stringstream ss;
-          ss << m_config.getDataPath() << bc->getBundle().getId() << ".bundle";
-          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-          bundleFile << bc->serialize();
-          bundleFile.close();
+          m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc);
+          // Execute process control
+          processControl(*bc);
           // Enqueue the bundleContainer
           LOG(42) << "Saving bundle to queue";
           try {
-            if (inQueue(bc->getBundle().getId())) {
-              ack = static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE);  
-            } else {
-              m_bundleQueue->enqueue(std::move(bc));
-            }
+            m_bundleQueue->enqueue(std::move(bc));
           } catch (const DroppedBundleQueueException &e) {
+            std::stringstream ss;
+            ss << m_config.getDataPath() << bc->getBundle().getId()
+               << ".bundle";
             int success = std::remove(ss.str().c_str());
             if (success != 0) {
               LOG(3) << "Cannot delete bundle " << ss.str();
@@ -296,7 +298,6 @@ void BundleProcessor::receiveMessage(int sock) {
         } catch (const BundleCreationException &e) {
           LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }
-        
       }
     }
   }
@@ -316,14 +317,8 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
                             sizeof(payloadSize), 0);
           if (sended < 0) {
             LOG(11) << "Saving not delivered bundle to disk.";
-            std::ofstream bundleFile;
-            std::stringstream ss;
-            ss << m_config.getDeliveryPath()
-               << bundleContainer.getBundle().getId() << ".bundle";
-            bundleFile.open(ss.str(),
-                            std::ofstream::out | std::ofstream::binary);
-            bundleFile << bundleContainer.serialize();
-            bundleFile.close();
+            m_bundleQueue->saveBundleToDisk(m_config.getDeliveryPath(),
+                                            bundleContainer);
             continue;
           }
           send(endpoint->getSocket(), payload.c_str(), payloadSize, 0);
@@ -332,27 +327,15 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
           endpoint->addDeliveredId(bundleContainer.getBundle().getId());
         } else {
           LOG(11) << "Saving trashed bundle to disk.";
-          std::ofstream bundleFile;
-          std::stringstream ss;
-          auto time = std::chrono::high_resolution_clock::now();
-          ss << m_config.getTrashDelivery()
-             << bundleContainer.getBundle().getId() << "_"
-             << time.time_since_epoch().count() << ".bundle";
-          bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-          bundleFile << bundleContainer.serialize();
-          bundleFile.close();
+          m_bundleQueue->saveBundleToDisk(m_config.getTrashDelivery(),
+                                          bundleContainer, true);
         }
       }
     } catch (const TableException &e) {
       LOG(3) << "Error getting appId, reason: " << e.what();
       LOG(11) << "Saving not delivered bundle to disk.";
-      std::ofstream bundleFile;
-      std::stringstream ss;
-      ss << m_config.getDeliveryPath() << bundleContainer.getBundle().getId()
-         << ".bundle";
-      bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-      bundleFile << bundleContainer.serialize();
-      bundleFile.close();
+      m_bundleQueue->saveBundleToDisk(m_config.getDeliveryPath(),
+                                      bundleContainer);
     }
   }
 }
@@ -365,145 +348,156 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
   if (bundleLength <= 0) {
     LOG(3) << "The bundle to forward has a length of 0, aborting forward.";
   } else {
-    auto forwardFunction = [this, bundleRaw, bundleLength](std::string &nh) {
-      LOG(45) << "Forwarding bundle to " << nh;
-      LOG(50) << "Bundle to forward " << bundleRaw;
-      sockaddr_in remoteAddr = {0};
-      std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
-      remoteAddr.sin_family = AF_INET;
-      remoteAddr.sin_port = htons(nb->getNodePort());
-      remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
-      int sock = socket(AF_INET, SOCK_STREAM, 0);
-      if (sock == -1) {
-        std::stringstream ss;
-        ss << "Cannot create socket into forward thread, reason: "
-        << strerror(errno);
-        throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_ERROR));
-      } else {
-        struct timeval tv;
-        tv.tv_sec = m_config.getNeighbourExpirationTime();
-        tv.tv_usec = 0;
-        if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
-                (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
-          std::stringstream ss;
-          ss << "Cannot set receiving timeout to socket, reason: "
-          << strerror(errno);
-          close(sock);
-          throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_TIMEOUT_ERROR));
-        } else {
-          if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
-                  (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
+    auto forwardFunction =
+        [this, bundleRaw, bundleLength](std::string &nh) {
+          LOG(45) << "Forwarding bundle to " << nh;
+          LOG(50) << "Bundle to forward " << bundleRaw;
+          sockaddr_in remoteAddr = {0};
+          std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
+          remoteAddr.sin_family = AF_INET;
+          remoteAddr.sin_port = htons(nb->getNodePort());
+          remoteAddr.sin_addr.s_addr = inet_addr(nb->getNodeAddress().c_str());
+          int sock = socket(AF_INET, SOCK_STREAM, 0);
+          if (sock == -1) {
             std::stringstream ss;
-            ss << "Cannot set sending timeout to socket, reason: "
+            ss << "Cannot create socket into forward thread, reason: "
             << strerror(errno);
-            close(sock);
-            throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_TIMEOUT_ERROR));
+            throw ForwardNetworkException(ss.str(),
+                static_cast<uint8_t>(NetworkError::SOCKET_ERROR));
           } else {
-            LOG(46) << "Connecting to neighbour...";
-            if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
-                    sizeof(remoteAddr)) < 0) {
+            struct timeval tv;
+            tv.tv_sec = m_config.getNeighbourExpirationTime();
+            tv.tv_usec = 0;
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO,
+                    (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
               std::stringstream ss;
-              ss << "Cannot connect with neighbour " << nh
-              << ", reason: " << strerror(errno);
+              ss << "Cannot set receiving timeout to socket, reason: "
+              << strerror(errno);
               close(sock);
-              throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_CONNECT_ERROR));
+              throw ForwardNetworkException(ss.str(),
+                  static_cast<uint8_t>(NetworkError::SOCKET_TIMEOUT_ERROR));
             } else {
-              LOG(46) << "Sending node id: " << m_config.getNodeId();
-              int writed = send(sock, m_config.getNodeId().c_str(), 1024, 0);
-              if (writed < 0) {
+              if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO,
+                      (struct timeval *) &tv, sizeof(struct timeval)) == -1) {
                 std::stringstream ss;
-                ss << "Cannot write to socket, reason: "
+                ss << "Cannot set sending timeout to socket, reason: "
                 << strerror(errno);
                 close(sock);
-                throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
+                throw ForwardNetworkException(ss.str(),
+                    static_cast<uint8_t>(NetworkError::SOCKET_TIMEOUT_ERROR));
               } else {
-                uint32_t nBundleLength = htonl(bundleLength);
-                LOG(46) << "Sending bundle length: " << bundleLength;
-                writed = send(sock, &nBundleLength, sizeof(nBundleLength),
-                    0);
-                if (writed < 0) {
+                LOG(46) << "Connecting to neighbour...";
+                if (connect(sock, reinterpret_cast<sockaddr*>(&remoteAddr),
+                        sizeof(remoteAddr)) < 0) {
                   std::stringstream ss;
-                  ss << "Cannot write to socket, reason: "
-                  << strerror(errno);
+                  ss << "Cannot connect with neighbour " << nh
+                  << ", reason: " << strerror(errno);
                   close(sock);
-                  throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
+                  throw ForwardNetworkException(ss.str(),
+                      static_cast<uint8_t>(NetworkError::SOCKET_CONNECT_ERROR));
                 } else {
-                  LOG(46) << "Sending bundle...";
-                  uint32_t bundleSizeSend = 0;
-                  while (bundleSizeSend < bundleLength) {
-                    writed = send(sock, bundleRaw.c_str() + bundleSizeSend,
-                        bundleLength - bundleSizeSend, 0);
+                  LOG(46) << "Sending node id: " << m_config.getNodeId();
+                  int writed = send(sock, m_config.getNodeId().c_str(), 1024, 0);
+                  if (writed < 0) {
+                    std::stringstream ss;
+                    ss << "Cannot write to socket, reason: "
+                    << strerror(errno);
+                    close(sock);
+                    throw ForwardNetworkException(ss.str(),
+                        static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
+                  } else {
+                    uint32_t nBundleLength = htonl(bundleLength);
+                    LOG(46) << "Sending bundle length: " << bundleLength;
+                    writed = send(sock, &nBundleLength, sizeof(nBundleLength),
+                        0);
                     if (writed < 0) {
                       std::stringstream ss;
                       ss << "Cannot write to socket, reason: "
                       << strerror(errno);
                       close(sock);
-                      throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
-                    }
-                    bundleSizeSend += writed;
-                  }
-                  uint8_t ack;
-                  int receivedSize = recv(sock, &ack, sizeof(ack), 0);
-                  if (receivedSize != sizeof(ack)) {
-                    if (receivedSize == 0) {
-                      std::stringstream ss;
-                      ss << "Error receiving bundle ACK"
-                         << " Probably peer has disconnected.";
-                      close(sock);
-                      throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
-                    } else if (receivedSize < 0) {
-                      std::stringstream ss;
-                      ss << "Error receiving bundle ACK";
-                      close(sock);
-                      throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
+                      throw ForwardNetworkException(ss.str(),
+                          static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
                     } else {
-                      std::stringstream ss;
-                      ss << "Error receiving bundle ACK"
-                         << " Length not in the correct format.";
-                      close(sock);
-                      throw ForwardNetworkException(ss.str(), static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
-                    }
-                  } else {
-                    LOG(46) << "Received bundle ACK: " << static_cast<unsigned int>(ack);
-                    if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
-                      sockaddr_in bundleSrc = {0};
-                      socklen_t bundleSrcLength = sizeof(bundleSrc);
-                      if (getsockname(sock,
-                              reinterpret_cast<sockaddr*>(&bundleSrc),
-                              &bundleSrcLength) != 0) {
-                        LOG(3) << "Cannot get peer name, reason: "
-                        << strerror(errno);
-                      } else {
-                        LOG(11) << "A bundle of length " << bundleLength
-                        << " has been sent to " << nb->getNodeAddress()
-                        << ":" << nb->getNodePort() << " from "
-                        << inet_ntoa(bundleSrc.sin_addr) << ":"
-                        << ntohs(bundleSrc.sin_port);
+                      LOG(46) << "Sending bundle...";
+                      uint32_t bundleSizeSend = 0;
+                      while (bundleSizeSend < bundleLength) {
+                        writed = send(sock, bundleRaw.c_str() + bundleSizeSend,
+                            bundleLength - bundleSizeSend, 0);
+                        if (writed < 0) {
+                          std::stringstream ss;
+                          ss << "Cannot write to socket, reason: "
+                          << strerror(errno);
+                          close(sock);
+                          throw ForwardNetworkException(ss.str(),
+                              static_cast<uint8_t>(NetworkError::SOCKET_WRITE_ERROR));
+                        }
+                        bundleSizeSend += writed;
                       }
-                    } else {
-                      std::stringstream ss;
-                      uint8_t error;
-                      if (ack == static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE)) {
-                        ss << "Node already has the bundle in queue.";
-                        error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_IN_QUEUE);
-                      } else if (ack == static_cast<uint8_t>(BundleACK::QUEUE_FULL)) {
-                        ss << "Full queue of neighbour.";
-                        error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_FULL_QUEUE);
+                      uint8_t ack;
+                      int receivedSize = recv(sock, &ack, sizeof(ack), 0);
+                      if (receivedSize != sizeof(ack)) {
+                        if (receivedSize == 0) {
+                          std::stringstream ss;
+                          ss << "Error receiving bundle ACK"
+                          << " Probably peer has disconnected.";
+                          close(sock);
+                          throw ForwardNetworkException(ss.str(),
+                              static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
+                        } else if (receivedSize < 0) {
+                          std::stringstream ss;
+                          ss << "Error receiving bundle ACK";
+                          close(sock);
+                          throw ForwardNetworkException(ss.str(),
+                              static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
+                        } else {
+                          std::stringstream ss;
+                          ss << "Error receiving bundle ACK"
+                          << " Length not in the correct format.";
+                          close(sock);
+                          throw ForwardNetworkException(ss.str(),
+                              static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
+                        }
                       } else {
-                        ss << "Bad ack received.";
-                        error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_BAD_ACK);
+                        LOG(46) << "Received bundle ACK: " << static_cast<unsigned int>(ack);
+                        if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
+                          sockaddr_in bundleSrc = {0};
+                          socklen_t bundleSrcLength = sizeof(bundleSrc);
+                          if (getsockname(sock,
+                                  reinterpret_cast<sockaddr*>(&bundleSrc),
+                                  &bundleSrcLength) != 0) {
+                            LOG(3) << "Cannot get peer name, reason: "
+                            << strerror(errno);
+                          } else {
+                            LOG(11) << "A bundle of length " << bundleLength
+                            << " has been sent to " << nb->getNodeAddress()
+                            << ":" << nb->getNodePort() << " from "
+                            << inet_ntoa(bundleSrc.sin_addr) << ":"
+                            << ntohs(bundleSrc.sin_port);
+                          }
+                        } else {
+                          std::stringstream ss;
+                          uint8_t error;
+                          if (ack == static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE)) {
+                            ss << "Node already has the bundle in queue.";
+                            error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_IN_QUEUE);
+                          } else if (ack == static_cast<uint8_t>(BundleACK::QUEUE_FULL)) {
+                            ss << "Full queue of neighbour.";
+                            error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_FULL_QUEUE);
+                          } else {
+                            ss << "Bad ack received.";
+                            error = static_cast<uint8_t>(NetworkError::NEIGHBOUR_BAD_ACK);
+                          }
+                          throw ForwardNetworkException(ss.str(), error);
+                        }
                       }
-                      throw ForwardNetworkException(ss.str(), error);
                     }
                   }
                 }
               }
             }
+            close(sock);
           }
-        }
-        close(sock);
-      }
-    };
+        };
     int hops = 0;
     std::map<std::string, uint8_t> errors;
     for (auto hop : nextHop) {
@@ -517,7 +511,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
     }
     if (hops == 0) {
       g_processed--;
-      throw ForwardException("The bundle has not been send to any neighbour.", errors);
+      throw ForwardException("The bundle has not been send to any neighbour.",
+                             errors);
     }
   }
 }
@@ -526,18 +521,20 @@ void BundleProcessor::discard(
     std::unique_ptr<BundleContainer> bundleContainer) {
   std::stringstream ss;
   ss << m_config.getDataPath() << bundleContainer->getBundle().getId()
-  << ".bundle";
+     << ".bundle";
   int success = std::remove(ss.str().c_str());
   if (success != 0) {
     LOG(3) << "Cannot delete bundle " << ss.str();
   }
   LOG(51) << "Deleting bundleContainer.";
   bundleContainer.reset();
+  m_bundleQueue->resetLast();
 }
 
 void BundleProcessor::restore(
     std::unique_ptr<BundleContainer> bundleContainer) {
   try {
+    m_bundleQueue->resetLast();
     m_bundleQueue->enqueue(std::move(bundleContainer));
   } catch (const DroppedBundleQueueException &e) {
     LOG(40) << e.what();
@@ -548,7 +545,7 @@ void BundleProcessor::restore(
 void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
   try {
     std::unique_ptr<BundleContainer> bundleContainer = std::unique_ptr<
-    BundleContainer>(new BundleContainer(data));
+        BundleContainer>(new BundleContainer(data));
     try {
       m_bundleQueue->enqueue(std::move(bundleContainer));
     } catch (const DroppedBundleQueueException &e) {
@@ -563,8 +560,5 @@ void BundleProcessor::restoreRawBundleContainer(const std::string &data) {
 void BundleProcessor::drop() {
 }
 
-bool BundleProcessor::inQueue(const std::string &bundleId) {
-  std::vector<std::string> bundles = getFilesInFolder(m_config.getDataPath());
-  auto it = find(bundles.begin(), bundles.end(), bundleId);
-  return (it != bundles.end());
+void BundleProcessor::processControl(BundleContainer &bundleContainer) {
 }

@@ -38,7 +38,8 @@ BundleQueue::BundleQueue(const std::string &trashPath,
       m_trashPath(trashPath),
       m_dropPath(dropPath),
       m_queueMaxByteSize(queueByteSize),
-      m_queueByteSize(0) {
+      m_queueByteSize(0),
+      m_lastBundleId("") {
 }
 
 BundleQueue::~BundleQueue() {
@@ -51,7 +52,8 @@ BundleQueue::BundleQueue(BundleQueue&& bc)
       m_trashPath(bc.m_trashPath),
       m_dropPath(bc.m_dropPath),
       m_queueMaxByteSize(bc.m_queueMaxByteSize),
-      m_queueByteSize(bc.m_queueByteSize) {
+      m_queueByteSize(bc.m_queueByteSize),
+      m_lastBundleId(bc.m_lastBundleId) {
 }
 
 void BundleQueue::wait_for(int time) {
@@ -67,15 +69,14 @@ void BundleQueue::wait_for(int time) {
 
 void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
   std::unique_lock<std::mutex> insertLock(m_insertMutex);
-  bool notExist = m_bundleIds.find(bundleContainer->getBundle().getId())
-      == m_bundleIds.end();
-  insertLock.unlock();
+  std::string bundleId = bundleContainer->getBundle().getId();
+  bool notExist = !(m_bundleIds.find(bundleId) != m_bundleIds.end()
+      || bundleId == m_lastBundleId);
   if (notExist) {
     // Check if by size it can be pushed
     uint64_t bundleSize = bundleContainer->getBundle().toRaw().length();
     if (m_queueByteSize + bundleSize <= m_queueMaxByteSize) {
       m_queueByteSize += bundleSize;
-      insertLock.lock();
       m_bundles.push_back(std::move(bundleContainer));
       m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
       insertLock.unlock();
@@ -83,25 +84,13 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
       ++m_count;
       m_conditionVariable.notify_one();
     } else {
-      std::ofstream bundleFile;
-      std::stringstream ss;
-      auto time = std::chrono::high_resolution_clock::now();
-      ss << m_dropPath << bundleContainer->getBundle().getId() << "_"
-         << time.time_since_epoch().count() << ".bundle";
-      bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-      bundleFile << bundleContainer->serialize();
-      bundleFile.close();
+      insertLock.unlock();
+      saveBundleToDisk(m_dropPath, *bundleContainer, true);
       throw DroppedBundleQueueException("[BundleQueue] Full queue");
     }
   } else {
-    std::ofstream bundleFile;
-    std::stringstream ss;
-    auto time = std::chrono::high_resolution_clock::now();
-    ss << m_trashPath << bundleContainer->getBundle().getId() << "_"
-       << time.time_since_epoch().count() << ".bundle";
-    bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
-    bundleFile << bundleContainer->serialize();
-    bundleFile.close();
+    insertLock.unlock();
+    saveBundleToDisk(m_trashPath, *bundleContainer, true);
     throw InBundleQueueException("[BundleQueue] Bundle already in queue");
   }
 }
@@ -112,6 +101,7 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
     std::unique_ptr<BundleContainer> bc = std::move(m_bundles.front());
     m_bundleIds.erase(bc->getBundle().getId());
     m_bundles.pop_front();
+    m_lastBundleId = bc->getBundle().getId();
     lock.unlock();
     m_queueByteSize -= bc->getBundle().getRaw().length();
     return bc;
@@ -123,3 +113,24 @@ std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
 uint32_t BundleQueue::getSize() {
   return m_bundles.size();
 }
+
+void BundleQueue::resetLast() {
+  m_lastBundleId = "";
+}
+
+void BundleQueue::saveBundleToDisk(const std::string &path,
+                                   BundleContainer &bundleContainer,
+                                   bool timestamp) {
+  std::ofstream bundleFile;
+  std::stringstream ss;
+  ss << path << bundleContainer.getBundle().getId();
+  if (timestamp) {
+    auto time = std::chrono::high_resolution_clock::now();
+    ss << "_" << time.time_since_epoch().count();
+  }
+  ss << ".bundle";
+  bundleFile.open(ss.str(), std::ofstream::out | std::ofstream::binary);
+  bundleFile << bundleContainer.serialize();
+  bundleFile.close();
+}
+
