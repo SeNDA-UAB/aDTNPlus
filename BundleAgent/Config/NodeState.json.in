@@ -15,7 +15,6 @@
   },
   "oppnetFlow" : {
       "active" : true,   
-      "controllerId" : "n1",
       "sprayandwait" : {
         "nrofCopies" : 10,
         "binaryMode" : true
@@ -23,7 +22,13 @@
       "metrics" : {
         "congestionWindow" : 5
       },  
-      "forwardingAlgorithm" : "sprayandwait"
+      "forwardingAlgorithm" : "sprayandwait",
+      "controlReportings" : {
+        "active" : true,
+        "controllers" : [{"id": "n1"}],
+        "frequency" : 5,
+      }
+      
   },
   "id" : "${hostname}"
 }
