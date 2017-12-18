@@ -28,7 +28,7 @@
 
 class ControlMetricsMEB : public MetadataExtensionBlock {
  public:
-  explicit ControlMetricsMEB(const uint16_t nDrops, const uint16_t nDelivered);
+  explicit ControlMetricsMEB(const uint32_t nDrops, const uint32_t nDelivered);
   /**
    * @brief Raw constructor.
    *

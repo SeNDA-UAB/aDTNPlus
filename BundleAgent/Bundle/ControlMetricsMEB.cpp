@@ -29,7 +29,7 @@
 
 
 
-ControlMetricsMEB::ControlMetricsMEB(const uint16_t nDrops, const uint16_t nDelivered)
+ControlMetricsMEB::ControlMetricsMEB(const uint32_t nDrops, const uint32_t nDelivered)
     : MetadataExtensionBlock(),
       m_nrOfDrops(nDrops),
       m_nrOfDelivered(nDelivered) {
@@ -63,8 +63,8 @@ std::string ControlMetricsMEB::toString() {
   std::stringstream ss;
   ss << "Control Metrics block:" << std::endl
      << MetadataExtensionBlock::toString() << "\tNumber of drops: "
-     << static_cast<uint32_t>(m_nrOfDrops) << std::endl
+     << m_nrOfDrops << std::endl
      << MetadataExtensionBlock::toString() << "\tNumber of delivered: "
-     << static_cast<uint32_t>(m_nrOfDelivered) << std::endl;
+     << m_nrOfDelivered << std::endl;
   return ss.str();
 }
