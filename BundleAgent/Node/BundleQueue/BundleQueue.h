@@ -25,7 +25,7 @@
 #define BUNDLEAGENT_NODE_BUNDLEQUEUE_BUNDLEQUEUE_H_
 
 #include <memory>
-#include <list>
+#include <deque>
 #include <string>
 #include <exception>
 #include <mutex>
@@ -114,12 +114,12 @@ class BundleQueue {
   /**
    * List that holds the container bundles.
    */
-  std::list<std::unique_ptr<BundleContainer>> m_bundles;
+  std::deque<std::unique_ptr<BundleContainer>> m_bundles;
   /**
    * Map to check if a id already exists in the queue.
    */
   std::unordered_map<std::string,
-      std::list<std::unique_ptr<BundleContainer>>::reverse_iterator> m_bundleIds;
+      std::deque<std::unique_ptr<BundleContainer>>::difference_type> m_bundleIds;
   /**
    * Mutex for the condition variable.
    */

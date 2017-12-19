@@ -78,7 +78,8 @@ void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
     if (m_queueByteSize + bundleSize <= m_queueMaxByteSize) {
       m_queueByteSize += bundleSize;
       m_bundles.push_back(std::move(bundleContainer));
-      m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.rbegin();
+      m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.end() - 
+                                m_bundles.begin() - 1;
       insertLock.unlock();
       std::unique_lock<std::mutex> lck(m_mutex);
       ++m_count;
