@@ -138,6 +138,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   ForwardingAlgorithmFactory m_forwardingAlgorithmFactory;
 
  private:
+  std::string m_lastControlMetricsId;
   /**
    * Removes the bundle from disk.
    * @param bundleID the ID of the bundle.
@@ -170,12 +171,49 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   class NodeNetworkMetrics{
    public:
+    NodeNetworkMetrics();
+    virtual ~NodeNetworkMetrics();
     std::atomic<uint32_t> m_nrofDrops;
     std::atomic<uint32_t> m_nrofDelivered;
     void addDrop();
     void addDelivered();
     std::string toString();
+    void reset();
   } m_networkMetrics;
+
+  /**
+   * Wrapper that holds control state variables
+   */
+  class ControlState{
+   public:
+    ControlState();
+    ControlState(NodeStateJson& nodeStateJson);
+    virtual ~ControlState();
+    bool isControlReportingActive();
+
+    /**
+     * Flag to indicate whether the control handling is activated or not.
+     */
+    bool m_active;
+
+    /**
+     * Flag to indicate whether the node belongs to the controllers groupID
+     */
+    bool m_joinedAsAController;
+
+    /**
+     * Identifier of the controllers group ID.
+     */
+    std::string m_controllersGroupId;
+
+    /**
+     * Identifier of the last control bundle generated.
+     */
+    std::string m_bundleId;
+
+    uint16_t m_reportFrequency;
+
+  } m_controlState;
 
   /**
     * Exception launched when it is not possible to delete a bundle from disk

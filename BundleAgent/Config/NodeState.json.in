@@ -22,13 +22,14 @@
       "metrics" : {
         "congestionWindow" : 5
       },  
-      "forwardingAlgorithm" : "sprayandwait",
+      "forwardingAlgorithm" : "sprayandwait",      
       "controlReportings" : {
         "active" : true,
-        "controllers" : [{"id": "n1"}],
+        "controllersGroupId" : "n1",
         "frequency" : 5,
-      }
+      },
       
+      "joinedAsAController" : false,      
   },
   "id" : "${hostname}"
 }

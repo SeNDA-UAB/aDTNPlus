@@ -77,12 +77,22 @@ const char*  OppnetFlowBundleProcessor::RemoveBundleFromDiskException::what() co
 }
 
 
+OppnetFlowBundleProcessor::NodeNetworkMetrics::NodeNetworkMetrics() :
+  m_nrofDrops(0), m_nrofDelivered(0){}
+
+OppnetFlowBundleProcessor::NodeNetworkMetrics::~NodeNetworkMetrics(){}
+
 void OppnetFlowBundleProcessor::NodeNetworkMetrics::addDrop(){
   m_nrofDrops++;
 }
 
 void OppnetFlowBundleProcessor::NodeNetworkMetrics::addDelivered(){
   m_nrofDelivered++;
+}
+
+void OppnetFlowBundleProcessor::NodeNetworkMetrics::reset(){
+  m_nrofDrops = 0;
+  m_nrofDelivered = 0;
 }
 
 std::string OppnetFlowBundleProcessor::NodeNetworkMetrics::toString(){
@@ -92,6 +102,25 @@ std::string OppnetFlowBundleProcessor::NodeNetworkMetrics::toString(){
   ss << "nrofDelivered: " << m_nrofDelivered << std::endl;
 
   return ss.str();
+}
+
+OppnetFlowBundleProcessor::ControlState::ControlState(){}
+
+OppnetFlowBundleProcessor::ControlState::ControlState(
+    NodeStateJson& nodeState) {
+  m_active =
+      static_cast<bool>(nodeState["oppnetFlow"]["controlReportings"]["active"]);
+  m_controllersGroupId =
+      nodeState["oppnetFlow"]["controlReportings"]["controllersGroupId"];
+  m_joinedAsAController =
+      static_cast<bool>(nodeState["oppnetFlow"]["joinedAsAController"]);
+  m_reportFrequency = nodeState["oppnetFlow"]["controlReportings"]["frequency"];
+}
+
+OppnetFlowBundleProcessor::ControlState::~ControlState(){}
+
+bool OppnetFlowBundleProcessor::ControlState::isControlReportingActive(){
+  return m_active;
 }
 
 void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
@@ -112,6 +141,8 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
   std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
       std::move(bundle_ptr));
 
+  m_controlState.m_bundleId = bundle_ptr->getId();
+  bc_ptr->getState()["controlReporter"] = true;
   bundle_ptr->addBlock(
       std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
   m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
@@ -128,7 +159,7 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
 }
 
 void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
-  uint32_t sleepTime = m_nodeState["oppnetFlow"]["controlReportings"]["frequency"];
+  uint32_t sleepTime = m_controlState.m_reportFrequency;
   g_startedThread++;
 
   LOG(14) << "Creating reportingNetworkMetrics thread";
@@ -137,6 +168,7 @@ void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
     LOG(55) << "[OppnetFlowProcessor] " <<
         "Sending network control metrics: " << m_networkMetrics.toString();
     sendNetworkMetrics();
+    m_networkMetrics.reset();
   }//end while true loop
   LOG(14) << "Exit reportingNetworkMetrics thread.";
   g_stopped++;
@@ -170,11 +202,14 @@ void OppnetFlowBundleProcessor::start(
       LOG(15) << "no nodeState ";
       g_stop = true;
     }
-
+    m_controlState = OppnetFlowBundleProcessor::ControlState(m_nodeState);
+    if (m_controlState.isControlReportingActive()){
+      scheduleReportingNetworkMetrics();
+    }
   } else {
     LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
   }
-  scheduleReportingNetworkMetrics();
+
 
 }
 
@@ -193,8 +228,8 @@ std::vector<std::string> OppnetFlowBundleProcessor::checkDispatch(
 bool OppnetFlowBundleProcessor::checkLifetime(
     BundleContainer &bundleContainer) {
   BundleInfo bi(bundleContainer.getBundle());
-  if (bi.getLifetime()
-      < (time(NULL) - g_timeFrom2000 - bi.getCreationTimestamp()))
+  if ((bi.getLifetime()
+      < (time(NULL) - g_timeFrom2000 - bi.getCreationTimestamp())))
     return true;
   else
     return false;
