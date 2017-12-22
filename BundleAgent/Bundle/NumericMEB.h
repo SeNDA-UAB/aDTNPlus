@@ -31,10 +31,17 @@
 #include <string>
 #include <sstream>
 
-class Code;
 
 class NumericMEB : public MetadataExtensionBlock{
  public:
+
+  enum class Code : uint8_t {
+    NROFCOPIES = 0x01,
+    CTRL_REPORT_FREQUENCY = 0x02,
+    NOFDROPS = 0x03,
+    NROFDELIVERIES = 0x04
+  };
+
   explicit NumericMEB(uint8_t numberOfFields, Code *codes, uint64_t *values);
   NumericMEB(const std::string& rawData);
   virtual ~NumericMEB();
@@ -46,12 +53,7 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   virtual std::string toString() = 0;
 
-  enum class Code : uint8_t {
-    NROFCOPIES = 0x01,
-    CTRL_REPORT_FREQUENCY = 0x02,
-    NOFDROPS = 0x03,
-    NROFDELIVERIES = 0x04
-  };
+
 
  protected:
 
@@ -65,28 +67,6 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   std::stringstream m_ss_rawData;
 
-  /**
-   * Array with the codes of the fields
-   */
-  Code m_codes[];
-
-  /**
-   * Array with the values of the fields.
-   */
-  uint64_t m_values[];
-
-
-  /**
-   * This method has to be called from the constructor of the meb.
-   * It stores in the MEB the number of fields, all the fields and its values
-   * and sets the variable m_metadata with an string representation of the
-   * popullated MEB.
-   * @param codes[] an array with all the codes to be inserted in the meb
-   * @param values[] an array with all the values related to the codes to be
-   * inserted
-   */
-  void init(Code codes[], uint64_t values[]);
-
 
   /**
    * Returns the MedataType of the MEB
@@ -94,9 +74,12 @@ class NumericMEB : public MetadataExtensionBlock{
   virtual MetadataTypes getMetadataType() = 0;
 
  private:
+  /**
+   * Adds a new field to the metadataString.
+   * @param code the code of the field.
+   * @param value the value of the field.
+   */
   void addField(Code code, uint64_t value);
-
-
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_NUMERICMEB_H_
