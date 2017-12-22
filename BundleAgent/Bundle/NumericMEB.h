@@ -42,7 +42,7 @@ class NumericMEB : public MetadataExtensionBlock{
     NROFDELIVERIES = 0x04
   };
 
-  explicit NumericMEB(uint8_t numberOfFields, Code *codes, uint64_t *values);
+  explicit NumericMEB(MetadataTypes mebType, uint8_t numberOfFields, Code *codes, uint64_t *values);
   NumericMEB(const std::string& rawData);
   virtual ~NumericMEB();
 
@@ -67,11 +67,6 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   std::stringstream m_ss_rawData;
 
-
-  /**
-   * Returns the MedataType of the MEB
-   */
-  virtual MetadataTypes getMetadataType() = 0;
 
  private:
   /**

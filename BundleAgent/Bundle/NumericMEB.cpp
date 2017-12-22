@@ -27,12 +27,12 @@
 #include <sstream>
 
 
-NumericMEB::NumericMEB(uint8_t numberOfFields, NumericMEB::Code *codes, uint64_t *values)
+NumericMEB::NumericMEB(MetadataTypes mebType, uint8_t numberOfFields, NumericMEB::Code *codes, uint64_t *values)
     : MetadataExtensionBlock(),
       m_nrofFields(numberOfFields) {
 
   m_ss_rawData << SDNV::encode(m_nrofFields);
-  m_metadataType = static_cast<uint8_t>(getMetadataType());
+  m_metadataType = static_cast<uint8_t>(mebType);
   for(int i=0; i < m_nrofFields; i++){
     addField(codes[i], values[i]);
   }
