@@ -24,13 +24,16 @@
 #ifndef BUNDLEAGENT_CONTROLDIRECTIVEMEB_H_
 #define BUNDLEAGENT_CONTROLDIRECTIVEMEB_H_
 
+#include <Bundle/NumericMEB.h>
 #include "Bundle/MetadataExtensionBlock.h"
+#include <sstream>
 
-class ControlDirectiveMEB : public MetadataExtensionBlock {
+
+
+class ControlDirectiveMEB : public NumericMEB {
  public:
-  explicit ControlDirectiveMEB(uint16_t nrOfCopies);
-  explicit ControlDirectiveMEB(const std::string &rawData);
-
+  ControlDirectiveMEB(uint8_t numberOfFields, Code *codes, uint64_t *values);
+  ControlDirectiveMEB(const std::string &rawData);
   virtual ~ControlDirectiveMEB();
 
   /**
@@ -40,11 +43,24 @@ class ControlDirectiveMEB : public MetadataExtensionBlock {
    */
   std::string toString();
 
- private:
+ protected:
   /**
-   * Number of copies allowed in the network: L.
+   * The max number of copies of the bundle that can be in the network.
    */
-  uint16_t m_nrofCopies;
+  uint8_t m_nrofCopies;
+
+  /**
+   * The frequency in ms the node has to report to the controller the
+   * gathered statistics.
+   */
+  uint32_t m_ctl_reportFrequency;
+
+
+  /**
+   * Returns the MedataType of the MEB
+   */
+  virtual MetadataTypes getMetadataType();
+
 };
 
 #endif  // BUNDLEAGENT_CONTROLDIRECTIVEMEB_H_

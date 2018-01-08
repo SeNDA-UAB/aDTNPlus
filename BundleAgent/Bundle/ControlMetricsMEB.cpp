@@ -21,6 +21,7 @@
  * VERSION 1
  *
  */
+#include "Bundle/NumericMEB.h"
 #include "Bundle/ControlMetricsMEB.h"
 #include "Utils/SDNV.h"
 #include <cstdint>
@@ -29,26 +30,32 @@
 
 
 
-ControlMetricsMEB::ControlMetricsMEB(const uint32_t nDrops, const uint32_t nDelivered)
-    : MetadataExtensionBlock(),
-      m_nrOfDrops(nDrops),
-      m_nrOfDelivered(nDelivered) {
-  std::stringstream ss;
+ControlMetricsMEB::ControlMetricsMEB(uint8_t numberOfFields, Code *codes, uint64_t *values)
+    : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB, numberOfFields, codes, values) {
 
-  m_metadataType = static_cast<uint8_t>(MetadataTypes::CONTROL_METRICS_MEB);
-  ss << SDNV::encode(m_nrOfDrops);
-  ss << SDNV::encode(m_nrOfDelivered);
-  m_metadata = ss.str();
 }
 
 ControlMetricsMEB::ControlMetricsMEB(const std::string& rawData)
-    : MetadataExtensionBlock(rawData) {
+    : NumericMEB(rawData) {
   std::string metadata = m_metadata;
   try {
-    m_nrOfDrops = SDNV::decode(metadata);
+    m_nrofFields = SDNV::decode(metadata);
     metadata = metadata.substr(SDNV::getLength(metadata));
-    m_nrOfDelivered = SDNV::decode(metadata);
-    metadata = metadata.substr(SDNV::getLength(metadata));
+    for (int i = 0; i < m_nrofFields; i++) {
+      Code code = static_cast<Code>(SDNV::decode(metadata));
+      metadata = metadata.substr(SDNV::getLength(metadata));
+      switch (code) {
+        case NumericMEB::Code::NOFDROPS:
+          m_nrOfDrops = SDNV::decode(metadata);
+          break;
+        case NumericMEB::Code::NROFDELIVERIES:
+          m_nrOfDelivered = SDNV::decode(metadata);
+          break;
+        default:
+          throw std::invalid_argument("Code");
+      }
+      metadata = metadata.substr(SDNV::getLength(metadata));
+    }
   } catch (const std::invalid_argument& e) {
     throw BlockConstructionException(
         "[ControlMetricsMEB] decode from raw error");
@@ -67,4 +74,8 @@ std::string ControlMetricsMEB::toString() {
      << MetadataExtensionBlock::toString() << "\tNumber of delivered: "
      << m_nrOfDelivered << std::endl;
   return ss.str();
+}
+
+MetadataTypes ControlMetricsMEB::getMetadataType() {
+  return MetadataTypes::CONTROL_METRICS_MEB;
 }

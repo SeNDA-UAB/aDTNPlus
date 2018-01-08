@@ -24,11 +24,13 @@
 #ifndef BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 #define BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 
+#include <Bundle/NumericMEB.h>
 #include "MetadataExtensionBlock.h"
+#include <sstream>
 
-class ControlMetricsMEB : public MetadataExtensionBlock {
+class ControlMetricsMEB : public NumericMEB {
  public:
-  explicit ControlMetricsMEB(const uint32_t nDrops, const uint32_t nDelivered);
+  explicit ControlMetricsMEB(uint8_t numberOfFields, Code *codes, uint64_t *values);
   /**
    * @brief Raw constructor.
    *
@@ -57,6 +59,11 @@ class ControlMetricsMEB : public MetadataExtensionBlock {
    * Number of messages received and I am the final destination.
    */
   uint32_t m_nrOfDelivered;
+
+  /**
+   * Returns the MedataType of the MEB
+   */
+  MetadataTypes getMetadataType();
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
