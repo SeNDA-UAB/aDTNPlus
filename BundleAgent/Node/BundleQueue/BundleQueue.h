@@ -29,9 +29,15 @@
 #include <string>
 #include <exception>
 #include <mutex>
+#include <algorithm>
+#include <numeric>
+#include <vector>
 #include <condition_variable>
 #include <chrono>
-#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#include "Bundle/BundleInfo.h"
+#include "Node/BundleQueue/BundleContainer.h"
 
 class EmptyBundleQueueException : public std::runtime_error {
  public:
@@ -54,7 +60,11 @@ class InBundleQueueException : public std::runtime_error {
   }
 };
 
-class BundleContainer;
+struct compare {
+  bool operator()(const BundleInfo& a, const BundleInfo& b) const {
+    return (a.getCreationTimestamp() < b.getCreationTimestamp());
+  }
+};
 
 /**
  * CLASS BundleQueue
@@ -76,10 +86,82 @@ class BundleQueue {
   BundleQueue(BundleQueue&& bc);
   /**
    * Enqueues a bundle container to the queue.
+   * It has a drop policy. By default the old one, but can be changed with the
+   * comp parameter. The policy will drop all the needed elements in order of
+   * small to big (or from first to last) so the comp has to take this in account.
    *
    * @param bundleContainer the bundle container to add to the queue.
+   * @param comp Binary function that accepts two elements in the range as
+   *             arguments, and returns a value convertible to bool.
+   *             The value returned indicates whether the element passed as
+   *             first argument is considered to go before the second in the
+   *             specific strict weak ordering it defines.
+   *             This can either be a function pointer or a function object.
    */
-  void enqueue(std::unique_ptr<BundleContainer> bundleContainer);
+  template<class T = compare>
+  void enqueue(std::unique_ptr<BundleContainer> bundleContainer, T comp = T()) {
+    std::unique_lock<std::mutex> insertLock(m_insertMutex);
+    BundleInfo bi = BundleInfo(bundleContainer->getBundle());
+    // Check if the bundle currently exist in the queue
+    bool notExist = !(m_bundleIds.find(bi.getId()) != m_bundleIds.end()
+        || bi.getId() == m_lastBundleId);
+    if (notExist) {
+      // Check if by size it can be pushed
+      if (m_queueByteSize + bi.getSize() <= m_queueMaxByteSize) {
+        m_queueByteSize += bi.getSize();
+        m_bundles.push_back(std::move(bundleContainer));
+        m_bundleIds.insert(bi.getId());
+        insertLock.unlock();
+        std::unique_lock<std::mutex> lck(m_mutex);
+        ++m_count;
+        m_conditionVariable.notify_one();
+      } else {
+        // Check if the bundle is biggest than the queue
+        if (bi.getSize() > m_queueMaxByteSize) {
+          insertLock.unlock();
+          saveBundleToDisk(m_dropPath, *bundleContainer, true);
+          throw DroppedBundleQueueException(
+              "[BundleQueue] Bundle larger than queue.");
+        }
+        // The bundle can fit in the queue, so order the bundles as the policy
+        std::deque<BundleInfo> toOrder;
+        std::deque<int> order(m_bundles.size(), 0);
+        std::iota(order.begin(), order.end(), 0);
+        // create an order deque, that will be sort with the policy
+        for (auto &ptr : m_bundles) {
+          toOrder.push_back(BundleInfo(ptr->getBundle()));
+        }
+        std::sort(order.begin(), order.end(),
+                  indexGenerator<std::deque<BundleInfo>, T>(toOrder, comp));
+        uint64_t accumulatedSize = m_queueByteSize;
+        std::vector<int> toRemove;
+        // Remove the n elements needed to make space for the new one
+        while ((m_queueMaxByteSize - accumulatedSize) < bi.getSize()) {
+          accumulatedSize -= toOrder[order.front()].getSize();
+          toRemove.push_back(order.front());
+          order.pop_front();
+        }
+        std::sort(toRemove.begin(), toRemove.end(), std::greater<int>());
+        for (auto i : toRemove) {
+          std::string bundleId = m_bundles[i]->getBundle().getId();
+          m_bundleIds.erase(bundleId);
+          saveBundleToDisk(m_dropPath, *m_bundles[i], true);
+          m_bundles.erase(m_bundles.begin() + i);
+        }
+        m_queueByteSize -= bi.getSize();
+        m_bundles.push_back(std::move(bundleContainer));
+        m_bundleIds.insert(bi.getId());
+        insertLock.unlock();
+        std::unique_lock<std::mutex> lck(m_mutex);
+        ++m_count;
+        m_conditionVariable.notify_one();
+      }
+    } else {
+      insertLock.unlock();
+      saveBundleToDisk(m_trashPath, *bundleContainer, true);
+      throw InBundleQueueException("[BundleQueue] Bundle already in queue");
+    }
+  }
   /**
    * Dequeues a bundle container from the queue.
    * The bundle dequeued is removed from the container.
@@ -111,6 +193,22 @@ class BundleQueue {
                         bool timestamp = false);
 
  private:
+
+  template<class T, class F>
+  class indexGenerator {
+   public:
+    explicit indexGenerator(const T array, const F compare)
+        : m_array(array),
+          m_compare(compare) {
+    }
+    bool operator()(const size_t a, const size_t b) const {
+      return m_compare(m_array[a], m_array[b]);
+    }
+   private:
+    const T m_array;
+    const F m_compare;
+  };
+
   /**
    * List that holds the container bundles.
    */
@@ -118,8 +216,7 @@ class BundleQueue {
   /**
    * Map to check if a id already exists in the queue.
    */
-  std::unordered_map<std::string,
-      std::deque<std::unique_ptr<BundleContainer>>::difference_type> m_bundleIds;
+  std::unordered_set<std::string> m_bundleIds;
   /**
    * Mutex for the condition variable.
    */

@@ -27,8 +27,12 @@
 #include <sstream>
 #include <chrono>
 #include <string>
+#include <deque>
+#include <numeric>
+#include <algorithm>
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Bundle/Bundle.h"
+#include "Bundle/BundleInfo.h"
 
 BundleQueue::BundleQueue(const std::string &trashPath,
                          const std::string &dropPath,
@@ -65,35 +69,6 @@ void BundleQueue::wait_for(int time) {
     }
   }
   --m_count;
-}
-
-void BundleQueue::enqueue(std::unique_ptr<BundleContainer> bundleContainer) {
-  std::unique_lock<std::mutex> insertLock(m_insertMutex);
-  std::string bundleId = bundleContainer->getBundle().getId();
-  bool notExist = !(m_bundleIds.find(bundleId) != m_bundleIds.end()
-      || bundleId == m_lastBundleId);
-  if (notExist) {
-    // Check if by size it can be pushed
-    uint64_t bundleSize = bundleContainer->getBundle().toRaw().length();
-    if (m_queueByteSize + bundleSize <= m_queueMaxByteSize) {
-      m_queueByteSize += bundleSize;
-      m_bundles.push_back(std::move(bundleContainer));
-      m_bundleIds[m_bundles.back()->getBundle().getId()] = m_bundles.end() - 
-                                m_bundles.begin() - 1;
-      insertLock.unlock();
-      std::unique_lock<std::mutex> lck(m_mutex);
-      ++m_count;
-      m_conditionVariable.notify_one();
-    } else {
-      insertLock.unlock();
-      saveBundleToDisk(m_dropPath, *bundleContainer, true);
-      throw DroppedBundleQueueException("[BundleQueue] Full queue");
-    }
-  } else {
-    insertLock.unlock();
-    saveBundleToDisk(m_trashPath, *bundleContainer, true);
-    throw InBundleQueueException("[BundleQueue] Bundle already in queue");
-  }
 }
 
 std::unique_ptr<BundleContainer> BundleQueue::dequeue() {
@@ -134,4 +109,3 @@ void BundleQueue::saveBundleToDisk(const std::string &path,
   bundleFile << bundleContainer.serialize();
   bundleFile.close();
 }
-

@@ -48,38 +48,72 @@ class BundleInfo {
    * Returns the id of the bundle.
    * @return The id.
    */
-  std::string getId();
+  std::string getId() const;
   /**
    * Returns the destination of the bundle.
    * @return The destination.
    */
-  std::string getDestination();
+  std::string getDestination() const;
   /**
    * Returns the source of the bundle.
    * @return The source.
    */
-  std::string getSource();
+  std::string getSource() const;
   /**
    * Returns the timestamp of the bundle.
    * @return The creation timestamp.
    */
-  uint64_t getCreationTimestamp();
+  uint64_t getCreationTimestamp() const;
   /**
    * Returns the timestamp sequence number of the bundle.
    * @return The timestamp sequence number.
    */
-  uint64_t getCreationTimestampSeqNumber();
+  uint64_t getCreationTimestampSeqNumber() const;
   /**
    * Returns the lifetime of the bundle.
    * @return The lifetime.
    */
-  uint64_t getLifetime();
+  uint64_t getLifetime() const;
+  /**
+   * Returns the seconds that the bundle has of life.
+   * @return The time to life
+   */
+  uint64_t getCurrentLifetime() const;
+  /**
+   * Returns the size of the bundle in bytes.
+   * @return The bytes size
+   */
+  uint64_t getSize() const;
 
  private:
   /**
-   * The bundle that holds the data.
+   * Variable to hold the bundle id.
    */
-  Bundle m_bundle;
+  std::string m_id;
+  /**
+   * Variable to hold the destination.
+   */
+  std::string m_destination;
+  /**
+   * Variable to hold the source
+   */
+  std::string m_source;
+  /**
+   * Variable to hold the creation timestamp.
+   */
+  uint64_t m_creationTimestamp;
+  /**
+   * Variable to hold the creation timestamp sequence.
+   */
+  uint64_t m_creationTimestampSeqNumber;
+  /**
+   * Variable to hold the lifetime.
+   */
+  uint64_t m_lifetime;
+  /**
+   * Variable to hold the bundle size.
+   */
+  uint64_t m_size;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLEINFO_H_
