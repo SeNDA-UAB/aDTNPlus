@@ -27,6 +27,7 @@
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/ControlMetricsMEB.h"
+#include "Bundle/ControlDirectiveMEB.h"
 #include "ExternTools/json/json.hpp"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
@@ -109,18 +110,24 @@ OppnetFlowBundleProcessor::ControlState::ControlState(){}
 OppnetFlowBundleProcessor::ControlState::ControlState(
     NodeStateJson& nodeState) {
   m_active =
-      static_cast<bool>(nodeState["oppnetFlow"]["controlReportings"]["active"]);
+      static_cast<bool>(nodeState["oppnetFlow"]["control"]["controlReportings"]["active"]);
   m_controllersGroupId =
-      nodeState["oppnetFlow"]["controlReportings"]["controllersGroupId"];
+      nodeState["oppnetFlow"]["control"]["controllersGroupId"];
   m_joinedAsAController =
-      static_cast<bool>(nodeState["oppnetFlow"]["joinedAsAController"]);
-  m_reportFrequency = nodeState["oppnetFlow"]["controlReportings"]["frequency"];
+      static_cast<bool>(nodeState["oppnetFlow"]["control"]["joinedAsAController"]);
+  m_reportFrequency =
+      nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
+
 }
 
 OppnetFlowBundleProcessor::ControlState::~ControlState(){}
 
 bool OppnetFlowBundleProcessor::ControlState::isControlReportingActive(){
   return m_active;
+}
+
+bool OppnetFlowBundleProcessor::ControlState::isJoinedAsAController() const {
+  return m_joinedAsAController;
 }
 
 void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
@@ -134,7 +141,7 @@ void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
 
 void OppnetFlowBundleProcessor::sendNetworkMetrics() {
   std::unique_ptr<Bundle> bundle_ptr(
-      new Bundle(m_nodeState["id"], m_nodeState["controllerId"], ""));
+      new Bundle(m_nodeState["id"], m_controlState.m_controllersGroupId, ""));
   std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
       new ControlMetricsMEB(m_networkMetrics.m_nrofDrops,
                             m_networkMetrics.m_nrofDelivered));
@@ -147,7 +154,12 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
       std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
   m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
 
-  //modificar la varible al json m_state per indicar que és un bundle de control meu.
+  //modificar la varible al json m_state per indicar que és un bundle de control.
+  //setejar una altra variable al m_state amd el ID d'aquest últim bundle de control.
+  //Els bundles de control que tinguin un ID diferent s'han de descartar.
+  //Per a descartar un bundle caducat: La funció Lifetime ha de tornar false
+  //si bundle caducat. Un bundle està caducat si el darrer id en el m_state no
+  //coincideix amb el seu.
   try {
     m_bundleQueue->enqueue(std::move(bc_ptr));
     removeBundleFromDisk(bundle_ptr->getId());
@@ -209,12 +221,18 @@ void OppnetFlowBundleProcessor::start(
   } else {
     LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
   }
-
-
 }
 
 void OppnetFlowBundleProcessor::drop(){
   m_networkMetrics.addDrop();
+}
+
+void processControl(BundleContainer &bundleContainer) {
+  std::shared_ptr<ControlDirectiveMEB> controlMEB = std::static_pointer_cast<
+      ControlDirectiveMEB>(
+      OppnetFlowBundleProcessor::findMetadataExtensionBlock(
+          MetadataTypes::CONTROL_DIRECTIVE_MEB, bundleContainer.getBundle()));
+
 }
 
 std::vector<std::string> OppnetFlowBundleProcessor::checkDispatch(
@@ -346,7 +364,7 @@ std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContaine
     std::unique_ptr<Bundle> bundle) {
   return std::unique_ptr<BundleContainer>(
       new BundleContainer(std::move(bundle)));
-  //Afegir varible al json m_state per indicar que és un bundle qeu no és de control.
+  //Afegir varible al json m_state per indicar que és un bundle que no és de control.
   //default value
 }
 

@@ -128,6 +128,13 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   virtual void drop();
 
   /**
+   * Function to execute code control when a new bundle is received.
+   *
+   * @param bundleContainer The bundle received.
+   */
+  void processControl(BundleContainer &bundleContainer);
+
+  /**
    * Variable that holds the parameters used in the processor calls.
    */
   NodeStateJson m_nodeState;
@@ -138,7 +145,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   ForwardingAlgorithmFactory m_forwardingAlgorithmFactory;
 
  private:
-  std::string m_lastControlMetricsId;
+
   /**
    * Removes the bundle from disk.
    * @param bundleID the ID of the bundle.
@@ -182,7 +189,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   } m_networkMetrics;
 
   /**
-   * Wrapper that holds control state variables
+   * Wrapper that holds the control state variables in the nodeState Json.
    */
   class ControlState{
    public:
@@ -190,6 +197,11 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
     ControlState(NodeStateJson& nodeStateJson);
     virtual ~ControlState();
     bool isControlReportingActive();
+    bool hasJoinedAsAController();
+    bool isJoinedAsAController() const;
+
+
+
 
     /**
      * Flag to indicate whether the control handling is activated or not.
@@ -211,7 +223,18 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
      */
     std::string m_bundleId;
 
+    /**
+     * Time between the reportings
+     */
     uint16_t m_reportFrequency;
+
+    /**
+     * The ID of the last generated control bundle
+     */
+    std::string lastControlBundleId;
+
+
+
 
   } m_controlState;
 
