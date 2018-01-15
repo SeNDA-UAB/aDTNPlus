@@ -40,10 +40,11 @@
  */
 TEST(ListeningEndpointsTableTest, AddAndRemove) {
   ListeningEndpointsTable* lat = new ListeningEndpointsTable();
-  lat->update("endpoint1",
-              std::make_shared<Endpoint>("app1", "192.168.1.1", 40000, 1));
+  lat->update(
+      "endpoint1",
+      std::make_shared<Endpoint>("app1", "192.168.1.1", 40000, Socket(1)));
   std::vector<std::shared_ptr<Endpoint>> endp { std::make_shared<Endpoint>(
-      "app1", "192.168.1.1", 40000, 1) };
+      "app1", "192.168.1.1", 40000, Socket(1)) };
   // Get the neighbours
   auto endpoints = lat->getValues();
   // Check neighbours
@@ -66,14 +67,17 @@ TEST(ListeningEndpointsTableTest, AddAndRemove) {
  */
 TEST(ListeningEndpointsTableTest, AddAndRemoveMore) {
   ListeningEndpointsTable* lat = new ListeningEndpointsTable();
-  lat->update("endpoint1",
-              std::make_shared<Endpoint>("100", "192.168.1.1", 40100, 1));
+  lat->update(
+      "endpoint1",
+      std::make_shared<Endpoint>("100", "192.168.1.1", 40100, Socket(1)));
   sleep(1);
-  lat->update("endpoint2",
-              std::make_shared<Endpoint>("101", "192.168.1.1", 40101, 2));
+  lat->update(
+      "endpoint2",
+      std::make_shared<Endpoint>("101", "192.168.1.1", 40101, Socket(2)));
   sleep(1);
-  lat->update("endpoint3",
-              std::make_shared<Endpoint>("102", "192.168.1.1", 40102, 3));
+  lat->update(
+      "endpoint3",
+      std::make_shared<Endpoint>("102", "192.168.1.1", 40102, Socket(3)));
   auto endpoints = lat->getValues();
   ASSERT_EQ(static_cast<size_t>(3), endpoints.size());
   ASSERT_EQ(40100, lat->getValue("endpoint1")[0]->getPort());
@@ -89,18 +93,19 @@ TEST(ListeningEndpointsTableTest, AddAndRemoveMore) {
             lat->getValue("endpoint3")[0]->getPort());
   lat->clean(1);
   endpoints.clear();
-  lat->update("endpoint2",
-              std::make_shared<Endpoint>("endpoint2", "192.168.1.1", 40105, 3));
+  lat->update(
+      "endpoint2",
+      std::make_shared<Endpoint>("endpoint2", "192.168.1.1", 40105, Socket(3)));
   endpoints = lat->getValues();
   // ASSERT_EQ(static_cast<size_t>(1), endpoints.size());
   /*ASSERT_EQ(static_cast<uint16_t>(40105),
-            lat->getValue("endpoint2")[0]->getPort());
-  endpoints.clear();
-  lat->update("endpoint2",
-              std::make_shared<Endpoint>("app1", "192.168.1.102", 40105, 3));
-  endpoints = lat->getValues();
-  // ASSERT_EQ(static_cast<size_t>(1), endpoints.size());
-  ASSERT_EQ("192.168.1.102", lat->getValue("endpoint2")[1]->getAddress());
-  delete lat;*/
+   lat->getValue("endpoint2")[0]->getPort());
+   endpoints.clear();
+   lat->update("endpoint2",
+   std::make_shared<Endpoint>("app1", "192.168.1.102", 40105, 3));
+   endpoints = lat->getValues();
+   // ASSERT_EQ(static_cast<size_t>(1), endpoints.size());
+   ASSERT_EQ("192.168.1.102", lat->getValue("endpoint2")[1]->getAddress());
+   delete lat;*/
 }
 

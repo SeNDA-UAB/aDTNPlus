@@ -5,6 +5,7 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Utils/SDNV.cpp
   Utils/TimestampManager.cpp
   Utils/Json.cpp
+  Utils/Socket.cpp
   PARENT_SCOPE
 )
 

@@ -29,6 +29,7 @@
 #include <chrono>
 #include <memory>
 #include <unordered_set>
+#include "Utils/Socket.h"
 
 /**
  * CLASS Endpoint.
@@ -46,7 +47,7 @@ class Endpoint {
    * @param endpointPort the port of the endpoint.
    */
   Endpoint(const std::string &endpointId, const std::string &endpointAddress,
-      const uint16_t &endpointPort, const int &socket);
+      const uint16_t &endpointPort, Socket socket);
   /**
    * Destructor of the class.
    */
@@ -70,7 +71,7 @@ class Endpoint {
    * Gets the socket used to communicate.
    * @return The socket.
    */
-  int getSocket();
+  Socket getSocket();
   /**
    * Returns the elapsed time since the last activity.
    *
@@ -110,7 +111,7 @@ class Endpoint {
   /**
    * Socket of communication.
    */
-  int m_socket;
+  Socket m_socket;
   /**
    * Set of delivered bundle id, to calculate aggregation.
    */

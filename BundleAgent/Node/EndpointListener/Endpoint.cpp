@@ -27,9 +27,10 @@
 #include <cstdint>
 #include <chrono>
 #include "Utils/Logger.h"
+#include "Utils/Socket.h"
 
 Endpoint::Endpoint(const std::string &endpointId, const std::string &endpointAddress,
-         const uint16_t &endpointPort, const int &socket)
+         const uint16_t &endpointPort, Socket socket)
     : m_id(endpointId),
       m_address(endpointAddress),
       m_port(endpointPort),
@@ -78,7 +79,7 @@ uint16_t Endpoint::getPort() {
   return m_port;
 }
 
-int Endpoint::getSocket() {
+Socket Endpoint::getSocket() {
   return m_socket;
 }
 

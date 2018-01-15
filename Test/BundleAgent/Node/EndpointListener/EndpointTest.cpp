@@ -30,7 +30,7 @@
  * Generate a endpoint and check the fields.
  */
 TEST(EndpointTest, Constructor) {
-  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 1);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, Socket(1));
   ASSERT_EQ("node100", a.getId());
   ASSERT_EQ("192.168.1.2", a.getAddress());
   ASSERT_EQ(40000, a.getPort());
@@ -42,11 +42,11 @@ TEST(EndpointTest, Constructor) {
  * After that update the endpoint and check that the activity time is 0.
  */
 TEST(EndpointTest, Activity) {
-  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 2);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, Socket(2));
   ASSERT_EQ(0, a.getElapsedActivityTime());
   sleep(2);
   ASSERT_EQ(2, a.getElapsedActivityTime());
-  a.update(std::make_shared<Endpoint>("node100", "192.168.1.2", 40000, 2));
+  a.update(std::make_shared<Endpoint>("node100", "192.168.1.2", 40000, Socket(2)));
   ASSERT_EQ(0, a.getElapsedActivityTime());
 }
 
@@ -55,10 +55,10 @@ TEST(EndpointTest, Activity) {
  * Check if two endpoints are equals.
  */
 TEST(EndpointTest, Equality) {
-  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, 3);
-  Endpoint a1 = Endpoint("node100", "192.168.1.2", 40000, 3);
+  Endpoint a = Endpoint("node100", "192.168.1.2", 40000, Socket(3));
+  Endpoint a1 = Endpoint("node100", "192.168.1.2", 40000, Socket(3));
   ASSERT_TRUE(a1 == a);
-  a = Endpoint("node101", "192.168.1.2", 40000, 5);
+  a = Endpoint("node101", "192.168.1.2", 40000, Socket(5));
   ASSERT_FALSE(a1 == a);
 }
 
