@@ -51,7 +51,7 @@ class NodeNetworkMetrics{
    * @param key the entry of the map.
    * @throws std::out_of_range exception if there is no such code in the map.
    */
-  value_t& getField(NetworkMetricsControlCode key);
+  value_t& getFieldAt(NetworkMetricsControlCode key);
 
   /**
    * Increments by one the value corresponding to the key passed as a parameter.
@@ -69,7 +69,7 @@ class NodeNetworkMetrics{
   /**
    * Returns the number of metrics in the m_metrics table which value is >=0.
    */
-  const uint8_t getNumberOfSpecifiedMetrics() const;
+  const uint8_t getNumberOfSpecifiedValues() const;
 
   void reset();
 

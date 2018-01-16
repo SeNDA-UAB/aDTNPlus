@@ -44,12 +44,12 @@ void NodeNetworkMetrics::setField(NetworkMetricsControlCode key,
   m_metrics[key] = value;
 }
 
-value_t& NodeNetworkMetrics::getField(
+value_t& NodeNetworkMetrics::getFieldAt(
     NetworkMetricsControlCode key) {
   return m_metrics.at(key);
 }
 
-const uint8_t NodeNetworkMetrics::getNumberOfSpecifiedMetrics() const {
+const uint8_t NodeNetworkMetrics::getNumberOfSpecifiedValues() const {
   uint8_t specifiedMetrics = 0;
   for (const auto& entry : m_metrics) {
     if (entry.second >= 0){

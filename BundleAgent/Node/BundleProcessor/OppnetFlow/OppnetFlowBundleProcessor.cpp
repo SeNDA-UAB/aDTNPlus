@@ -197,7 +197,7 @@ void OppnetFlowBundleProcessor::delivered(){
   m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
 }
 
-void processControl(BundleContainer &bundleContainer) {
+void OppnetFlowBundleProcessor::processControlBundle(BundleContainer &bundleContainer) {
   std::shared_ptr<ControlDirectiveMEB> controlMEB = std::static_pointer_cast<
       ControlDirectiveMEB>(
       OppnetFlowBundleProcessor::findMetadataExtensionBlock(
@@ -273,7 +273,7 @@ void OppnetFlowBundleProcessor::processBundle(
   LOG(55) << "Checking destination node.";
   if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
-    m_networkMetrics.addDelivered(); /////////////
+    delivered();
     LOG(55) << "Checking destination app listening.";
     std::vector<std::string> destinations = checkDispatch(*bundleContainer);
     if (destinations.size() > 0) {

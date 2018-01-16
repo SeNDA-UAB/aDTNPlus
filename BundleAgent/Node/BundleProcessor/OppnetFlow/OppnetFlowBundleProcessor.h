@@ -139,7 +139,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle received.
    */
-  void processControl(BundleContainer &bundleContainer);
+  void processControlBundle(BundleContainer &bundleContainer);
 
   /**
    * Variable that holds the parameters used in the processor calls.

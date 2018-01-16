@@ -50,7 +50,7 @@ class ControlMetricsMEB : public NumericMEB {
   explicit ControlMetricsMEB(const std::string &rawData);
 
   /**
-   * Builds a MEB with the network encapsulated in the parameter nodeMetrics
+   * Builds a MEB with the network metrics encapsulated in the parameter nodeMetrics
    */
   explicit ControlMetricsMEB(const NodeNetworkMetrics& nodeMetrics);
 

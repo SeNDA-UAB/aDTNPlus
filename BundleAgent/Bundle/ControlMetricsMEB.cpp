@@ -36,7 +36,7 @@ ControlMetricsMEB::ControlMetricsMEB(const std::string& rawData)
 
 ControlMetricsMEB::ControlMetricsMEB(const NodeNetworkMetrics& nodeMetrics)
   : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB,
-             nodeMetrics.getNumberOfSpecifiedMetrics(),
+             nodeMetrics.getNumberOfSpecifiedValues(),
              static_cast<map<uint8_t, value_t>>(nodeMetrics.getMetrics()))
 {}
 
