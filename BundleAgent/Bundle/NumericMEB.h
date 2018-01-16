@@ -27,23 +27,40 @@
 #ifndef BUNDLEAGENT_BUNDLE_NUMERICMEB_H_
 #define BUNDLEAGENT_BUNDLE_NUMERICMEB_H_
 
+#include "Bundle/BundleTypes.h"
 #include "Bundle/MetadataExtensionBlock.h"
-#include <string>
+#include <cstdint>
+#include <map>
 #include <sstream>
+#include <string>
 
+class Code;
 
 class NumericMEB : public MetadataExtensionBlock{
  public:
-
+/*
   enum class Code : uint8_t {
     NROFCOPIES = 0x01,
     CTRL_REPORT_FREQUENCY = 0x02,
     NOFDROPS = 0x03,
     NROFDELIVERIES = 0x04
   };
+*/
+//  explicit NumericMEB(MetadataTypes mebType, uint8_t numberOfFields, Code *codes, int64_t *values);
+  /**
+   * Builds a MEB with all the fields of the map.
+   * @param mebType the type of the MEB
+   * @param numberOfFields the number of the fields specified in the fields map.
+   * This is not the size of the map, as some fields could be set as -1 which means
+   * they are not initialized.
+   * @param The map with the fields and the values of the map.
+   */
+  explicit NumericMEB(const MetadataTypes mebType, const uint8_t numberOfFields, const std::map<uint8_t, value_t> fields);
 
-  explicit NumericMEB(MetadataTypes mebType, uint8_t numberOfFields, Code *codes, uint64_t *values);
-  NumericMEB(const std::string& rawData);
+  /**
+   * Fills the m_fields attribute with the MEB encapsulated in the rawData.
+   */
+  explicit NumericMEB(const std::string& rawData);
   virtual ~NumericMEB();
 
   /**
@@ -56,25 +73,59 @@ class NumericMEB : public MetadataExtensionBlock{
 
 
  protected:
-
   /**
    * How many fields has this MEB
    */
   uint8_t m_nrofFields;
 
   /**
-   * Stream with the MEB content
+   * Map with all the fields and its values loaded from a MEB
    */
-  std::stringstream m_ss_rawData;
-
-
- private:
+  std::map<uint8_t, value_t> m_fields;
   /**
-   * Adds a new field to the metadataString.
+   * Adds a new field to the end of the metadataString passed as a parameter
    * @param code the code of the field.
    * @param value the value of the field.
+   * @param ss_rawData the steam string to concatenate the data to.
    */
-  void addField(Code code, uint64_t value);
+  void addField(const uint8_t code, const uint64_t  value, std::stringstream& ss_rawData);
+
+  /**
+   * Returns the field in the MEB with the specified code.
+   * @param code the code of the field in the MEB
+   * @throws std::out_of_range exception if there is no such code in the map.
+   */
+  const value_t getField(const uint8_t code) const;
+
+  /**
+   * @brief Parses a Metadata Extension Block from raw.
+   *
+   * This function parses a metadata extension block from raw.
+   * Saving the raw data into the block.
+   *
+   * @parm rawData Raw data to parse.
+   */
+  void initFromRaw(const std::string &rawData);
+
+  /**
+   * Method that sets the value of all the entries of the m_fileds map to -1.
+   */
+  void resetFields();
+
+  /**
+   * Converts the FrameworkMEB in raw format.
+   *
+   * @return This block in raw format.
+   */
+  std::string toRaw();
+
+  /**
+   * @brief Returns an string with a nice view of the block information.
+   *
+   * @return The string with the block information. The format is:
+   * blockType numberOfFields [fieldCode value]+
+   */
+  std::string toString();
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_NUMERICMEB_H_

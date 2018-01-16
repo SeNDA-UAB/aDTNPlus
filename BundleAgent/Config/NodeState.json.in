@@ -15,21 +15,23 @@
   },
   "oppnetFlow" : {
       "active" : true,   
+      "forwardingAlgorithm" : "sprayandwait",
       "sprayandwait" : {
         "nrofCopies" : 10,
         "binaryMode" : true
-      },
+      },      
       "metrics" : {
         "congestionWindow" : 5
       },  
-      "forwardingAlgorithm" : "sprayandwait",      
-      "controlReportings" : {
-        "active" : true,
-        "controllersGroupId" : "n1",
-        "frequency" : 5,
-      },
-      
-      "joinedAsAController" : false,      
+      "control" : {     
+        "joinedAsAController" : false,
+        "controllersGroupId" : "n1",  
+        "controlReportings" : {
+          "active" : true,
+          "frequency" : 5,
+          "lastControlBundleId" : ""
+        }
+      }           
   },
   "id" : "${hostname}"
 }

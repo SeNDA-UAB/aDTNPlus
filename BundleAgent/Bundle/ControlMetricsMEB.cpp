@@ -30,52 +30,18 @@
 
 
 
-ControlMetricsMEB::ControlMetricsMEB(uint8_t numberOfFields, Code *codes, uint64_t *values)
-    : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB, numberOfFields, codes, values) {
-
-}
-
 ControlMetricsMEB::ControlMetricsMEB(const std::string& rawData)
     : NumericMEB(rawData) {
-  std::string metadata = m_metadata;
-  try {
-    m_nrofFields = SDNV::decode(metadata);
-    metadata = metadata.substr(SDNV::getLength(metadata));
-    for (int i = 0; i < m_nrofFields; i++) {
-      Code code = static_cast<Code>(SDNV::decode(metadata));
-      metadata = metadata.substr(SDNV::getLength(metadata));
-      switch (code) {
-        case NumericMEB::Code::NOFDROPS:
-          m_nrOfDrops = SDNV::decode(metadata);
-          break;
-        case NumericMEB::Code::NROFDELIVERIES:
-          m_nrOfDelivered = SDNV::decode(metadata);
-          break;
-        default:
-          throw std::invalid_argument("Code");
-      }
-      metadata = metadata.substr(SDNV::getLength(metadata));
-    }
-  } catch (const std::invalid_argument& e) {
-    throw BlockConstructionException(
-        "[ControlMetricsMEB] decode from raw error");
-  }
 }
+
+ControlMetricsMEB::ControlMetricsMEB(const NodeNetworkMetrics& nodeMetrics)
+  : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB,
+             nodeMetrics.getNumberOfSpecifiedMetrics(),
+             static_cast<map<uint8_t, value_t>>(nodeMetrics.getMetrics()))
+{}
 
 ControlMetricsMEB::~ControlMetricsMEB() {
   // TODO Auto-generated destructor stub
 }
 
-std::string ControlMetricsMEB::toString() {
-  std::stringstream ss;
-  ss << "Control Metrics block:" << std::endl
-     << MetadataExtensionBlock::toString() << "\tNumber of drops: "
-     << m_nrOfDrops << std::endl
-     << MetadataExtensionBlock::toString() << "\tNumber of delivered: "
-     << m_nrOfDelivered << std::endl;
-  return ss.str();
-}
 
-MetadataTypes ControlMetricsMEB::getMetadataType() {
-  return MetadataTypes::CONTROL_METRICS_MEB;
-}

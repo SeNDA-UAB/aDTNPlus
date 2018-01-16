@@ -27,6 +27,7 @@
 #include "Bundle/BundleTypes.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
+#include "Node/BundleProcessor/OppnetFlow/NodeNetworkMetrics.h"
 #include "Node/JsonFacades/NodeStateJson.h"
 #include <memory>
 #include <string>
@@ -128,6 +129,12 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   virtual void drop();
 
   /**
+   * Funtion called when a message has been received and I am the final destination.
+   */
+  virtual void delivered();
+
+
+  /**
    * Function to execute code control when a new bundle is received.
    *
    * @param bundleContainer The bundle received.
@@ -174,67 +181,40 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   void scheduleReportingNetworkMetrics();
 
   /**
-   * Wrapper class for storing the collected network statistics
+   * Checks if the bundle is a control one. If this is the case checks whether
+   * is the last control bundle generated or not.
+   * @return true if this is the last control bundle generated, false otherwise.
    */
-  class NodeNetworkMetrics{
-   public:
-    NodeNetworkMetrics();
-    virtual ~NodeNetworkMetrics();
-    std::atomic<uint32_t> m_nrofDrops;
-    std::atomic<uint32_t> m_nrofDelivered;
-    void addDrop();
-    void addDelivered();
-    std::string toString();
-    void reset();
-  } m_networkMetrics;
+  bool isTheFresherControlBundle(const BundleInfo& bundleInfo) const;
+
+  /**
+   * Checks if the bundle is a control one.
+   * @return true if the bundle is a control one, false otherwise
+   */
+  bool isAControlBundle(const BundleContainer& bc) const;
+  /**
+   * To store the network metrics the processor gathers.
+   */
+  NodeNetworkMetrics m_networkMetrics;
 
   /**
    * Wrapper that holds the control state variables in the nodeState Json.
    */
   class ControlState{
    public:
-    ControlState();
-    ControlState(NodeStateJson& nodeStateJson);
-    virtual ~ControlState();
-    bool isControlReportingActive();
-    bool hasJoinedAsAController();
-    bool isJoinedAsAController() const;
+    const bool isControlReportingActive() const;
 
+    const bool hasJoinedAsAController() const;
 
+    const bool isJoinedAsAController() const;
 
+    const std::string& getControllersGroupId() const;
 
-    /**
-     * Flag to indicate whether the control handling is activated or not.
-     */
-    bool m_active;
+    const std::string& getLastControlBundleId() const;
 
-    /**
-     * Flag to indicate whether the node belongs to the controllers groupID
-     */
-    bool m_joinedAsAController;
+    void setLastControlBundleId(const std::string& lastControlBundleId);
 
-    /**
-     * Identifier of the controllers group ID.
-     */
-    std::string m_controllersGroupId;
-
-    /**
-     * Identifier of the last control bundle generated.
-     */
-    std::string m_bundleId;
-
-    /**
-     * Time between the reportings
-     */
-    uint16_t m_reportFrequency;
-
-    /**
-     * The ID of the last generated control bundle
-     */
-    std::string lastControlBundleId;
-
-
-
+    const uint16_t getReportFrequency() const;
 
   } m_controlState;
 

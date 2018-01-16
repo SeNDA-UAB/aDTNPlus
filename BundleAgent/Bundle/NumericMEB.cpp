@@ -22,36 +22,92 @@
  *
  */
 
-#include <Bundle/NumericMEB.h>
+#include "Bundle/Block.h"
+#include "Bundle/NumericMEB.h"
 #include "Utils/SDNV.h"
-#include <sstream>
+#include "Utils/Logger.h"
+#include <stdexcept>
+#include <utility>
 
 
-NumericMEB::NumericMEB(MetadataTypes mebType, uint8_t numberOfFields, NumericMEB::Code *codes, uint64_t *values)
+NumericMEB::NumericMEB(const MetadataTypes mebType, const uint8_t numberOfFields, const std::map<uint8_t, value_t> fields)
     : MetadataExtensionBlock(),
-      m_nrofFields(numberOfFields) {
-
-  m_ss_rawData << SDNV::encode(m_nrofFields);
-  m_metadataType = static_cast<uint8_t>(mebType);
-  for(int i=0; i < m_nrofFields; i++){
-    addField(codes[i], values[i]);
-  }
-  m_metadata = m_ss_rawData.str();
-
-}
+      m_metadataType(static_cast<uint8_t>(mebType)),
+      m_nrofFields(numberOfFields),
+      m_fields(fields){}
 
 NumericMEB::NumericMEB(const std::string& rawData)
     : MetadataExtensionBlock(rawData) {
+  try {
+    initFromRaw(rawData);
+  } catch (const std::out_of_range& e) {
+    throw BlockConstructionException("[Framework MEB] Bad raw format");
+  }
 }
 
 NumericMEB::~NumericMEB() {
   // TODO Auto-generated destructor stub
 }
 
-void NumericMEB::addField(Code code, uint64_t value) {
-  m_ss_rawData << SDNV::encode(static_cast<uint8_t>(code));
-  m_ss_rawData << SDNV::encode(value);
+void resetFields(){
+  for(const auto& entry : m_fields){
+    m_fields[entry.first] = -1;
+  }
 }
 
+void initFromRaw(const std::string &rawData){
+  MetadataExtensionBlock::initFromRaw(rawData);
+  std::string metadata = m_metadata;
+  uint8_t code;
+  value_t value;
+  resetFields();
+  try {
+    m_nrofFields = SDNV::decode(metadata);
+    metadata = metadata.substr(SDNV::getLength(metadata));
+    for(int i=0; i<m_nrofFields; i++){
+      code = SDNV::decode(metadata);
+      metadata = metadata.substr(SDNV::getLength(metadata));
+      value = SDNV::decode(metadata);
+      metadata = metadata.substr(SDNV::getLength(metadata));
+      m_fields[code] = value;
+    }
+  } catch (const std::out_of_range &e) {
+    throw BlockConstructionException("[FrameworkMEB] Bad raw format");
+  }
+}
 
+void NumericMEB::addField(uint8_t code, uint64_t value, std::stringstream& ss){
+  ss << SDNV::encode(code);
+  ss << SDNV::encode(value);
+}
 
+const value_t NumericMEB::getField(const uint8_t code) const {
+  return m_fields.at(code);
+}
+
+std::string NumericMEB::toRaw(){
+  LOG(87) << "Generating raw data from NumericMEB MEB";
+  std::stringstream ss;
+  ss << SDNV::encode(m_nrofFields);
+  for(const auto& entry : m_fields){
+    if (entry.second != -1){
+      addField(entry.first, entry.second, ss);
+    }
+  }
+  m_metadata = ss.str();
+  //setting the headers to the metadata.
+  return MetadataExtensionBlock::toRaw();
+}
+
+std::string NumericMEB::toString() {
+  std::stringstream ss;
+  ss << "NumericMEB block:" << std::endl << MetadataExtensionBlock::toString()
+     << "Number Of Fields: " << m_nrofFields << std::endl;
+  for (const auto& entry : m_fields) {
+    if (entry.second != -1) {
+      ss << "Code: " << entry.first << " Value: "
+         << entry.second << std::endl;
+    }
+  }
+  return ss.str();
+}

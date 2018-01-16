@@ -26,6 +26,11 @@
 
 #include <cstdint>
 
+/**
+ * Type of the values in a map table that contains fields to be stored in a MEB.
+ */
+typedef int64_t value_t;
+
 enum class PrimaryBlockControlFlags : uint32_t {
   IS_FRAGMENT = 0,
   IS_ADMINISTRATIVE_RECORD = 1,
@@ -87,6 +92,25 @@ enum class FirstFrameworkExtensionsIds : uint8_t {
   DESTINATION = 0x02,
   LIFETIME = 0x03,
   FORWARD = 0x04
+};
+
+enum class BundleType : uint8_t {
+  DEFAULT = 0,
+  CONTROL = 1
+};
+
+enum class NetworkMetricsControlCode : uint8_t {
+  FIRST = 0,
+  NR_OF_DROPS = FIRST,
+  NR_OF_DELIVERIES,
+  LAST
+};
+
+enum class DirectiveControlCode : uint8_t {
+  FIRST = 0,
+  NR_OF_COPIES = FIRST,
+  REPORT_FREQUENCY,
+  LAST
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_

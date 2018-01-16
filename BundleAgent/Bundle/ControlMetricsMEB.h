@@ -24,46 +24,37 @@
 #ifndef BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 #define BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 
-#include <Bundle/NumericMEB.h>
-#include "MetadataExtensionBlock.h"
-#include <sstream>
+#include "Bundle/BundleTypes.h"
+#include "Bundle/NumericMEB.h"
+#include <cstdint>
+#include <map>
+#include <string>
+
+class NodeNetworkMetrics;
 
 class ControlMetricsMEB : public NumericMEB {
  public:
-  explicit ControlMetricsMEB(uint8_t numberOfFields, Code *codes, uint64_t *values);
   /**
-   * @brief Raw constructor.
-   *
-   * This will generate SprayAndWait MEB from raw data.
-   *
+   * Builds a MEB with all the fields of the map.
+   * @param mebType the type of the MEB
+   * @param numberOfFields the number of the fields specified in the fields map.
+   * This is not the size of the map, as some fields could be set as -1 which means
+   * they are not initialized.
+   * @param The map with the fields and the values of the map.
+   */
+  explicit ControlMetricsMEB(uint8_t numberOfFields, const std::map<uint8_t, value_t> fields);
+
+  /**
+   * Fills the m_fields attribute with the MEB encapsulated in the rawData.
    */
   explicit ControlMetricsMEB(const std::string &rawData);
 
+  /**
+   * Builds a MEB with the network encapsulated in the parameter nodeMetrics
+   */
+  explicit ControlMetricsMEB(const NodeNetworkMetrics& nodeMetrics);
+
   virtual ~ControlMetricsMEB();
-
-  /**
-   * @brief Returns an string with a nice view of the block information.
-   *
-   * @return The string with the block information.
-   */
-  std::string toString();
-
-
-
- private:
-  /**
-   * Counter of the messages dropped.
-   */
-  uint32_t m_nrOfDrops;
-  /**
-   * Number of messages received and I am the final destination.
-   */
-  uint32_t m_nrOfDelivered;
-
-  /**
-   * Returns the MedataType of the MEB
-   */
-  MetadataTypes getMetadataType();
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
