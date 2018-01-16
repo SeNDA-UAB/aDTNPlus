@@ -64,7 +64,7 @@ class NodeNetworkMetrics{
    * Returns an reference to a map with all the metrics.
    * Do we need it ???
    */
-  const std::map<NetworkMetricsControlCode, value_t>& getMetrics();
+  const std::map<NetworkMetricsControlCode, value_t>& getMapedFields() const;
 
   /**
    * Returns the number of metrics in the m_metrics table which value is >=0.
@@ -76,7 +76,7 @@ class NodeNetworkMetrics{
   std::string toString();
 
  private:
-  std::map<NetworkMetricsControlCode, value_t> m_metrics;
+  std::map<NetworkMetricsControlCode, value_t> m_fields;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_NODENETWORKMETRICS_H_

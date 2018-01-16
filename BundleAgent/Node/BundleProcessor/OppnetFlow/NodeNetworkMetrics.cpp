@@ -34,24 +34,24 @@ NodeNetworkMetrics::~NodeNetworkMetrics() {
 }
 
 void NodeNetworkMetrics::reset() {
-  for (const auto& entry : m_metrics) {
+  for (const auto& entry : m_fields) {
     entry.second = -1;
   }
 }
 
 void NodeNetworkMetrics::setField(NetworkMetricsControlCode key,
                                   value_t value) {
-  m_metrics[key] = value;
+  m_fields[key] = value;
 }
 
 value_t& NodeNetworkMetrics::getFieldAt(
     NetworkMetricsControlCode key) {
-  return m_metrics.at(key);
+  return m_fields.at(key);
 }
 
 const uint8_t NodeNetworkMetrics::getNumberOfSpecifiedValues() const {
   uint8_t specifiedMetrics = 0;
-  for (const auto& entry : m_metrics) {
+  for (const auto& entry : m_fields) {
     if (entry.second >= 0){
       specifiedMetrics++;
     }
@@ -60,14 +60,14 @@ const uint8_t NodeNetworkMetrics::getNumberOfSpecifiedValues() const {
   return specifiedMetrics;
 }
 
-const std::map<NetworkMetricsControlCode, value_t>& NodeNetworkMetrics::getMetrics() {
-  return m_metrics;
+const std::map<NetworkMetricsControlCode, value_t>& NodeNetworkMetrics::getMapedFields() const {
+  return m_fields;
 }
 
 std::string NodeNetworkMetrics::toString() {
   std::stringstream ss;
 
-  for (const std::pair<NetworkMetricsControlCode, value_t>& entry : m_metrics) {
+  for (const std::pair<NetworkMetricsControlCode, value_t>& entry : m_fields) {
     ss << entry.first << " " << std::endl;
   }
 
@@ -75,7 +75,7 @@ std::string NodeNetworkMetrics::toString() {
 }
 
 uint64_t NodeNetworkMetrics::incrementField(const NetworkMetricsControlCode key) {
-  m_metrics[key]++;
+  m_fields[key]++;
 
-  return m_metrics[key];
+  return m_fields[key];
 }
