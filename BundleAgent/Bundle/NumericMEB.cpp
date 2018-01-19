@@ -24,8 +24,8 @@
 
 #include "Bundle/Block.h"
 #include "Bundle/NumericMEB.h"
-#include "Utils/SDNV.h"
 #include "Utils/Logger.h"
+#include "Utils/SDNV.h"
 #include <stdexcept>
 #include <utility>
 
@@ -49,13 +49,13 @@ NumericMEB::~NumericMEB() {
   // TODO Auto-generated destructor stub
 }
 
-void resetFields(){
+void NumericMEB::resetFields(){
   for(const auto& entry : m_fields){
     m_fields[entry.first] = -1;
   }
 }
 
-void initFromRaw(const std::string &rawData){
+void NumericMEB::initFromRaw(const std::string &rawData){
   MetadataExtensionBlock::initFromRaw(rawData);
   std::string metadata = m_metadata;
   uint8_t code;
@@ -83,6 +83,10 @@ void NumericMEB::addField(uint8_t code, uint64_t value, std::stringstream& ss){
 
 const value_t NumericMEB::getField(const uint8_t code) const {
   return m_fields.at(code);
+}
+
+const std::map<uint8_t, value_t>& NumericMEB::getFields() const {
+  return m_fields;
 }
 
 std::string NumericMEB::toRaw(){

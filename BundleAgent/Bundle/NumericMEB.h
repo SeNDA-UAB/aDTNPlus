@@ -34,8 +34,6 @@
 #include <sstream>
 #include <string>
 
-class Code;
-
 class NumericMEB : public MetadataExtensionBlock{
  public:
 /*
@@ -50,7 +48,7 @@ class NumericMEB : public MetadataExtensionBlock{
   /**
    * Builds a MEB with all the fields of the map.
    * @param mebType the type of the MEB
-   * @param numberOfFields the number of the fields specified in the fields map.
+   * @param the number of fields of the fields map that have been set.
    * This is not the size of the map, as some fields could be set as -1 which means
    * they are not initialized.
    * @param The map with the fields and the values of the map.
@@ -68,9 +66,9 @@ class NumericMEB : public MetadataExtensionBlock{
    *
    * @return The string with the block information.
    */
-  virtual std::string toString() = 0;
+  virtual std::string toString();
 
-
+  const std::map<uint8_t, value_t>& getFields() const;
 
  protected:
   /**
@@ -119,13 +117,6 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   std::string toRaw();
 
-  /**
-   * @brief Returns an string with a nice view of the block information.
-   *
-   * @return The string with the block information. The format is:
-   * blockType numberOfFields [fieldCode value]+
-   */
-  std::string toString();
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_NUMERICMEB_H_
