@@ -26,17 +26,16 @@
 #include "Bundle/SprayAndWaitMEB.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Utils/Logger.h"
 #include <memory>
 
 SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary)
-    : m_nrofCopies(nrofCopies),
-      m_binary(binary) {
+    : m_type(ForwardAlgorithms::SPRAYANDWAIT),
+      m_nrofCopies(nrofCopies),
+      m_binary(binary){
 }
 
-SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(int16_t nrofCopies)
-    : SprayAndWaitAlgorithm(nrofCopies, true) {
-}
 
 SprayAndWaitAlgorithm::~SprayAndWaitAlgorithm() {
 }
@@ -47,6 +46,10 @@ bool SprayAndWaitAlgorithm::isBinary() const {
 
 int16_t SprayAndWaitAlgorithm::getNrofCopies() const {
   return m_nrofCopies;
+}
+
+void SprayAndWaitAlgorithm::setNrofCopies(const int16_t& nrofCopies) {
+  m_nrofCopies = nrofCopies;
 }
 
 void SprayAndWaitAlgorithm::doForward(
@@ -64,8 +67,11 @@ void SprayAndWaitAlgorithm::doForward(
     LOG(55) << "Adding a SPRAYANDWAIT_MEB ";
     bundle.addBlock(forwarding_meb);
   }
+  /*
   uint16_t nrofCopies = std::static_pointer_cast<SprayAndWaitMEB>(
       forwarding_meb)->getNrofCopies();
+  */
+  uint16_t nrofCopies = m_nrofCopies;
   while ((nrofCopies > 1) && ++i < neighbors.size()) {
     nrofCopies = nrofCopies / 2;
     std::static_pointer_cast<SprayAndWaitMEB>(forwarding_meb)->setNrofCopies(
@@ -83,3 +89,5 @@ void SprayAndWaitAlgorithm::doForward(
   }
 
 }
+
+

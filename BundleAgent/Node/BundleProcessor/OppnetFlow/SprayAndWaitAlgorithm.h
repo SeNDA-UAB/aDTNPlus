@@ -46,17 +46,15 @@ class SprayAndWaitAlgorithm : public ForwardingAlgorithm {
   bool m_binary;
 
  public:
-  SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary);
-  SprayAndWaitAlgorithm(int16_t nrofCopies);
+  SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary  = true);
 
   ~SprayAndWaitAlgorithm();
 
   bool isBinary() const;
   int16_t getNrofCopies() const;
 
-  void applyBinaryToBundleIfNecessary(){
-
-  }
+  void setNrofCopies(const int16_t & nrofCopies);
+  void applyBinaryToBundleIfNecessary(){}
 
   /**
    * Method that checks weather the container has a MEB with forwarding information
@@ -70,6 +68,7 @@ class SprayAndWaitAlgorithm : public ForwardingAlgorithm {
    */
   void doForward(Bundle& bundle, const std::vector<std::string> neighbors,
                  std::function<void (Bundle, std::vector<std::string>)> forward);
+
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_SPRAYANDWAITALGORITHM_H_
