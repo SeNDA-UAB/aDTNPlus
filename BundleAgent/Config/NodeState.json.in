@@ -23,9 +23,11 @@
       "metrics" : {
         "congestionWindow" : 5
       },  
-      "control" : {     
+      "control" : {    
         "joinedAsAController" : false,
-        "controllersGroupId" : "n1",  
+        "controllersGroupId" : "n1",          
+        "generateControlDirectives" : false, 
+        "executeControlDirectives" : true,        
         "controlReportings" : {
           "active" : true,
           "frequency" : 5,
