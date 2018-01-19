@@ -33,51 +33,17 @@
 #include <string>
 
 
-ControlDirectiveMEB::ControlDirectiveMEB(uint8_t numberOfFields, Code *codes,
-                                         uint64_t *values)
-    : NumericMEB(MetadataTypes::CONTROL_DIRECTIVE_MEB, numberOfFields, codes, values) {
+ControlDirectiveMEB::ControlDirectiveMEB(const NumericMapedFields<DirectiveControlCode>& fields))
+    : NumericMEB(MetadataTypes::CONTROL_DIRECTIVE_MEB,
+                 nodeMetrics.getNumberOfSpecifiedValues(),
+                 static_cast<std::map<uint8_t, value_t>>(nodeMetrics.getMapedFields())) {
 
 }
 
 ControlDirectiveMEB::ControlDirectiveMEB(const std::string& rawData)
     : NumericMEB(rawData) {
-  std::string metadata = m_metadata;
-  try {
-    m_nrofFields = SDNV::decode(metadata);
-    metadata = metadata.substr(SDNV::getLength(metadata));
-    for (int i = 0; i < m_nrofFields; i++) {
-      Code code = static_cast<Code>(SDNV::decode(metadata));
-      metadata = metadata.substr(SDNV::getLength(metadata));
-      switch (code) {
-        case NumericMEB::Code::NROFCOPIES:
-          m_nrofCopies = SDNV::decode(metadata);
-          break;
-        case NumericMEB::Code::CTRL_REPORT_FREQUENCY:
-          m_nrofCopies = SDNV::decode(metadata);
-          break;
-        default:
-          throw std::invalid_argument("Code");
-      }
-      metadata = metadata.substr(SDNV::getLength(metadata));
-    }
-  } catch (const std::invalid_argument& e) {
-    throw BlockConstructionException("[OppNetMetricsMEB decode from raw error");
-  }
+
 }
 
-ControlDirectiveMEB::~ControlDirectiveMEB() {
-  // TODO Auto-generated destructor stub
-}
+ControlDirectiveMEB::~ControlDirectiveMEB() {}
 
-std::string ControlDirectiveMEB::toString() {
-  std::stringstream ss;
-  ss << "Control Directive block:" << std::endl
-      << MetadataExtensionBlock::toString() << "\tNumber of copies: "
-      << static_cast<int>(m_nrofCopies) << std::endl
-      << "\tReport frequency time: "  << m_ctl_reportFrequency << std::endl;
-  return ss.str();
-}
-
-MetadataTypes ControlDirectiveMEB::getMetadataType() {
-  return MetadataTypes::CONTROL_DIRECTIVE_MEB;
-}

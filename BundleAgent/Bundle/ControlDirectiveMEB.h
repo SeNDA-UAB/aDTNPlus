@@ -26,36 +26,26 @@
 
 #include "Bundle/NumericMEB.h"
 #include "Bundle/BundleTypes.h"
-#include <sstream>
+#include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
 #include <cstdint>
 #include <map>
 #include <string>
 
 
-class ControlDirectiveMEB : public NumericMEB {
+class ControlDirectiveMEB : public NumericMEB{
  public:
-  /**
-   * Builds a MEB with all the fields of the map.
-   * @param mebType the type of the MEB
-   * @param numberOfFields the number of the fields specified in the fields map.
-   * This is not the size of the map, as some fields could be set as -1 which means
-   * they are not initialized.
-   * @param The map with the fields and the values of the map.
-   */
-  explicit ControlDirectiveMEB(uint8_t numberOfFields, const std::map<uint8_t, value_t> fields);
 
-  /**
-   * Fills the m_fields attribute with the MEB encapsulated in the rawData.
-   */
+  ControlDirectiveMEB() = delete;
+
+  explicit ControlDirectiveMEB(const NumericMapedFields<DirectiveControlCode>& fields);
+
+
   explicit ControlDirectiveMEB(const std::string &rawData);
 
-  /**
-   * Builds a MEB with the network metrics  encapsulated in the parameter nodeMetrics
-   */
-  explicit ControlDirectiveMEB(const NodeNetworkMetrics& nodeMetrics);
 
   virtual ~ControlDirectiveMEB();
 
 };
+
 
 #endif  // BUNDLEAGENT_CONTROLDIRECTIVEMEB_H_
