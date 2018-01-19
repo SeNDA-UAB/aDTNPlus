@@ -27,7 +27,10 @@
 #include "Bundle/BundleTypes.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
-#include "Node/BundleProcessor/OppnetFlow/NodeNetworkMetrics.h"
+#include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
+#include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h"
+#include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Node/JsonFacades/NodeStateJson.h"
 #include <memory>
 #include <string>
@@ -71,7 +74,8 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    *
    * @param extensionType the type of the extension block to be fetched.
    * @param The bundle to process.
-   * @return the metadata extension bloc or nullptr if the extension bloc
+   * @return the metadata extension bloc.
+   * @throwws MEBNotFoundException if the extension bloc
    * has not been found.
    */
   static std::shared_ptr<MetadataExtensionBlock>
@@ -139,7 +143,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle received.
    */
-  void processControlBundle(BundleContainer &bundleContainer);
+  void processRecivedControlBundle(BundleContainer &bundleContainer);
 
   /**
    * Variable that holds the parameters used in the processor calls.
@@ -183,19 +187,40 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   /**
    * Checks if the bundle is a control one. If this is the case checks whether
    * is the last control bundle generated or not.
+   * @param bundleContainer the bundle conatiner that wraps the bundle
    * @return true if this is the last control bundle generated, false otherwise.
    */
-  bool isTheFresherControlBundle(const BundleInfo& bundleInfo) const;
+  bool isTheFresherControlBundle(const BundleContainer &bundleContainer) const;
 
   /**
    * Checks if the bundle is a control one.
    * @return true if the bundle is a control one, false otherwise
    */
   bool isAControlBundle(const BundleContainer& bc) const;
+
   /**
-   * To store the network metrics the processor gathers.
+   * Method that applies the configuration stored in the property m_controlSetup
+   * specified by the controller to the forwarding algorithm parameters.
+   * @param forwardAlgorithm the forwarding algorithm to be used.
    */
-  NodeNetworkMetrics m_networkMetrics;
+  void applyControlSetupToForwardingAlgorithmIfNecessary(ForwardingAlgorithm& forwardingAlgorithm);
+
+  /**
+   * Checks whether there are controlDirectives to be applied.
+   * @return true if m_controlDirectives has entries.
+   */
+  const bool areThereControlDirectives() const;
+
+
+  /**
+   * Map to store the network metrics the processor gathers.
+   */
+  NumericMapedFields<NetworkMetricsControlCode> m_networkMetrics;
+
+  /**
+   * Map to store the control directives sent by a controller.
+   */
+  NumericMapedFields<DirectiveControlCode> m_controlDirectives;
 
   /**
    * Wrapper that holds the control state variables in the nodeState Json.
@@ -206,30 +231,42 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
     const bool hasJoinedAsAController() const;
 
-    const bool isJoinedAsAController() const;
-
     const std::string& getControllersGroupId() const;
 
     const std::string& getLastControlBundleId() const;
 
     void setLastControlBundleId(const std::string& lastControlBundleId);
 
-    const uint16_t getReportFrequency() const;
+    const bool haveControlDirectivesToBeExecuted() const;
 
   } m_controlState;
 
   /**
-    * Exception launched when it is not possible to delete a bundle from disk
-    */
-  class RemoveBundleFromDiskException : public std::exception{
+   * Wrapper that holds the control parameters such as reportFrequency,
+   * bundle number of copies, etc... . By default the control Parameters are
+   * the ones specified inde nodestate.
+   */
+  class ControlParameters{
    public:
-    RemoveBundleFromDiskException(std::string bundleId);
-    virtual ~RemoveBundleFromDiskException();
-    virtual const char* what() const throw ();
+    ControlParameters();
+    virtual ~ControlParameters();
+    /**
+     * Frequency of the generation of a bundle with the network sensed data.
+     */
+    uint16_t m_reportFrequency;
+    /**
+     * Number of the same bundle allowed to be spread.
+     */
+    uint16_t m_nrofCopies;
 
-   private:
-    std::string m_bundleId;
-  };
+    uint16_t getReportFrequency() const ;
+
+    void setReportFrequency(uint16_t reportFrequency);
+
+    uint16_t getNrofCopies() const ;
+
+    void setNrofCopies(uint16_t nrofCopies) ;
+  } m_controlParameters;
 
 };
 
