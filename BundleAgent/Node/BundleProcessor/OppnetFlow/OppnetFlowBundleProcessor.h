@@ -143,7 +143,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle received.
    */
-  void processRecivedControlBundle(BundleContainer &bundleContainer);
+  void processRecivedControlBundleIfNecessary(BundleContainer &bundleContainer);
 
   /**
    * Variable that holds the parameters used in the processor calls.
@@ -237,7 +237,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
     void setLastControlBundleId(const std::string& lastControlBundleId);
 
-    const bool haveControlDirectivesToBeExecuted() const;
+    const bool doWeHaveToExecuteControlDirectives() const;
 
   } m_controlState;
 

@@ -84,7 +84,7 @@ void OppnetFlowBundleProcessor::ControlState::setLastControlBundleId(const std::
   m_nodeState["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"] = lastControlBundleId;
 }
 
-const bool OppnetFlowBundleProcessor::ControlState::haveControlDirectivesToBeExecuted() const {
+const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDirectives() const {
   return m_nodeState["oppnetFlow"]["control"]["executeControlDirectives"];
 }
 
@@ -204,14 +204,14 @@ void OppnetFlowBundleProcessor::delivered(){
   m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
 }
 
-void OppnetFlowBundleProcessor::processRecivedControlBundle(
+void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
     BundleContainer &bundleContainer) {
-  std::shared_ptr<ControlDirectiveMEB> controlMEB_ptr =
-      std::static_pointer_cast<ControlDirectiveMEB>(
-          OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-              MetadataTypes::CONTROL_DIRECTIVE_MEB,
-              bundleContainer.getBundle()));
-  if (m_controlState.haveControlDirectivesToBeExecuted()) {
+  if (m_controlState.doWeHaveToExecuteControlDirectives()) {
+    std::shared_ptr<ControlDirectiveMEB> controlMEB_ptr =
+        std::static_pointer_cast<ControlDirectiveMEB>(
+            OppnetFlowBundleProcessor::findMetadataExtensionBlock(
+                MetadataTypes::CONTROL_DIRECTIVE_MEB,
+                bundleContainer.getBundle()));
     if (controlMEB_ptr != nullptr) {
       m_controlDirectives =
           static_cast<std::map<DirectiveControlCode, value_t>>(controlMEB_ptr
@@ -230,7 +230,6 @@ void OppnetFlowBundleProcessor::processRecivedControlBundle(
     }
 
   }
-
 }
 
 void OppnetFlowBundleProcessor::applyControlSetupToForwardingAlgorithmIfNecessary(
@@ -315,6 +314,7 @@ void OppnetFlowBundleProcessor::processBundle(
   LOG(55) << "Checking destination node.";
   if (checkDestination(*bundleContainer)) {
     LOG(55) << "We are the destination node.";
+    processRecivedControlBundleIfNecessary(*bundleContainer);
     delivered();
     LOG(55) << "Checking destination app listening.";
     std::vector<std::string> destinations = checkDispatch(*bundleContainer);
@@ -365,10 +365,10 @@ void OppnetFlowBundleProcessor::processBundle(
                 m_forwardingAlgorithmFactory.getForwardingAlgorithm(
                     bundleContainer->getBundle());
             applyControlSetupToForwardingAlgorithmIfNecessary(*forwardingAlgorithm);
-            auto fp = std::bind(&OppnetFlowBundleProcessor::forward, this, _1,
+            auto f_ptr = std::bind(&OppnetFlowBundleProcessor::forward, this, _1,
                                 _2);
             forwardingAlgorithm->doForward(bundleContainer->getBundle(),
-                                           neighbours, fp);
+                                           neighbours, f_ptr);
             restore(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
