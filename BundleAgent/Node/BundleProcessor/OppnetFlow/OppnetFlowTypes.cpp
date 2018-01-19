@@ -23,12 +23,11 @@
  */
 
 
-#include "Bundle/BundleTypes.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 
 std::map<std::string, MetadataTypes> ForwardAlgorithmTypeMap::m_map = {
-    {SPRAYANDWAIT_STR, MetadataTypes::SPRAYANDWAIT_MEB} ,
-    {EPIDEMIC_STR, MetadataTypes::EPIDEMIC_MEB},
-    {PROPHET_STR, MetadataTypes::PROPHET_MEB}
+    {SPRAYANDWAIT_STR, ForwardAlgorithms::SPRAYANDWAIT} ,
+    {EPIDEMIC_STR, ForwardAlgorithms::EPIDEMIC},
+    {PROPHET_STR, ForwardAlgorithms::PROPHET}
 };
 

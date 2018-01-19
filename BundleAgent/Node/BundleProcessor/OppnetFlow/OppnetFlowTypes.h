@@ -28,61 +28,41 @@
 #include <map>
 #include <string>
 
-/*
-
-class ForwardAlgorithmType {
-  public:
-    // Enum value DECLARATIONS - they are defined later
-    static const ForwardAlgorithmType EPIDEMIC;
-    static const ForwardAlgorithmType SPRAYANDWAIT;
-    static const ForwardAlgorithmType PROPHET;
-
-    ForwardAlgorithmType() = delete;
-
-  uint8_t getId() const {
-    return id;
-  }
-
-  const std::string& getName() const {
-    return name;
-  }
-
-
-  private:
-    std::string name;
-    uint8_t id;
-
-  private:
-    ForwardAlgorithmType(std::string name, uint8_t id) : name(name), id(id) {}
-
-
-  public:
-    // Properties and methods go here
-
-};
-
-
-// Enum value DEFINITIONS
-// The initialization occurs in the scope of the class,
-// so the private Planet constructor can be used.
-const ForwardAlgorithmType ForwardAlgorithmType::EPIDEMIC =
-    ForwardAlgorithmType("epidemic", MetadataTypes::EPIDEMIC_MEB);
-const ForwardAlgorithmType ForwardAlgorithmType::SPRAYANDWAIT =
-    ForwardAlgorithmType("sprayandwait", MetadataTypes::SPRAYANDWAIT_MEB);
-const ForwardAlgorithmType ForwardAlgorithmType::PROPHET =
-    ForwardAlgorithmType("prophet", MetadataTypes::PROPHET_MEB);
-
-*/
 
 #define SPRAYANDWAIT_STR "sprayandwait"
 #define EPIDEMIC_STR "epidemic"
 #define PROPHET_STR "prophet"
+
+enum class ForwardAlgorithms : uint8_t {
+  SPRAYANDWAIT = MetadataTypes::SPRAYANDWAIT_MEB,
+  EPIDEMIC = MetadataTypes::EPIDEMIC_MEB,
+  PROPHET = MetadataTypes::PROPHET_MEB
+};
 
 class ForwardAlgorithmTypeMap{
  public:
   static std::map<std::string, MetadataTypes> m_map;
 
   ForwardAlgorithmTypeMap() = delete;
+};
+
+enum class BundleType : uint8_t {
+  DEFAULT = 0,
+  CONTROL = 1
+};
+
+enum class NetworkMetricsControlCode : uint8_t {
+  FIRST = 0,
+  NR_OF_DROPS = FIRST,
+  NR_OF_DELIVERIES,
+  LAST
+};
+
+enum class DirectiveControlCode : uint8_t {
+  FIRST = 0,
+  NR_OF_COPIES = FIRST,
+  REPORT_FREQUENCY,
+  LAST
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_OPPNETFLOWTYPES_H_
