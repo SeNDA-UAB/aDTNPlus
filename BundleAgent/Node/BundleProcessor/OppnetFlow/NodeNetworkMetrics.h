@@ -24,7 +24,7 @@
 #ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_NODENETWORKMETRICS_H_
 #define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_NODENETWORKMETRICS_H_
 
-#include "Bundle/BundleTypes.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include <cstdint>
 #include <map>
 #include <string>
