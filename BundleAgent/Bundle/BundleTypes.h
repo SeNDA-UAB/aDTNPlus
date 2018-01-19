@@ -94,23 +94,6 @@ enum class FirstFrameworkExtensionsIds : uint8_t {
   FORWARD = 0x04
 };
 
-enum class BundleType : uint8_t {
-  DEFAULT = 0,
-  CONTROL = 1
-};
 
-enum class NetworkMetricsControlCode : uint8_t {
-  FIRST = 0,
-  NR_OF_DROPS = FIRST,
-  NR_OF_DELIVERIES,
-  LAST
-};
-
-enum class DirectiveControlCode : uint8_t {
-  FIRST = 0,
-  NR_OF_COPIES = FIRST,
-  REPORT_FREQUENCY,
-  LAST
-};
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLETYPES_H_
