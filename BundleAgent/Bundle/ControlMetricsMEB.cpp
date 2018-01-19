@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <string>
 #include <sstream>
+#include <map>
 
 
 
@@ -34,14 +35,12 @@ ControlMetricsMEB::ControlMetricsMEB(const std::string& rawData)
     : NumericMEB(rawData) {
 }
 
-ControlMetricsMEB::ControlMetricsMEB(const NodeNetworkMetrics& nodeMetrics)
+ControlMetricsMEB::ControlMetricsMEB(const NumericMapedFields<NetworkMetricsControlCode>& nodeMetrics)
   : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB,
              nodeMetrics.getNumberOfSpecifiedValues(),
-             static_cast<map<uint8_t, value_t>>(nodeMetrics.getMapedFields()))
+             static_cast<std::map<uint8_t, value_t>>(nodeMetrics.getMapedFields()))
 {}
 
-ControlMetricsMEB::~ControlMetricsMEB() {
-  // TODO Auto-generated destructor stub
-}
+ControlMetricsMEB::~ControlMetricsMEB() {}
 
 
