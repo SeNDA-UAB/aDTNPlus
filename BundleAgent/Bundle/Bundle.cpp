@@ -38,6 +38,8 @@
 #include "Bundle/RouteReportingMEB.h"
 #include "Bundle/CodeDataCarrierMEB.h"
 #include "Bundle/SprayAndWaitMEB.h"
+#include "Bundle/ControlMetricsMEB.h"
+#include "Bundle/ControlDirectiveMEB.h"
 #include "Bundle/PayloadBlock.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/SDNV.h"
@@ -113,6 +115,16 @@ Bundle::Bundle(const std::string &rawData)
             case MetadataTypes::SPRAYANDWAIT_MEB: {
               LOG(81) << "Generating New SPRAYANDWAIT Metadata Extension Block";
               b = std::make_shared<SprayAndWaitMEB>(SprayAndWaitMEB(data));
+              break;
+            }
+            case MetadataTypes::CONTROL_DIRECTIVE_MEB: {
+              LOG(81) << "Generating New Control Directive Metadata Extension Block";
+              b = std::make_shared<ControlDirectiveMEB>(ControlDirectiveMEB(data));
+              break;
+            }
+            case MetadataTypes::CONTROL_METRICS_MEB: {
+              LOG(81) << "Generating New Control Directive Metadata Extension Block";
+              b = std::make_shared<ControlMetricsMEB>(ControlMetricsMEB(data));
               break;
             }
           }
