@@ -77,4 +77,11 @@ enum class ControlParameterCode : uint8_t {
   LAST
 };
 
+enum class SprayAndWaitParameterCode : uint8_t {
+  FIRST = 0,
+  NR_OF_COPIES = FIRST,
+  BINARY,
+  LAST
+};
+
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_OPPNETFLOWTYPES_H_
