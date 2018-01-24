@@ -26,10 +26,6 @@
 
 #include <cstdint>
 
-/**
- * Type of the values in a map table that contains fields to be stored in a MEB.
- */
-typedef int64_t value_t;
 
 enum class PrimaryBlockControlFlags : uint32_t {
   IS_FRAGMENT = 0,

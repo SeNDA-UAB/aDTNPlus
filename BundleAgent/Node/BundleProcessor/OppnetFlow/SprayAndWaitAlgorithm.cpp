@@ -31,7 +31,7 @@
 #include <memory>
 
 SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary)
-    : m_type(ForwardAlgorithms::SPRAYANDWAIT),
+    : ForwardingAlgorithm(ForwardAlgorithmType::SPRAYANDWAIT),
       m_nrofCopies(nrofCopies),
       m_binary(binary){
 }

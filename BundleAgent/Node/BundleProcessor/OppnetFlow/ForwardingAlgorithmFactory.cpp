@@ -48,7 +48,7 @@ std::unique_ptr<ForwardingAlgorithm> ForwardingAlgorithmFactory::getForwardingAl
 
   try {
     switch (ForwardAlgorithmTypeMap::m_map.at(algorithmName)) {
-      case MetadataTypes::SPRAYANDWAIT_MEB:
+      case ForwardAlgorithmType::SPRAYANDWAIT:
         LOG(55) << "ForwardingAlgorithmFactory: case SPRAYANDWAIT" <<
         "Number of copies: " <<
         m_nodeState["oppnetFlow"]["sprayandwait"]["nrofCopies"] <<
@@ -101,9 +101,9 @@ std::unique_ptr<ForwardingAlgorithm> ForwardingAlgorithmFactory::getForwardingAl
   std::unique_ptr<ForwardingAlgorithm> forwardingAlgorithm = nullptr;
   std::shared_ptr<MetadataExtensionBlock> forwarding_meb = nullptr;
 
-  for (const std::pair<std::string, MetadataTypes>& entry : ForwardAlgorithmTypeMap::m_map) {
+  for (const auto& entry : ForwardAlgorithmTypeMap::m_map) {
     forwarding_meb = OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-        entry.second, bundle);
+        static_cast<MetadataTypes>(entry.second), bundle);
     if (forwarding_meb != nullptr) {
       forwardingAlgorithm = getForwardingAlgorithm(forwarding_meb);
       break;

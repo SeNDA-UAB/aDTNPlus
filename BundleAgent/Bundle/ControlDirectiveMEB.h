@@ -26,18 +26,19 @@
 
 #include "Bundle/NumericMEB.h"
 #include "Bundle/BundleTypes.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
 #include <cstdint>
 #include <map>
 #include <string>
 
 
-class ControlDirectiveMEB : public NumericMEB{
+class ControlDirectiveMEB : public NumericMEB<DirectiveControlCode>{
  public:
 
   ControlDirectiveMEB() = delete;
 
-  explicit ControlDirectiveMEB(const NumericMapedFields<DirectiveControlCode>& fields);
+  explicit ControlDirectiveMEB(const std::map<DirectiveControlCode, value_t> directives);
 
 
   explicit ControlDirectiveMEB(const std::string &rawData);

@@ -33,7 +33,12 @@
 #define EPIDEMIC_STR "epidemic"
 #define PROPHET_STR "prophet"
 
-enum class ForwardAlgorithms : uint8_t {
+/**
+ * Type of the values in a map table that contains fields to be stored in a MEB.
+ */
+typedef int64_t value_t;
+
+enum class ForwardAlgorithmType : uint8_t {
   SPRAYANDWAIT = MetadataTypes::SPRAYANDWAIT_MEB,
   EPIDEMIC = MetadataTypes::EPIDEMIC_MEB,
   PROPHET = MetadataTypes::PROPHET_MEB
@@ -41,7 +46,7 @@ enum class ForwardAlgorithms : uint8_t {
 
 class ForwardAlgorithmTypeMap{
  public:
-  static std::map<std::string, MetadataTypes> m_map;
+  static std::map<std::string, ForwardAlgorithmType> m_map;
 
   ForwardAlgorithmTypeMap() = delete;
 };

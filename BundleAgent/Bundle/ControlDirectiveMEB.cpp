@@ -33,12 +33,9 @@
 #include <string>
 
 
-ControlDirectiveMEB::ControlDirectiveMEB(const NumericMapedFields<DirectiveControlCode>& fields))
+ControlDirectiveMEB::ControlDirectiveMEB(const std::map<DirectiveControlCode, value_t> directives)
     : NumericMEB(MetadataTypes::CONTROL_DIRECTIVE_MEB,
-                 nodeMetrics.getNumberOfSpecifiedValues(),
-                 static_cast<std::map<uint8_t, value_t>>(nodeMetrics.getMapedFields())) {
-
-}
+                 directives) {}
 
 ControlDirectiveMEB::ControlDirectiveMEB(const std::string& rawData)
     : NumericMEB(rawData) {

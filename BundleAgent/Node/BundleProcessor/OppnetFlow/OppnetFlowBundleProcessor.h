@@ -190,13 +190,13 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * @param bundleContainer the bundle conatiner that wraps the bundle
    * @return true if this is the last control bundle generated, false otherwise.
    */
-  bool isTheFresherControlBundle(const BundleContainer &bundleContainer) const;
+  bool isTheFresherControlBundle(BundleContainer &bundleContainer) const;
 
   /**
    * Checks if the bundle is a control one.
    * @return true if the bundle is a control one, false otherwise
    */
-  bool isAControlBundle(const BundleContainer& bc) const;
+  bool isAControlBundle(BundleContainer& bc) const;
 
   /**
    * Method that applies the configuration stored in the property m_controlSetup
@@ -227,28 +227,34 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   class ControlState{
    public:
+    ControlState(NodeStateJson& nodeState);
+
+    ~ControlState();
+
     const bool isControlReportingActive() const;
 
     const bool hasJoinedAsAController() const;
 
-    const std::string& getControllersGroupId() const;
+    const std::string getControllersGroupId() const;
 
-    const std::string& getLastControlBundleId() const;
+    const std::string getLastControlBundleId() const;
 
     void setLastControlBundleId(const std::string& lastControlBundleId);
 
     const bool doWeHaveToExecuteControlDirectives() const;
+
+    NodeStateJson& m_nodeState_ref;
 
   } m_controlState;
 
   /**
    * Wrapper that holds the control parameters such as reportFrequency,
    * bundle number of copies, etc... . By default the control Parameters are
-   * the ones specified inde nodestate.
+   * the ones specified in the nodestate.
    */
   class ControlParameters{
    public:
-    ControlParameters();
+    ControlParameters(NodeStateJson& nodeState);
     virtual ~ControlParameters();
     /**
      * Frequency of the generation of a bundle with the network sensed data.
@@ -266,6 +272,8 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
     uint16_t getNrofCopies() const ;
 
     void setNrofCopies(uint16_t nrofCopies) ;
+
+    NodeStateJson& m_nodeState_ref;
   } m_controlParameters;
 
 };

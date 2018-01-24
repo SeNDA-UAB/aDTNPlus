@@ -35,10 +35,9 @@ ControlMetricsMEB::ControlMetricsMEB(const std::string& rawData)
     : NumericMEB(rawData) {
 }
 
-ControlMetricsMEB::ControlMetricsMEB(const NumericMapedFields<NetworkMetricsControlCode>& nodeMetrics)
+ControlMetricsMEB::ControlMetricsMEB(const std::map<NetworkMetricsControlCode, value_t> nodeMetrics)
   : NumericMEB(MetadataTypes::CONTROL_METRICS_MEB,
-             nodeMetrics.getNumberOfSpecifiedValues(),
-             static_cast<std::map<uint8_t, value_t>>(nodeMetrics.getMapedFields()))
+               nodeMetrics)
 {}
 
 ControlMetricsMEB::~ControlMetricsMEB() {}

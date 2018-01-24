@@ -35,7 +35,7 @@ class BundleContainer;
 class ForwardingAlgorithm {
  public:
   ForwardingAlgorithm() = delete;
-  ForwardingAlgorithm(MetadataTypes type) : m_type(type){}
+  ForwardingAlgorithm(ForwardAlgorithmType type) : m_type(type){}
   virtual ~ForwardingAlgorithm() {
   }
 
@@ -44,12 +44,12 @@ class ForwardingAlgorithm {
       const std::vector<std::string> neighbors,
       std::function<void (Bundle, std::vector<std::string>)> forward) = 0;
 
-  ForwardAlgorithms getType() const {
+  ForwardAlgorithmType getType() const {
     return m_type;
   }
 
  private:
-  ForwardAlgorithms m_type;
+  ForwardAlgorithmType m_type;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_FORWARDINGALGORITHM_H_

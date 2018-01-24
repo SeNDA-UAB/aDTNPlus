@@ -58,39 +58,46 @@
 NEW_PLUGIN(OppnetFlowBundleProcessor, "Basic bundle processor", "1.0",
            "Implements oppnetFlow protocol.")
 
-OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() {
-}
+OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() :
+  m_controlState(m_nodeState),
+  m_controlParameters(m_nodeState){}
 
 OppnetFlowBundleProcessor::~OppnetFlowBundleProcessor() {
 }
 
+OppnetFlowBundleProcessor::ControlState::ControlState(NodeStateJson& nodeState) :
+  m_nodeState_ref(nodeState){}
+
+OppnetFlowBundleProcessor::ControlState::~ControlState(){}
+
 const bool OppnetFlowBundleProcessor::ControlState::isControlReportingActive() const{
-  return static_cast<bool>(m_nodeState["oppnetFlow"]["control"]["controlReportings"]["active"]);;
+  return static_cast<bool>(m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["active"]);
 }
 
 const bool OppnetFlowBundleProcessor::ControlState::hasJoinedAsAController() const {
-  return static_cast<bool>(m_nodeState["oppnetFlow"]["control"]["joinedAsAController"]);
+  return static_cast<bool>(m_nodeState_ref["oppnetFlow"]["control"]["joinedAsAController"]);
 }
 
-const std::string& OppnetFlowBundleProcessor::ControlState::getControllersGroupId() const {
-  return m_nodeState["oppnetFlow"]["control"]["controllersGroupId"];
+const std::string OppnetFlowBundleProcessor::ControlState::getControllersGroupId() const {
+  return m_nodeState_ref["oppnetFlow"]["control"]["controllersGroupId"];
 }
 
-const std::string& OppnetFlowBundleProcessor::ControlState::getLastControlBundleId() const {
-  return m_nodeState["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"];
+const std::string OppnetFlowBundleProcessor::ControlState::getLastControlBundleId() const {
+  return m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"];
 }
 
 void OppnetFlowBundleProcessor::ControlState::setLastControlBundleId(const std::string& lastControlBundleId) {
-  m_nodeState["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"] = lastControlBundleId;
+  m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"] = lastControlBundleId;
 }
 
 const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDirectives() const {
-  return m_nodeState["oppnetFlow"]["control"]["executeControlDirectives"];
+  return m_nodeState_ref["oppnetFlow"]["control"]["executeControlDirectives"];
 }
 
-OppnetFlowBundleProcessor::ControlParameters::ControlParameters() :
+OppnetFlowBundleProcessor::ControlParameters::ControlParameters(NodeStateJson& nodeState) :
+  m_nodeState_ref(nodeState),
   m_nrofCopies(-1) ,
-  m_reportFrequency(m_nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"]){
+  m_reportFrequency(m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["frequency"]){
   }
 
 uint16_t OppnetFlowBundleProcessor::ControlParameters::getReportFrequency() const {
@@ -122,12 +129,12 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
   std::unique_ptr<Bundle> bundle_ptr(
       new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(), ""));
   std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
-      new ControlMetricsMEB(m_networkMetrics));
+      new ControlMetricsMEB(m_networkMetrics.getSetMapedFields()));
   std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
       std::move(bundle_ptr));
 
 
-  bc_ptr->getState()["bundleType"] = BundleType::CONTROL;
+  bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
   m_controlState.setLastControlBundleId(bundle_ptr->getId());
 
   bundle_ptr->addBlock(
@@ -213,11 +220,10 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
                 MetadataTypes::CONTROL_DIRECTIVE_MEB,
                 bundleContainer.getBundle()));
     if (controlMEB_ptr != nullptr) {
-      m_controlDirectives =
-          static_cast<std::map<DirectiveControlCode, value_t>>(controlMEB_ptr
-              ->getFields());
+      m_controlDirectives = NumericMapedFields<DirectiveControlCode>(
+          controlMEB_ptr->getFields());
     }
-    for (auto& controlDirective : m_controlDirectives.getMapedFields()) {
+    for (auto& controlDirective : m_controlDirectives.getSetMapedFields()) {
       switch (controlDirective.first) {
         case DirectiveControlCode::NR_OF_COPIES:
           m_controlParameters.setNrofCopies(controlDirective.second);
@@ -226,6 +232,7 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
           m_controlParameters.setReportFrequency(controlDirective.second);
           break;
         default:
+          break;
       }
     }
 
@@ -235,9 +242,9 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
 void OppnetFlowBundleProcessor::applyControlSetupToForwardingAlgorithmIfNecessary(
    ForwardingAlgorithm& forwardingAlgorithm) {
   if(areThereControlDirectives()){
-    if(forwardingAlgorithm.getType() == ForwardAlgorithms::SPRAYANDWAIT){
+    if(forwardingAlgorithm.getType() == ForwardAlgorithmType::SPRAYANDWAIT){
       if(m_controlParameters.getNrofCopies() != -1){
-        static_cast<SprayAndWaitAlgorithm>(forwardingAlgorithm).setNrofCopies(
+        (static_cast<SprayAndWaitAlgorithm&>(forwardingAlgorithm)).setNrofCopies(
             m_controlParameters.getNrofCopies());
       }
     }
@@ -268,10 +275,10 @@ bool OppnetFlowBundleProcessor::checkLifetime(
 
 
 bool OppnetFlowBundleProcessor::isTheFresherControlBundle(
-    const BundleContainer& bc) const {
+  BundleContainer& bc) const {
 
   return (isAControlBundle(bc)
-      && (bc.getBundle().getI() == m_controlState.getLastControlBundleId()));
+      && (bc.getBundle().getId() == m_controlState.getLastControlBundleId()));
 }
 
 
@@ -387,14 +394,14 @@ void OppnetFlowBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContainer(
     std::unique_ptr<Bundle> bundle) {
   std::unique_ptr<BundleContainer> bc(new BundleContainer(std::move(bundle)));
-  bc->getState()["bundleType"] = BundleType::DEFAULT;
+  bc->getState()["bundleType"] = 0;//BundleType::DEFAULT;
 
   return bc;
 }
 
 bool OppnetFlowBundleProcessor::isAControlBundle(
-    const BundleContainer& bc) const {
-  bool isAControlBundle = (bc.getState()["bundleType"] == BundleType::DEFAULT) ?
+  BundleContainer& bc) const {
+  bool isAControlBundle = (bc.getState()["bundleType"] == 0) ? //BundleType::DEFAULT) ?
       false : true;
   return isAControlBundle;
 }

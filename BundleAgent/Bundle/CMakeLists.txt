@@ -13,7 +13,6 @@ set(LIB_SOURCES_CPP ${LIB_SOURCES_CPP}
   Bundle/FrameworkExtension.cpp
   Bundle/BundleInfo.cpp
   Bundle/SprayAndWaitMEB.cpp
-  Bundle/NumericMEB.cpp
   Bundle/ControlMetricsMEB.cpp
   Bundle/ControlDirectiveMEB.cpp
   PARENT_SCOPE

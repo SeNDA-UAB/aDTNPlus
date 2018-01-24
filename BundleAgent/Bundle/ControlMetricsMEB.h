@@ -26,12 +26,13 @@
 
 #include "Bundle/BundleTypes.h"
 #include "Bundle/NumericMEB.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
 #include <cstdint>
 #include <string>
 
 
-class ControlMetricsMEB : public NumericMEB {
+class ControlMetricsMEB : public NumericMEB<NetworkMetricsControlCode> {
  public:
   ControlMetricsMEB() = delete;
 
@@ -43,7 +44,7 @@ class ControlMetricsMEB : public NumericMEB {
   /**
    * Builds a MEB with the network metrics encapsulated in the parameter nodeMetrics
    */
-  explicit ControlMetricsMEB(const NumericMapedFields<NetworkMetricsControlCode>& nodeMetrics);
+  explicit ControlMetricsMEB(const std::map<NetworkMetricsControlCode, value_t> nodeMetrics);
 
   virtual ~ControlMetricsMEB();
 };

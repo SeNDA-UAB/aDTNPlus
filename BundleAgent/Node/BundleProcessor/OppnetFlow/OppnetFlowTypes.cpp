@@ -25,9 +25,9 @@
 
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 
-std::map<std::string, MetadataTypes> ForwardAlgorithmTypeMap::m_map = {
-    {SPRAYANDWAIT_STR, ForwardAlgorithms::SPRAYANDWAIT} ,
-    {EPIDEMIC_STR, ForwardAlgorithms::EPIDEMIC},
-    {PROPHET_STR, ForwardAlgorithms::PROPHET}
+std::map<std::string, ForwardAlgorithmType> ForwardAlgorithmTypeMap::m_map = {
+    {SPRAYANDWAIT_STR, ForwardAlgorithmType::SPRAYANDWAIT} ,
+    {EPIDEMIC_STR, ForwardAlgorithmType::EPIDEMIC},
+    {PROPHET_STR, ForwardAlgorithmType::PROPHET}
 };
 
