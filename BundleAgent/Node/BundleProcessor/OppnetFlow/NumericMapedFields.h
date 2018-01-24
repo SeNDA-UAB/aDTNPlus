@@ -43,7 +43,6 @@ class NumericMapedFields {
   virtual ~NumericMapedFields(){};
 
   value_t& operator[](T idx)       { return m_fields[idx]; }
-  const value_t& operator[](T idx) const { return m_fields[idx]; }
 
 
   /**
