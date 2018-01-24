@@ -61,8 +61,8 @@ class NumericMEB : public MetadataExtensionBlock{
   explicit NumericMEB(const MetadataTypes mebType,
                       const std::map<T, value_t> fields)
       : MetadataExtensionBlock(),
-        m_fields(fields),
-        m_nrofFields(m_fields.size()) {
+        m_nrofFields(fields.size()),
+        m_fields(fields){
     m_metadataType = static_cast<uint8_t>(mebType);
   }
 
