@@ -42,14 +42,9 @@ class NumericMapedFields {
 
   virtual ~NumericMapedFields(){};
 
-  /**
-   * Modifies the entry of the map specified by key with a value.
-   * @param key the map's entry to be modified
-   * @param value the new value of the map's entry.
-   */
-  void setField(T key, value_t value){
-    m_fields[key] = value;
-  }
+  value_t& operator[](T idx)       { return m_fields[idx]; }
+  const value_t& operator[](T idx) const { return m_fields[idx]; }
+
 
   /**
    * Returns the value of a map entry.
@@ -121,7 +116,7 @@ class NumericMapedFields {
     return m_fields.empty();
   }
 
- private:
+ protected:
   std::map<T, value_t> m_fields;
 
 };
