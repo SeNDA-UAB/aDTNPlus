@@ -21,12 +21,10 @@
  * VERSION 1
  *
  */
+#include "Bundle/BundleTypes.h"
 #include "Bundle/NumericMEB.h"
 #include "Bundle/ControlMetricsMEB.h"
-#include "Utils/SDNV.h"
-#include <cstdint>
 #include <string>
-#include <sstream>
 #include <map>
 
 

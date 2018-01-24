@@ -24,10 +24,8 @@
 #ifndef BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 #define BUNDLEAGENT_BUNDLE_CONTROLMETRICSMEB_H_
 
-#include "Bundle/BundleTypes.h"
 #include "Bundle/NumericMEB.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
-#include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
 #include <cstdint>
 #include <string>
 
