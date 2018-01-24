@@ -26,6 +26,8 @@
 
 #include "Bundle/Bundle.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h"
+#include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -33,25 +35,21 @@
 
 class NeighbourTable;
 
+typedef SprayAndWaitParameterCode Code;
+
 class SprayAndWaitAlgorithm : public ForwardingAlgorithm {
  private:
-  /**
-   * L parameter in the Spray and Wait algorithm. The amount of allowed copies
-   * of the bundle in the network
-   */
-  int16_t m_nrofCopies;
-  /**
-   * Flag to configure an spray and wait in binary mode or not.
-   */
-  bool m_binary;
+  NumericMapedFields<SprayAndWaitParameterCode> m_parameters;
 
  public:
+  SprayAndWaitAlgorithm(NumericMapedFields<SprayAndWaitParameterCode> parameters);
   SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary  = true);
 
   ~SprayAndWaitAlgorithm();
 
   bool isBinary() const;
-  int16_t getNrofCopies() const;
+
+  uint16_t getNrofCopies() const;
 
   void setNrofCopies(const int16_t & nrofCopies);
   void applyBinaryToBundleIfNecessary(){}
