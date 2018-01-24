@@ -30,26 +30,32 @@
 #include "Utils/Logger.h"
 #include <memory>
 
-SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary)
+SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(
+    NumericMapedFields<SprayAndWaitParameterCode> parameters)
     : ForwardingAlgorithm(ForwardAlgorithmType::SPRAYANDWAIT),
-      m_nrofCopies(nrofCopies),
-      m_binary(binary){
+      m_parameters(parameters) {
 }
+
+SprayAndWaitAlgorithm::SprayAndWaitAlgorithm(int16_t nrofCopies, bool binary)
+  : SprayAndWaitAlgorithm(NumericMapedFields<SprayAndWaitParameterCode>( { {
+          SprayAndWaitParameterCode::NR_OF_COPIES, nrofCopies }, {
+         SprayAndWaitParameterCode::BINARY, binary } }))
+{}
 
 
 SprayAndWaitAlgorithm::~SprayAndWaitAlgorithm() {
 }
 
 bool SprayAndWaitAlgorithm::isBinary() const {
-  return m_binary;
+  return static_cast<bool>(m_parameters.getFieldAt(SprayAndWaitParameterCode::BINARY));
 }
 
-int16_t SprayAndWaitAlgorithm::getNrofCopies() const {
-  return m_nrofCopies;
+uint16_t SprayAndWaitAlgorithm::getNrofCopies() const {
+  return m_parameters.getFieldAt(SprayAndWaitParameterCode::NR_OF_COPIES);
 }
 
 void SprayAndWaitAlgorithm::setNrofCopies(const int16_t& nrofCopies) {
-  m_nrofCopies = nrofCopies;
+  m_parameters[SprayAndWaitParameterCode::NR_OF_COPIES] = nrofCopies;
 }
 
 void SprayAndWaitAlgorithm::doForward(
@@ -63,7 +69,7 @@ void SprayAndWaitAlgorithm::doForward(
 
   if (forwarding_meb == nullptr) {
     forwarding_meb = std::shared_ptr<CanonicalBlock>(
-        new SprayAndWaitMEB(m_nrofCopies));
+        new SprayAndWaitMEB(m_parameters.getSetMapedFields()));
     LOG(55) << "Adding a SPRAYANDWAIT_MEB ";
     bundle.addBlock(forwarding_meb);
   }
@@ -71,7 +77,7 @@ void SprayAndWaitAlgorithm::doForward(
   uint16_t nrofCopies = std::static_pointer_cast<SprayAndWaitMEB>(
       forwarding_meb)->getNrofCopies();
   */
-  uint16_t nrofCopies = m_nrofCopies;
+  uint16_t nrofCopies = getNrofCopies();
   while ((nrofCopies > 1) && ++i < neighbors.size()) {
     nrofCopies = nrofCopies / 2;
     std::static_pointer_cast<SprayAndWaitMEB>(forwarding_meb)->setNrofCopies(
