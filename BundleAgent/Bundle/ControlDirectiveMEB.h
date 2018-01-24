@@ -25,9 +25,7 @@
 #define BUNDLEAGENT_CONTROLDIRECTIVEMEB_H_
 
 #include "Bundle/NumericMEB.h"
-#include "Bundle/BundleTypes.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
-#include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
 #include <cstdint>
 #include <map>
 #include <string>
