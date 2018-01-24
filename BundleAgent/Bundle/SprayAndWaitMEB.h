@@ -1,19 +1,19 @@
 /*
-* Copyright (c) 2017 SeNDA
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-*/
+ * Copyright (c) 2017 SeNDA
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 /**
  * FILE SprayAndWaitMEB.h
  * AUTHOR MCarmen
@@ -24,52 +24,36 @@
 #ifndef BUNDLEAGENT_BUNDLE_SPRAYANDWAITMEB_H_
 #define BUNDLEAGENT_BUNDLE_SPRAYANDWAITMEB_H_
 
-#include "MetadataExtensionBlock.h"
+#include "Bundle/NumericMEB.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
+#include <cstdint>
+#include <string>
 
-class SprayAndWaitMEB : public MetadataExtensionBlock {
+class SprayAndWaitMEB : public NumericMEB<SprayAndWaitParameterCode> {
  public:
-  /**
-   * @brief Constructor.
-   *
-   * This will generate an empty SprayAndWait MEB.
-   */
-  explicit SprayAndWaitMEB(const uint16_t nrofCopies);
+  SprayAndWaitMEB() = delete;
 
   /**
-   * @brief Raw constructor.
-   *
-   * This will generate SprayAndWait MEB from raw data.
-   *
+   * Fills the m_fields attribute with the MEB encapsulated in the rawData.
    */
   explicit SprayAndWaitMEB(const std::string &rawData);
 
   /**
-   * @brief Raw constructor.
-   *
-   * Destructor.
-   *
+   * Builds a MEB with the network metrics encapsulated in the parameter parameters
    */
+  explicit SprayAndWaitMEB(
+      const std::map<SprayAndWaitParameterCode, value_t> parameters);
+
   virtual ~SprayAndWaitMEB();
 
   /**
-   * @brief Returns an string with a nice view of the block information.
-   *
-   * @return The string with the block information.
+   * Modifies the MEB with the new value for the number of copies of the
+   * algorithm.
+   * @param _nrofCopies Number of copies of the bundle to be spread.
    */
-  std::string toString();
+  void setNrofCopies(uint16_t _nrofCopies);
 
-  /**
-   * Returns the number of copies of the message(L)
-   */
   uint16_t getNrofCopies() const;
-
-  void setNrofCopies(uint16_t nrofCopies);
-
- private:
-  /**
-   * Number of copies allowed in the network: L.
-   */
-  uint16_t m_nrofCopies;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_SPRAYANDWAITMEB_H_

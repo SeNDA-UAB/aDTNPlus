@@ -23,40 +23,30 @@
  */
 
 #include "Bundle/SprayAndWaitMEB.h"
-#include <cstdint>
+#include "Bundle/BundleTypes.h"
+#include "Bundle/NumericMEB.h"
 #include <string>
-#include <sstream>
+#include <map>
 
-SprayAndWaitMEB::SprayAndWaitMEB(const uint16_t nrofCopies)
-    : MetadataExtensionBlock(static_cast<uint8_t>(MetadataTypes::SPRAYANDWAIT_MEB),
-    std::to_string(nrofCopies)), m_nrofCopies(nrofCopies) {}
+
 
 SprayAndWaitMEB::SprayAndWaitMEB(const std::string& rawData)
-    : MetadataExtensionBlock(rawData) {
-  try{
-    m_nrofCopies = static_cast<uint16_t>(std::stoi(m_metadata));
-  }catch (const std::invalid_argument& e){
-    throw BlockConstructionException("[SprayAndWait] bad number of copies");
-  }
+    : NumericMEB(rawData) {
 }
 
-SprayAndWaitMEB::~SprayAndWaitMEB() {
-}
+SprayAndWaitMEB::SprayAndWaitMEB(const std::map<SprayAndWaitParameterCode, value_t> parameters)
+  : NumericMEB(MetadataTypes::SPRAYANDWAIT_MEB,
+               parameters)
+{}
 
-std::string SprayAndWaitMEB::toString() {
-  std::stringstream ss;
-    ss << "Spray and Wait block:" << std::endl
-       << MetadataExtensionBlock::toString() << "\tNumber of copies: "
-       << static_cast<int>(m_nrofCopies) << std::endl;
-    return ss.str();
+SprayAndWaitMEB::~SprayAndWaitMEB() {}
+
+void SprayAndWaitMEB::setNrofCopies(uint16_t _nrofCopies) {
+  m_fields[SprayAndWaitParameterCode::NR_OF_COPIES] = _nrofCopies;
 }
 
 uint16_t SprayAndWaitMEB::getNrofCopies() const {
-  return m_nrofCopies;
+  return m_fields.at(SprayAndWaitParameterCode::NR_OF_COPIES);
 }
 
-void SprayAndWaitMEB::setNrofCopies(uint16_t _nrofCopies) {
-  m_nrofCopies = _nrofCopies;
-  m_metadata = std::to_string(m_nrofCopies);
-}
 
