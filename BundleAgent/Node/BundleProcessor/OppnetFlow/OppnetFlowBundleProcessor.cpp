@@ -94,27 +94,12 @@ const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDire
   return m_nodeState_ref["oppnetFlow"]["control"]["executeControlDirectives"];
 }
 
-OppnetFlowBundleProcessor::ControlParameters::ControlParameters(NodeStateJson& nodeState) :
-  m_nodeState_ref(nodeState),
-  m_nrofCopies(-1) ,
-  m_reportFrequency(m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["frequency"]){
-  }
+OppnetFlowBundleProcessor::ControlParameters::ControlParameters(
+    NodeStateJson& nodeState) {
+  m_fields[ControlParameterCode::REPORT_FREQUENCY] =
+      nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
+}
 
-uint16_t OppnetFlowBundleProcessor::ControlParameters::getReportFrequency() const {
-   return m_reportFrequency;
- }
-
- void OppnetFlowBundleProcessor::ControlParameters::setReportFrequency(uint16_t reportFrequency) {
-   m_reportFrequency = reportFrequency;
- }
-
- uint16_t OppnetFlowBundleProcessor::ControlParameters::getNrofCopies() const {
-   return m_nrofCopies;
- }
-
- void OppnetFlowBundleProcessor::ControlParameters::setNrofCopies(uint16_t nrofCopies) {
-   m_nrofCopies = nrofCopies;
- }
 
 void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
   std::stringstream ss;
@@ -152,7 +137,7 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
 }
 
 void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
-  uint32_t sleepTime = m_controlParameters.getReportFrequency();
+  uint32_t sleepTime = m_controlParameters[ControlParameterCode::REPORT_FREQUENCY];
   g_startedThread++;
 
   LOG(14) << "Creating reportingNetworkMetrics thread";
@@ -226,30 +211,32 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
     for (auto& controlDirective : m_controlDirectives.getSetMapedFields()) {
       switch (controlDirective.first) {
         case DirectiveControlCode::NR_OF_COPIES:
-          m_controlParameters.setNrofCopies(controlDirective.second);
+          m_controlParameters[ControlParameterCode::NR_OF_COPIES] =
+              controlDirective.second;
           break;
         case DirectiveControlCode::REPORT_FREQUENCY:
-          m_controlParameters.setReportFrequency(controlDirective.second);
+          m_controlParameters[ControlParameterCode::REPORT_FREQUENCY] =
+              controlDirective.second;
           break;
         default:
           break;
       }
     }
-
   }
 }
 
 void OppnetFlowBundleProcessor::applyControlSetupToForwardingAlgorithmIfNecessary(
-   ForwardingAlgorithm& forwardingAlgorithm) {
-  if(areThereControlDirectives()){
-    if(forwardingAlgorithm.getType() == ForwardAlgorithmType::SPRAYANDWAIT){
-      if(m_controlParameters.getNrofCopies() != -1){
+    ForwardingAlgorithm& forwardingAlgorithm) {
+  if (areThereControlDirectives()) {
+    if (forwardingAlgorithm.getType() == ForwardAlgorithmType::SPRAYANDWAIT) {
+      try {
         (static_cast<SprayAndWaitAlgorithm&>(forwardingAlgorithm)).setNrofCopies(
-            m_controlParameters.getNrofCopies());
+            static_cast<int16_t>(m_controlParameters.getFieldAt(
+                ControlParameterCode::NR_OF_COPIES)));
+      } catch (std::out_of_range& e) {
       }
     }
   }
-
 }
 
 std::vector<std::string> OppnetFlowBundleProcessor::checkDispatch(

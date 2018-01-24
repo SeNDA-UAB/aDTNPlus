@@ -222,6 +222,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   NumericMapedFields<DirectiveControlCode> m_controlDirectives;
 
+
   /**
    * Wrapper that holds the control state variables in the nodeState Json.
    */
@@ -252,28 +253,10 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * bundle number of copies, etc... . By default the control Parameters are
    * the ones specified in the nodestate.
    */
-  class ControlParameters{
+  class ControlParameters : public NumericMapedFields<ControlParameterCode>{
    public:
     ControlParameters(NodeStateJson& nodeState);
     virtual ~ControlParameters();
-    /**
-     * Frequency of the generation of a bundle with the network sensed data.
-     */
-    uint16_t m_reportFrequency;
-    /**
-     * Number of the same bundle allowed to be spread.
-     */
-    uint16_t m_nrofCopies;
-
-    uint16_t getReportFrequency() const ;
-
-    void setReportFrequency(uint16_t reportFrequency);
-
-    uint16_t getNrofCopies() const ;
-
-    void setNrofCopies(uint16_t nrofCopies) ;
-
-    NodeStateJson& m_nodeState_ref;
   } m_controlParameters;
 
 };
