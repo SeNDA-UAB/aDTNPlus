@@ -86,20 +86,20 @@ class NumericMEB : public MetadataExtensionBlock{
    *
    * @return The string with the block information.
    */
-  virtual std::string toString(){
+  virtual std::string toString() {
     std::stringstream ss;
     ss << "NumericMEB block:" << std::endl << MetadataExtensionBlock::toString()
        << "Number Of Fields: " << m_nrofFields << std::endl;
     for (const auto& entry : m_fields) {
-      if (entry.second != -1) {
-        ss << "Code: " << static_cast<uint8_t>(entry.first) << " Value: "
-           << entry.second << std::endl;
-      }
+      ss << "Code: " << static_cast<uint8_t>(entry.first) << " Value: "
+          << entry.second << std::endl;
     }
     return ss.str();
   }
 
-  const std::map<T, value_t> getFields() const;
+  std::map<T, value_t> getFields(){
+    return m_fields;
+  }
 
  protected:
   /**
@@ -119,6 +119,7 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   void addField(const T code, const uint64_t  value, std::stringstream& ss){
     ss << SDNV::encode(static_cast<uint8_t>(code));
+    LOG(1) << "NumericMEB::addField::value: " << value;
     ss << SDNV::encode(value);
   }
 
@@ -147,11 +148,14 @@ class NumericMEB : public MetadataExtensionBlock{
     resetFields();
     try {
       m_nrofFields = SDNV::decode(metadata);
+      LOG(1) << "NumericMEB::initFromRaw::m_nrofFields: " << (int)m_nrofFields;
       metadata = metadata.substr(SDNV::getLength(metadata));
       for(int i=0; i<m_nrofFields; i++){
         code = SDNV::decode(metadata);
+        LOG(1) << "NumericMEB::initFromRaw::code: " << (int)code;
         metadata = metadata.substr(SDNV::getLength(metadata));
         value = SDNV::decode(metadata);
+        LOG(1) << "NumericMEB::initFromRaw::value: " << value;
         metadata = metadata.substr(SDNV::getLength(metadata));
         m_fields[static_cast<T>(code)] = value;
       }
@@ -161,11 +165,11 @@ class NumericMEB : public MetadataExtensionBlock{
   }
 
   /**
-   * Method that sets the value of all the entries of the m_fileds map to -1.
+   * Method that sets the value of all the entries of the m_fileds map to 0.
    */
   void resetFields(){
     for(const auto& entry : m_fields){
-      m_fields[entry.first] = -1;
+      m_fields[entry.first] = 0;
     }
   }
 

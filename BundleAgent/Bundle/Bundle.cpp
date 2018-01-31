@@ -265,3 +265,27 @@ std::shared_ptr<FrameworkExtension> Bundle::getFwkExt(uint8_t fwkId,
     throw;
   }
 }
+
+std::shared_ptr<MetadataExtensionBlock> Bundle::findMetadataExtensionBlock(
+    const MetadataTypes extensionType) {
+  std::shared_ptr<MetadataExtensionBlock> found_meb = nullptr;
+  std::vector<std::shared_ptr<Block>> blocks = m_blocks;
+
+  blocks.erase(blocks.begin());
+  for (std::size_t i = 0; i < blocks.size(); i++) {
+    LOG(55) << "Checking canonical blocks.";
+    std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
+        CanonicalBlock>(blocks[i]);
+    if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      LOG(55) << "There is metadata extension block.";
+      std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
+          MetadataExtensionBlock>(canonical_block);
+      if (static_cast<MetadataTypes>(meb->getMetadataType()) == extensionType) {
+        found_meb = meb;
+        break;
+      }
+    }
+  }
+  return found_meb;
+}

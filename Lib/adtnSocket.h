@@ -121,6 +121,8 @@ class adtnSocket {
    * @param source The new sender id.
    */
   void changeSource(std::string source);
+
+
   /**
    * @brief Adds a Routing Selection MEB to the bundle.
    *
@@ -174,6 +176,8 @@ class adtnSocket {
    * @return The BundleState (a json in string format).
    */
   std::string getBundleState(uint8_t frameworkId);
+
+  Bundle* getLastBundle();
 
  private:
   /**

@@ -33,7 +33,6 @@
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
 #include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.h"
-#include "Node/BundleProcessor/OppnetFlow/exceptions/RemoveBundleFromDiskException.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/BundleQueue/BundleContainer.h"
@@ -54,13 +53,12 @@
 #include <stdexcept>
 #include <memory>
 #include <thread>
+#include <iostream>
 
 NEW_PLUGIN(OppnetFlowBundleProcessor, "Basic bundle processor", "1.0",
            "Implements oppnetFlow protocol.")
 
-OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() :
-  m_controlState(m_nodeState),
-  m_controlParameters(m_nodeState){}
+OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() : m_controlState(m_nodeState) {}
 
 OppnetFlowBundleProcessor::~OppnetFlowBundleProcessor() {
 }
@@ -96,10 +94,13 @@ const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDire
 
 OppnetFlowBundleProcessor::ControlParameters::ControlParameters(
     NodeStateJson& nodeState) {
-  m_fields[ControlParameterCode::REPORT_FREQUENCY] =
-      nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
+  int frequency =
+      (int)nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
+  m_fields[ControlParameterCode::REPORT_FREQUENCY] = frequency;
+
 }
 
+OppnetFlowBundleProcessor::ControlParameters::~ControlParameters(){}
 
 void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
   std::stringstream ss;
@@ -111,24 +112,29 @@ void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
 }
 
 void OppnetFlowBundleProcessor::sendNetworkMetrics() {
+  //////////////////////DEBUG
+  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DROPS);
+  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
+  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DROPS);
+  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
+  //////////////////////DEBUG
   std::unique_ptr<Bundle> bundle_ptr(
       new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(), ""));
   std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
       new ControlMetricsMEB(m_networkMetrics.getSetMapedFields()));
-  std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
-      std::move(bundle_ptr));
 
-
-  bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
-  m_controlState.setLastControlBundleId(bundle_ptr->getId());
-
+  std::string bundleId = bundle_ptr->getId();
+  m_controlState.setLastControlBundleId(bundleId);
   bundle_ptr->addBlock(
       std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
+  std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
+        std::move(bundle_ptr));
+  bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
   m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
 
   try {
     m_bundleQueue->enqueue(std::move(bc_ptr));
-    removeBundleFromDisk(bundle_ptr->getId());
+    removeBundleFromDisk(bundleId);
   } catch (const DroppedBundleQueueException &e) {
     LOG(40) << e.what();
   } catch (RemoveBundleFromDiskException &e) {
@@ -174,6 +180,7 @@ void OppnetFlowBundleProcessor::start(
       nodeState >> m_nodeState;
       nodeState.close();
       m_forwardingAlgorithmFactory = ForwardingAlgorithmFactory(m_nodeState);
+      m_controlParameters = ControlParameters(m_nodeState);
     } catch (const std::invalid_argument &e) {
       LOG(1) << "Error in NodeState json: " << e.what();
       LOG(15) << "No ForwardingAlgorithmFactory has been created due to ";
@@ -201,9 +208,8 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
   if (m_controlState.doWeHaveToExecuteControlDirectives()) {
     std::shared_ptr<ControlDirectiveMEB> controlMEB_ptr =
         std::static_pointer_cast<ControlDirectiveMEB>(
-            OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-                MetadataTypes::CONTROL_DIRECTIVE_MEB,
-                bundleContainer.getBundle()));
+            (bundleContainer.getBundle()).findMetadataExtensionBlock(MetadataTypes::CONTROL_DIRECTIVE_MEB)
+            );
     if (controlMEB_ptr != nullptr) {
       m_controlDirectives = NumericMapedFields<DirectiveControlCode>(
           controlMEB_ptr->getFields());
@@ -272,32 +278,15 @@ bool OppnetFlowBundleProcessor::isTheFresherControlBundle(
 bool OppnetFlowBundleProcessor::checkDestination(
     BundleContainer &bundleContainer) {
   BundleInfo bi = BundleInfo(bundleContainer.getBundle());
-  return bi.getDestination() == m_config.getNodeId();
+  bool amIDestination = (
+      (m_controlState.hasJoinedAsAController() &&
+          (bi.getDestination() == m_controlState.getControllersGroupId())) ||
+      (bi.getDestination() == m_config.getNodeId())
+  );
+
+  return amIDestination;
 }
 
-std::shared_ptr<MetadataExtensionBlock> OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-    const MetadataTypes extensionType, Bundle& bundle) {
-  std::shared_ptr<MetadataExtensionBlock> found_meb = nullptr;
-  std::vector<std::shared_ptr<Block>> blocks = bundle.getBlocks();
-
-  blocks.erase(blocks.begin());
-  for (std::size_t i = 0; i < blocks.size(); i++) {
-    LOG(55) << "Checking canonical blocks.";
-    std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
-        CanonicalBlock>(blocks[i]);
-    if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
-        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
-      LOG(55) << "There is metadata extension block.";
-      std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
-          MetadataExtensionBlock>(canonical_block);
-      if (static_cast<MetadataTypes>(meb->getMetadataType()) == extensionType) {
-        found_meb = meb;
-        break;
-      }
-    }
-  }
-  return found_meb;
-}
 
 void OppnetFlowBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {

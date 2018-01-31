@@ -235,3 +235,7 @@ std::string adtnSocket::getBundleState(uint8_t frameworkId) {
     throw adtnMissingBundleException("No bundle has been received yet.");
   }
 }
+
+Bundle* adtnSocket::getLastBundle() {
+  return m_lastBundle;
+}

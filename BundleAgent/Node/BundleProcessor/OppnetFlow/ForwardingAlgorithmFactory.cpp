@@ -102,8 +102,8 @@ std::unique_ptr<ForwardingAlgorithm> ForwardingAlgorithmFactory::getForwardingAl
   std::shared_ptr<MetadataExtensionBlock> forwarding_meb = nullptr;
 
   for (const auto& entry : ForwardAlgorithmTypeMap::m_map) {
-    forwarding_meb = OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-        static_cast<MetadataTypes>(entry.second), bundle);
+    forwarding_meb = bundle.findMetadataExtensionBlock(
+        static_cast<MetadataTypes>(entry.second));
     if (forwarding_meb != nullptr) {
       forwardingAlgorithm = getForwardingAlgorithm(forwarding_meb);
       break;

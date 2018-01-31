@@ -64,8 +64,7 @@ void SprayAndWaitAlgorithm::doForward(
   LOG(55) << "Forwarding a bundle with sprayAndWait ";
   uint8_t i = -1;
   std::shared_ptr<CanonicalBlock> forwarding_meb =
-      OppnetFlowBundleProcessor::findMetadataExtensionBlock(
-          MetadataTypes::SPRAYANDWAIT_MEB, bundle);
+      std::shared_ptr<CanonicalBlock>(bundle.findMetadataExtensionBlock(MetadataTypes::SPRAYANDWAIT_MEB));
 
   if (forwarding_meb == nullptr) {
     forwarding_meb = std::shared_ptr<CanonicalBlock>(

@@ -77,7 +77,6 @@ add_library(aDTNPlus_OppnetFlowBundleProcessor MODULE
   Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h
   Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.cpp
   Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.cpp
-  Node/BundleProcessor/OppnetFlow/exceptions/RemoveBundleFromDiskException.cpp
   Node/JsonFacades/NodeStateJson.cpp
 )
 

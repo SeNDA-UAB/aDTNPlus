@@ -29,6 +29,7 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include "Bundle/BundleTypes.h"
 
 class PrimaryBlock;
 class PayloadBlock;
@@ -36,6 +37,7 @@ class Block;
 class CanonicalBlock;
 class FrameworkExtension;
 class FrameworkMEB;
+class MetadataExtensionBlock;
 
 class BundleCreationException : public std::runtime_error {
  public:
@@ -157,6 +159,19 @@ class Bundle {
                                                 uint8_t fwkExtId);
 
   std::shared_ptr<FrameworkMEB> getFwk(uint8_t fwkId);
+
+
+  /**
+   * Function that returns an extension block from the bundle
+   *
+   * @param extensionType the type of the extension block to be fetched.
+   * @param The bundle to process.
+   * @return the metadata extension bloc.
+   * @throwws MEBNotFoundException if the extension bloc
+   * has not been found.
+   */
+  std::shared_ptr<MetadataExtensionBlock>
+      findMetadataExtensionBlock(const MetadataTypes extensionType);
 
  private:
   /**

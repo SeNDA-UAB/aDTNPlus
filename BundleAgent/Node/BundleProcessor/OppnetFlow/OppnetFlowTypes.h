@@ -36,7 +36,7 @@
 /**
  * Type of the values in a map table that contains fields to be stored in a MEB.
  */
-typedef int64_t value_t;
+typedef uint64_t value_t;
 
 enum class ForwardAlgorithmType : uint8_t {
   SPRAYANDWAIT = MetadataTypes::SPRAYANDWAIT_MEB,

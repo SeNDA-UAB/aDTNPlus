@@ -42,6 +42,28 @@ class MetadataExtensionBlock;
 
 class BundleContainer;
 
+class RemoveBundleFromDiskException : public std::exception {
+ public:
+  RemoveBundleFromDiskException(
+      std::string bundleId)
+      : m_bundleId(bundleId) {
+  }
+  ~RemoveBundleFromDiskException() {
+  }
+
+  const char* what() const throw () {
+    std::stringstream ss;
+
+    ss << "The bundle with ID: " << m_bundleId
+       << " has not been removed from disk";
+
+    return ss.str().c_str();
+  }
+
+ private:
+  std::string m_bundleId;
+};
+
 class OppnetFlowBundleProcessor : public BundleProcessor {
 
  public:
@@ -69,18 +91,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
              std::shared_ptr<NeighbourTable> neighbourTable,
              std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
-  /**
-   * Function that returns an extension block from the bundle
-   *
-   * @param extensionType the type of the extension block to be fetched.
-   * @param The bundle to process.
-   * @return the metadata extension bloc.
-   * @throwws MEBNotFoundException if the extension bloc
-   * has not been found.
-   */
-  static std::shared_ptr<MetadataExtensionBlock>
-      findMetadataExtensionBlock(const MetadataTypes extensionType,
-                                 Bundle& bundle);
+
 
  protected:
   /**
@@ -255,6 +266,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   class ControlParameters : public NumericMapedFields<ControlParameterCode>{
    public:
+    ControlParameters(){};
     ControlParameters(NodeStateJson& nodeState);
     virtual ~ControlParameters();
   } m_controlParameters;

@@ -61,7 +61,7 @@ class NumericMapedFields {
   const std::map<T, value_t> getSetMapedFields() {
     std::map<T, value_t> setMapedFields;
     for(auto &entry : m_fields){
-      if(setMapedFields[entry.first] != -1){
+      if(entry.second > 0){
         setMapedFields[entry.first] = entry.second;
       }
     }
@@ -84,7 +84,7 @@ class NumericMapedFields {
 
   void reset(){
     for (auto& entry : m_fields) {
-      entry.second = -1;
+      entry.second = 0;
     }
   }
 
@@ -95,8 +95,12 @@ class NumericMapedFields {
    * @return the increased value.
    */
   uint64_t incrementField(const T key){
-    m_fields[key]++;
-
+    auto it = m_fields.find(key);
+    if (it != m_fields.end()){
+      (it->second)++;
+    }else{
+      m_fields[key] = 1;
+    }
     return m_fields[key];
   }
 
