@@ -63,7 +63,7 @@ void NeighbourTable::update(std::shared_ptr<Neighbour> neighbour) {
     m_neigbours[neighbour->getId()] = neighbour;
     insert(neighbour->getEndpoints(), neighbour->getId());
     // Notify Processor that a new neighbour has appeared, so it can process
-    g_processed = 0;
+    g_queueProcessEvents++;
     std::unique_lock<std::mutex> lck(g_processorMutex);
     g_processorConditionVariable.notify_one();
   }

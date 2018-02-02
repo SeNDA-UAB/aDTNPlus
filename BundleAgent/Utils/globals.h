@@ -36,5 +36,6 @@ extern std::atomic<uint32_t> g_processed;
 extern std::atomic<uint32_t> g_queueSize;
 extern std::mutex g_processorMutex;
 extern std::condition_variable g_processorConditionVariable;
+extern std::atomic<uint32_t> g_queueProcessEvents;
 
 #endif  // BUNDLEAGENT_UTILS_GLOBALS_H_
