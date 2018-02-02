@@ -40,6 +40,7 @@
 #include "Utils/Functions.h"
 #include "Utils/globals.h"
 #include "Node/JsonFacades/NodeStateJson.h"
+#include "Utils/Socket.h"
 
 Node::Node(std::string filename) {
   m_config = Config(filename);
@@ -47,6 +48,7 @@ Node::Node(std::string filename) {
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
   Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Main");
   LOG(6) << "Starting Node...";
+  g_queueProcessEvents = 0;
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
       new ListeningEndpointsTable());
@@ -62,7 +64,7 @@ Node::Node(std::string filename) {
       new EndpointListener(m_config, m_listeningAppsTable));
   m_listeningAppsTable->update(
       m_config.getNodeId(),
-      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, -1));
+      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, Socket(-1)));
   LOG(6) << "Getting bundle processor";
   m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {

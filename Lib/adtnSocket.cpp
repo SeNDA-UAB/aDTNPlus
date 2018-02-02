@@ -111,6 +111,7 @@ void adtnSocket::connect(std::string appId) {
 std::string adtnSocket::recv() {
   int payloadSize = 0;
   int receivedSize = ::recv(m_recvSocket, &payloadSize, sizeof(payloadSize), 0);
+  payloadSize = ntohl(payloadSize);
   char* payloadraw = new char[payloadSize];
   int receivedLength = 0;
   while (receivedLength != payloadSize) {

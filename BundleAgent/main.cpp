@@ -40,6 +40,7 @@ std::atomic<uint32_t> g_processed;
 std::atomic<uint32_t> g_queueSize;
 std::mutex g_processorMutex;
 std::condition_variable g_processorConditionVariable;
+std::atomic<uint32_t> g_queueProcessEvents;
 
 void stop(int signal) {
   g_stop = true;

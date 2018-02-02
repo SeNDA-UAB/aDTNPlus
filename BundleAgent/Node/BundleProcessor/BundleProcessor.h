@@ -31,6 +31,7 @@
 #include <exception>
 #include <map>
 #include "Node/Config.h"
+#include "Utils/Socket.h"
 
 class Bundle;
 class BundleQueue;
@@ -221,7 +222,7 @@ class BundleProcessor {
    *
    * @param sock Socket to read the message.
    */
-  void receiveMessage(int sock);
+  void receiveMessage(Socket sock);
   /**
    * Function that processes one given bundle container.
    * Virtual function, all the bundleProcessors must implement it.

@@ -140,14 +140,15 @@ TEST(NeighbourDiscoveryTest, NeighbourSendAndReceiveTest) {
   ASSERT_EQ("127.0.0.1", neighbour->getNodeAddress());
   ASSERT_EQ(static_cast<uint16_t>(40000), neighbour->getNodePort());
   // Add an endpoint, an check if its in the neighbour table.
-  let->update("This", std::make_shared<Endpoint>("This", "127.0.0.1", 50, 2));
+  let->update("This",
+              std::make_shared<Endpoint>("This", "127.0.0.1", 50, Socket(2)));
   sleep(3);
   ASSERT_NO_THROW(nt->getValue("node1"));
   neighbour = nt->getValue("node1");
   ASSERT_EQ("node1", neighbour->getId());
   ASSERT_EQ("127.0.0.1", neighbour->getNodeAddress());
   ASSERT_EQ(static_cast<uint16_t>(40000), neighbour->getNodePort());
-  ASSERT_EQ(std::vector<std::string>({"This"}), neighbour->getEndpoints());
+  ASSERT_EQ(std::vector<std::string>({ "This" }), neighbour->getEndpoints());
   g_stop = true;
   sleep(5);
 }
