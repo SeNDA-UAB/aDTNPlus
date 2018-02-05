@@ -73,27 +73,30 @@ void BundleProcessor::processBundles() {
   Logger::getInstance()->setThreadName(std::this_thread::get_id(),
                                        "Bundle Processor");
   g_startedThread++;
-  g_processed = 0;
   while (!g_stop.load()) {
-    g_queueSize = m_bundleQueue->getSize();
-    while (g_processed.load() < g_queueSize.load() && !g_stop.load()) {
-      if (g_processed.load() == 0) {
-        g_queueSize = m_bundleQueue->getSize();
+    uint32_t oldValue;
+    while (((oldValue = g_queueProcessEvents) > 0) && !g_stop.load()) {
+      uint32_t queueSize = m_bundleQueue->getSize();
+      uint32_t i = 0;
+      while (i < queueSize && !g_stop.load()) {
+        try {
+          LOG(60) << "Checking for bundles in the queue";
+          m_bundleQueue->wait_for(m_config.getProcessTimeout());
+          std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
+          if (!processBundle(std::move(bc))) {
+            g_queueProcessEvents++;
+          }
+          i++;
+        } catch (const std::exception &e) {
+        }
       }
-      try {
-        LOG(60) << "Checking for bundles in the queue";
-        m_bundleQueue->wait_for(m_config.getSocketTimeout());
-        std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
-        processBundle(std::move(bc));
-        g_processed++;
-      } catch (const std::exception &e) {
-      }
+      g_queueProcessEvents -= oldValue;
     }
     std::unique_lock<std::mutex> lck(g_processorMutex);
-    while (g_processorConditionVariable.wait_for(
-        lck, std::chrono::seconds(m_config.getSocketTimeout()))
+    if (g_processorConditionVariable.wait_for(
+        lck, std::chrono::seconds(m_config.getProcessTimeout()))
         == std::cv_status::timeout) {
-      break;
+      g_queueProcessEvents++;
     }
     lck.unlock();
   }
@@ -233,7 +236,7 @@ void BundleProcessor::receiveMessage(Socket sock) {
           }
           sock.close();
           // Notify Processor that a new bundle can be processed
-          g_processed = 0;
+          g_queueProcessEvents++;
           std::unique_lock<std::mutex> lck(g_processorMutex);
           g_processorConditionVariable.notify_one();
         } catch (const BundleCreationException &e) {
@@ -404,7 +407,6 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
       }
     }
     if (hops == 0) {
-      g_processed--;
       throw ForwardException("The bundle has not been send to any neighbour.",
                              errors);
     }

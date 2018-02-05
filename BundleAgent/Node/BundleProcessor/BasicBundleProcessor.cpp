@@ -130,7 +130,7 @@ void BasicBundleProcessor::start(
   }
 }
 
-void BasicBundleProcessor::processBundle(
+bool BasicBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
@@ -205,6 +205,7 @@ void BasicBundleProcessor::processBundle(
     }
   }
   checkNodeStateChanges();
+  return true;
 }
 
 std::unique_ptr<BundleContainer> BasicBundleProcessor::createBundleContainer(

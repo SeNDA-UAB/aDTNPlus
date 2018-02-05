@@ -48,6 +48,7 @@ Node::Node(std::string filename) {
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
   Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Main");
   LOG(6) << "Starting Node...";
+  g_queueProcessEvents = 0;
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
       new ListeningEndpointsTable());

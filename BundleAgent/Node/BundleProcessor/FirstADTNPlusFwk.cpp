@@ -176,8 +176,9 @@ void FirstADTNPlusFwk::start(
   }
 }
 
-void FirstADTNPlusFwk::processBundle(
+bool FirstADTNPlusFwk::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
+  bool ret = true;
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
   std::vector<std::string> destinations = checkDestination(*bundleContainer);
@@ -211,6 +212,7 @@ void FirstADTNPlusFwk::processBundle(
         LOG(3) << e.what();
         LOG(55) << "The bundle has not been send, restoring the bundle.";
         restore(std::move(bundleContainer));
+        ret = false;
       }
     } else {
       LOG(55) << "No neighbours found.";
@@ -224,6 +226,7 @@ void FirstADTNPlusFwk::processBundle(
     }
   }
   checkNodeStateChanges();
+  return ret;
 }
 
 std::unique_ptr<BundleContainer> FirstADTNPlusFwk::createBundleContainer(

@@ -97,6 +97,9 @@ level : 21
 timeout : 10
 # Queue max size it bytes, K M and G can be used to express KB, MB and GB
 queueByteSize : 1M
+# Process timeout in seconds. If no events triggered the queue to process, it 
+# will be processed after this timeout.
+processTimeout : 10
 
 [BundleProcess]
 # Path to save the bundles, it has to exist and the application has to have

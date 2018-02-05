@@ -228,8 +228,10 @@ class BundleProcessor {
    * Virtual function, all the bundleProcessors must implement it.
    *
    * @param bundleContainer The bundle container to process.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
    */
-  virtual void processBundle(
+  virtual bool processBundle(
       std::unique_ptr<BundleContainer> bundleContainer) = 0;
   /**
    * Function that creates a bundle container.

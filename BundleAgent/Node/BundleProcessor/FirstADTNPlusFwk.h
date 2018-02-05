@@ -79,7 +79,7 @@ class FirstADTNPlusFwk : public BundleProcessor {
    *
    * @param bundleContainer The bundle container to process.
    */
-  virtual void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual bool processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    *

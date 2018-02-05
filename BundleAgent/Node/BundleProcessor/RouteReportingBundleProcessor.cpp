@@ -105,7 +105,7 @@ void RouteReportingBundleProcessor::checkRouteReporting(
   }
 }
 
-void RouteReportingBundleProcessor::processBundle(
+bool RouteReportingBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
@@ -191,6 +191,7 @@ void RouteReportingBundleProcessor::processBundle(
       }
     }
   }
+  return true;
 }
 
 void RouteReportingBundleProcessor::restoreRawBundleContainer(
