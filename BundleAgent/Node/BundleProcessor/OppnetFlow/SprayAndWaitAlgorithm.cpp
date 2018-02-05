@@ -58,7 +58,7 @@ void SprayAndWaitAlgorithm::setNrofCopies(const int16_t& nrofCopies) {
   m_parameters[SprayAndWaitParameterCode::NR_OF_COPIES] = nrofCopies;
 }
 
-void SprayAndWaitAlgorithm::doForward(
+bool SprayAndWaitAlgorithm::doForward(
     Bundle& bundle, const std::vector<std::string> neighbors,
     std::function<void(Bundle, std::vector<std::string>)> forward) {
   LOG(55) << "Forwarding a bundle with sprayAndWait ";
@@ -72,6 +72,7 @@ void SprayAndWaitAlgorithm::doForward(
     LOG(55) << "Adding a SPRAYANDWAIT_MEB ";
     bundle.addBlock(forwarding_meb);
   }
+  bool forwarded = true;
   /*
   uint16_t nrofCopies = std::static_pointer_cast<SprayAndWaitMEB>(
       forwarding_meb)->getNrofCopies();
@@ -89,10 +90,12 @@ void SprayAndWaitAlgorithm::doForward(
       nrofCopies = nrofCopies * 2;
       std::static_pointer_cast<SprayAndWaitMEB>(forwarding_meb)->setNrofCopies(
           nrofCopies);
-      throw;
+      if(e.errors()[neighbors[i]] != static_cast<uint8_t>(NetworkError::NEIGHBOUR_IN_QUEUE)){
+        forwarded = forwarded && false;
+      }
     }
   }
-
+  return forwarded;
 }
 
 

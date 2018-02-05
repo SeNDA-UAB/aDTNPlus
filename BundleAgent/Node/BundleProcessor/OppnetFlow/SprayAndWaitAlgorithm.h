@@ -63,8 +63,12 @@ class SprayAndWaitAlgorithm : public ForwardingAlgorithm {
    * @param neighbours a list with the neighbors.
    * @param the forward function to be used to perform the forwarding. This
    * function is defined by a BundleProcessor.
+   * @return true If the bundle has successfully been forwarded to all the
+   * neighbours. If the forwarding has failed for one or more neighbours it
+   * returns false. If the forwarding has failed because the neighbour already
+   * has the bundle, the forwarding is not considered as a failure.
    */
-  void doForward(Bundle& bundle, const std::vector<std::string> neighbors,
+  bool doForward(Bundle& bundle, const std::vector<std::string> neighbors,
                  std::function<void (Bundle, std::vector<std::string>)> forward);
 
 };
