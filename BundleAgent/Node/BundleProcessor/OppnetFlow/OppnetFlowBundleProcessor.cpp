@@ -112,33 +112,33 @@ void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
 }
 
 void OppnetFlowBundleProcessor::sendNetworkMetrics() {
-  //////////////////////DEBUG
-  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DROPS);
-  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
-  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DROPS);
-  m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
-  //////////////////////DEBUG
-  std::unique_ptr<Bundle> bundle_ptr(
-      new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(), ""));
-  std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
-      new ControlMetricsMEB(m_networkMetrics.getSetMapedFields()));
+  if (!m_networkMetrics.isEmpty()){
+    LOG(LOG_SEND_METRICS) << "[OppnetFlowProcessor] " <<
+        "Sending network control metrics: " << m_networkMetrics.toString().c_str();
+    std::unique_ptr<Bundle> bundle_ptr(
+        new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(), ""));
+    std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
+        new ControlMetricsMEB(m_networkMetrics.getSetMapedFields()));
 
-  std::string bundleId = bundle_ptr->getId();
-  m_controlState.setLastControlBundleId(bundleId);
-  bundle_ptr->addBlock(
-      std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
-  std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
-        std::move(bundle_ptr));
-  bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
-  m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
+    std::string bundleId = bundle_ptr->getId();
+    m_controlState.setLastControlBundleId(bundleId);
+    bundle_ptr->addBlock(
+        std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
+    std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
+          std::move(bundle_ptr));
+    bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
+    m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
 
-  try {
-    m_bundleQueue->enqueue(std::move(bc_ptr));
-    removeBundleFromDisk(bundleId);
-  } catch (const DroppedBundleQueueException &e) {
-    LOG(40) << e.what();
-  } catch (RemoveBundleFromDiskException &e) {
-    LOG(40) << e.what();
+    try {
+      m_bundleQueue->enqueue(std::move(bc_ptr));
+      removeBundleFromDisk(bundleId);
+    } catch (const DroppedBundleQueueException &e) {
+      LOG(55) << e.what();
+    } catch (RemoveBundleFromDiskException &e) {
+      LOG(55) << e.what();
+    }
+  }else{
+    LOG(LOG_NO_METRICS_TO_BE_SENT) << "[OppnetFlowProcessor] " << "No metrics to be sent: ";
   }
 }
 
@@ -146,15 +146,13 @@ void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
   uint32_t sleepTime = m_controlParameters[ControlParameterCode::REPORT_FREQUENCY];
   g_startedThread++;
 
-  LOG(14) << "Creating reportingNetworkMetrics thread";
+  LOG(LOG_SEND_METRICS_THREAD) << "Creating reportingNetworkMetrics thread";
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
-    LOG(55) << "[OppnetFlowProcessor] " <<
-        "Sending network control metrics: " << m_networkMetrics.toString();
     sendNetworkMetrics();
     m_networkMetrics.reset();
   }//end while true loop
-  LOG(14) << "Exit reportingNetworkMetrics thread.";
+  LOG(LOG_SEND_METRICS_THREAD) << "Exit reportingNetworkMetrics thread.";
   g_stopped++;
 }
 
