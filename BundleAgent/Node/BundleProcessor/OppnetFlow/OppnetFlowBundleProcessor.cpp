@@ -286,10 +286,11 @@ bool OppnetFlowBundleProcessor::checkDestination(
 }
 
 
-void OppnetFlowBundleProcessor::processBundle(
+bool OppnetFlowBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   using namespace std::placeholders;
   std::vector<std::string> nextHop = std::vector<std::string>();
+  bool processed = true;
 
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
@@ -348,8 +349,9 @@ void OppnetFlowBundleProcessor::processBundle(
             applyControlSetupToForwardingAlgorithmIfNecessary(*forwardingAlgorithm);
             auto f_ptr = std::bind(&OppnetFlowBundleProcessor::forward, this, _1,
                                 _2);
-            forwardingAlgorithm->doForward(bundleContainer->getBundle(),
-                                           neighbours, f_ptr);
+            processed = processed &&
+                (forwardingAlgorithm->doForward(bundleContainer->getBundle(),
+                                           neighbours, f_ptr));
             restore(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
@@ -363,6 +365,7 @@ void OppnetFlowBundleProcessor::processBundle(
       }
     }
   }
+  return processed;
 }
 
 std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContainer(

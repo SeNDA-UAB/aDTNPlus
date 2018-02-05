@@ -130,7 +130,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle container to process.
    */
-  void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  bool processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    * Virtual function, all the bundleProcessors must implement it.
