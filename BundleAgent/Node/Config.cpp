@@ -58,6 +58,7 @@ const std::string Config::TRASHRECEPTIONPATH =
 const std::string Config::TRASHDROPPATH = "/tmp/adtn/trash/drop";
 const std::string Config::QUEUEBYTESIZE = "100M";
 const uint64_t Config::QUEUEBYTESIZEVALUE = 100 * 1024 * 1024;
+const int Config::PROCESSTIMEOUT = 20;
 
 Config::Config()
     : m_nodeId(NODEID),
@@ -83,7 +84,8 @@ Config::Config()
       m_trashDeliveryPath(TRASHDELIVERYPATH),
       m_trashReceptionPath(TRASHRECEPTIONPATH),
       m_trashDropPath(TRASHDROPPATH),
-      m_queueByteSize(QUEUEBYTESIZEVALUE) {
+      m_queueByteSize(QUEUEBYTESIZEVALUE),
+      m_processTimeout(PROCESSTIMEOUT) {
 }
 
 Config::Config(const std::string &configFilename) {
@@ -153,6 +155,9 @@ Config::Config(const std::string &configFilename) {
       m_queueByteSize = m_queueByteSize * 1024 * 1024;
     else if (exponent == 'G' || exponent == 'g')
       m_queueByteSize = m_queueByteSize * 1024 * 1024 * 1024;
+    m_processTimeout = m_configLoader.m_reader.GetInteger("Constants",
+                                                   "processTimeout",
+                                                   PROCESSTIMEOUT);
   }
 }
 
@@ -253,4 +258,8 @@ std::string Config::getTrashDrop() {
 
 uint64_t Config::getQueueByteSize() {
   return m_queueByteSize;
+}
+
+int Config::getProcessTimeout() {
+  return m_processTimeout;
 }

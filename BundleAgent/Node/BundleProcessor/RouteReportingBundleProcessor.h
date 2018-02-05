@@ -65,7 +65,7 @@ class RouteReportingBundleProcessor : public BasicBundleProcessor {
    *
    * @param bundleContainer The route reporting bundle container to process.
    */
-  virtual void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual bool processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    *
    */
