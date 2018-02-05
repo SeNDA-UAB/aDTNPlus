@@ -76,9 +76,9 @@ void BundleProcessor::processBundles() {
   while (!g_stop.load()) {
     uint32_t oldValue;
     while (((oldValue = g_queueProcessEvents) > 0) && !g_stop.load()) {
-      g_queueSize = m_bundleQueue->getSize();
+      uint32_t queueSize = m_bundleQueue->getSize();
       uint32_t i = 0;
-      while (i < g_queueSize.load() && !g_stop.load()) {
+      while (i < queueSize && !g_stop.load()) {
         try {
           LOG(60) << "Checking for bundles in the queue";
           m_bundleQueue->wait_for(m_config.getProcessTimeout());

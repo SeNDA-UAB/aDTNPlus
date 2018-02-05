@@ -32,7 +32,6 @@
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;
 std::atomic<uint16_t> g_startedThread;
-std::atomic<uint32_t> g_queueSize;
 std::mutex g_processorMutex;
 std::condition_variable g_processorConditionVariable;
 std::atomic<uint32_t> g_queueProcessEvents;
