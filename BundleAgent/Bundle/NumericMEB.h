@@ -89,9 +89,9 @@ class NumericMEB : public MetadataExtensionBlock{
   virtual std::string toString() {
     std::stringstream ss;
     ss << "NumericMEB block:" << std::endl << MetadataExtensionBlock::toString()
-       << "Number Of Fields: " << m_nrofFields << std::endl;
+       << "\tNumber Of Fields: " << static_cast<int>(m_nrofFields) << std::endl;
     for (const auto& entry : m_fields) {
-      ss << "Code: " << static_cast<uint8_t>(entry.first) << " Value: "
+      ss << "\t\tCode: " << static_cast<int>(entry.first) << " Value: "
           << entry.second << std::endl;
     }
     return ss.str();
@@ -119,7 +119,6 @@ class NumericMEB : public MetadataExtensionBlock{
    */
   void addField(const T code, const uint64_t  value, std::stringstream& ss){
     ss << SDNV::encode(static_cast<uint8_t>(code));
-    LOG(1) << "NumericMEB::addField::value: " << value;
     ss << SDNV::encode(value);
   }
 
@@ -148,16 +147,16 @@ class NumericMEB : public MetadataExtensionBlock{
     resetFields();
     try {
       m_nrofFields = SDNV::decode(metadata);
-      LOG(1) << "NumericMEB::initFromRaw::m_nrofFields: " << (int)m_nrofFields;
+      LOG(55) << "NumericMEB::initFromRaw::m_nrofFields: " << (int)m_nrofFields;
       metadata = metadata.substr(SDNV::getLength(metadata));
       for(int i=0; i<m_nrofFields; i++){
         code = SDNV::decode(metadata);
-        LOG(1) << "NumericMEB::initFromRaw::code: " << (int)code;
         metadata = metadata.substr(SDNV::getLength(metadata));
         value = SDNV::decode(metadata);
-        LOG(1) << "NumericMEB::initFromRaw::value: " << value;
         metadata = metadata.substr(SDNV::getLength(metadata));
         m_fields[static_cast<T>(code)] = value;
+        LOG(55) << "NumericMEB::initFromRaw::code: " << static_cast<int>(code) <<
+            " value: " << value;
       }
     } catch (const std::out_of_range &e) {
       throw BlockConstructionException("[FrameworkMEB] Bad raw format");
