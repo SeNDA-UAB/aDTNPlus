@@ -83,9 +83,7 @@ class NumericMapedFields {
   }
 
   void reset(){
-    for (auto& entry : m_fields) {
-      entry.second = 0;
-    }
+    m_fields.clear();
   }
 
   /**
@@ -109,7 +107,8 @@ class NumericMapedFields {
     std::stringstream ss;
 
     for (const std::pair<T, value_t>& entry : m_fields) {
-      ss << static_cast<uint8_t>(entry.first) << " " << std::endl;
+      ss << "code: " << static_cast<int>(entry.first) << " value: " <<
+          entry.second << std::endl;
     }
 
     return ss.str();
