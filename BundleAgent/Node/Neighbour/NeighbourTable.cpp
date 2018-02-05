@@ -32,6 +32,8 @@
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
 
+#define LOG_NEIGHBOUR_TABLE 98
+
 NeighbourTable::NeighbourTable() {
 }
 
@@ -122,12 +124,12 @@ std::vector<std::string> NeighbourTable::getMinNeighbours(
 }
 
 void NeighbourTable::clean(int expirationTime) {
-  LOG(62) << "Cleaning neighbours that have been out for more than "
+  LOG(LOG_NEIGHBOUR_TABLE) << "Cleaning neighbours that have been out for more than "
           << expirationTime;
   m_mutex.lock();
   for (auto it = m_neigbours.begin(); it != m_neigbours.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(21) << "Neighbour " << (*it).second->getId() << " has disappeared";
+      LOG(LOG_NEIGHBOUR_TABLE) << "Neighbour " << (*it).second->getId() << " has disappeared";
       remove(it->second->getEndpoints(), it->second->getId());
       it = m_neigbours.erase(it);
     } else {
