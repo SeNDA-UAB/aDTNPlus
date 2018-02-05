@@ -38,6 +38,11 @@
 #include <atomic>
 #include <exception>
 
+//#define LOG_SEND_METRICS = 68;
+#define LOG_SEND_METRICS 55
+#define LOG_NO_METRICS_TO_BE_SENT 98
+#define LOG_SEND_METRICS_THREAD 14
+
 class MetadataExtensionBlock;
 
 class BundleContainer;
