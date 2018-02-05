@@ -73,19 +73,20 @@ void BundleProcessor::processBundles() {
   Logger::getInstance()->setThreadName(std::this_thread::get_id(),
                                        "Bundle Processor");
   g_startedThread++;
-  g_processed = 0;
   while (!g_stop.load()) {
     uint32_t oldValue;
     while (((oldValue = g_queueProcessEvents) > 0) && !g_stop.load()) {
       g_queueSize = m_bundleQueue->getSize();
-      g_processed = 0;
-      while (g_processed.load() < g_queueSize.load() && !g_stop.load()) {
+      uint32_t i = 0;
+      while (i < g_queueSize.load() && !g_stop.load()) {
         try {
           LOG(60) << "Checking for bundles in the queue";
-          m_bundleQueue->wait_for(m_config.getSocketTimeout());
+          m_bundleQueue->wait_for(m_config.getProcessTimeout());
           std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
-          processBundle(std::move(bc));
-          g_processed++;
+          if (processBundle(std::move(bc))) {
+            g_queueProcessEvents++;
+          }
+          i++;
         } catch (const std::exception &e) {
         }
       }
@@ -93,7 +94,7 @@ void BundleProcessor::processBundles() {
     }
     std::unique_lock<std::mutex> lck(g_processorMutex);
     if (g_processorConditionVariable.wait_for(
-        lck, std::chrono::seconds(m_config.getSocketTimeout()))
+        lck, std::chrono::seconds(m_config.getProcessTimeout()))
         == std::cv_status::timeout) {
       g_queueProcessEvents++;
     }
@@ -406,7 +407,6 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
       }
     }
     if (hops == 0) {
-      g_processed--;
       throw ForwardException("The bundle has not been send to any neighbour.",
                              errors);
     }
