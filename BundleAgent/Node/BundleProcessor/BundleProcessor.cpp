@@ -83,7 +83,7 @@ void BundleProcessor::processBundles() {
           LOG(60) << "Checking for bundles in the queue";
           m_bundleQueue->wait_for(m_config.getProcessTimeout());
           std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
-          if (processBundle(std::move(bc))) {
+          if (!processBundle(std::move(bc))) {
             g_queueProcessEvents++;
           }
           i++;
