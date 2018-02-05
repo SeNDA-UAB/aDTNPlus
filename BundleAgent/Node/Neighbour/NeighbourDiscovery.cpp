@@ -40,6 +40,10 @@
 #include "Utils/globals.h"
 #include "Utils/Socket.h"
 
+#define LOG_NEIGHBOUR 98 //before 22
+#define LOG_CLEAN 98 //before 67
+#define LOG_START_CLEAN_THREAD 98//before 16
+
 NeighbourDiscovery::NeighbourDiscovery(
     Config config, std::shared_ptr<NeighbourTable> neighbourTable,
     std::shared_ptr<ListeningEndpointsTable> listeningEndpointsTable)
@@ -96,7 +100,7 @@ void NeighbourDiscovery::sendBeacons() {
         std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
         Beacon b = Beacon(nodeId, nodeAddress, nodePort,
                           m_listeningEndpointsTable->getValues());
-        LOG(21) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
+        LOG(LOG_NEIGHBOUR) << "Sending beacon from " << nodeId << " " << nodeAddress << ":"
                 << nodePort;
         std::string rawBeacon = b.getRaw();
         if (!(s << rawBeacon)) {
@@ -163,8 +167,8 @@ void NeighbourDiscovery::receiveBeacons() {
             // receiving more beacons
             Beacon b = Beacon(buffer);
             if (b.getNodeId() != nodeId || testMode) {
-              LOG(21) << "Received beacon from " << b.getNodeId() << " "
-              << b.getNodeAddress() << ":" << b.getNodePort();
+              LOG(LOG_NEIGHBOUR) << "Received beacon from " << b.getNodeId() << " "
+                      << b.getNodeAddress() << ":" << b.getNodePort();
               std::thread([b, this]() {
                     m_neighbourTable->update(std::make_shared<Neighbour>(
                             b.getNodeId(),
@@ -194,16 +198,16 @@ void NeighbourDiscovery::cleanNeighbours() {
       "Neighbour cleaner");
   int sleepTime = m_config.getNeighbourCleanerTime();
   int expirationTime = m_config.getNeighbourExpirationTime();
-  LOG(16) << "Starting Cleaner thread cleaning every " << sleepTime
-  << "s all the nodes with inactivity for a period of "
-  << expirationTime << "s";
+  LOG(LOG_START_CLEAN_THREAD) << "Starting Cleaner thread cleaning every " << sleepTime
+          << "s all the nodes with inactivity for a period of "
+          << expirationTime << "s";
   g_startedThread++;
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
-    LOG(67) << "Calling to clean neighbours";
+    LOG(LOG_CLEAN) << "Calling to clean neighbours";
     m_neighbourTable->clean(expirationTime);
   }
-  LOG(16) << "Exit Neighbour cleaner thread";
+  LOG(LOG_START_CLEAN_THREAD) << "Exit Neighbour cleaner thread";
   g_stopped++;
 }
 
