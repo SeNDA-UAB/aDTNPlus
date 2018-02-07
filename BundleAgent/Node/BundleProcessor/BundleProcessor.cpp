@@ -83,7 +83,7 @@ void BundleProcessor::processBundles() {
           LOG(60) << "Checking for bundles in the queue";
           m_bundleQueue->wait_for(m_config.getProcessTimeout());
           std::unique_ptr<BundleContainer> bc = m_bundleQueue->dequeue();
-          if (processBundle(std::move(bc))) {
+          if (!processBundle(std::move(bc))) {
             g_queueProcessEvents++;
           }
           i++;
@@ -214,6 +214,11 @@ void BundleProcessor::receiveMessage(Socket sock) {
           LOG(42) << "Saving bundle to queue";
           try {
             m_bundleQueue->enqueue(std::move(bc));
+            // Notify Processor that a new bundle can be processed
+            g_queueProcessEvents++;
+            std::unique_lock<std::mutex> lck(g_processorMutex);
+            g_processorConditionVariable.notify_one();
+
           } catch (const DroppedBundleQueueException &e) {
             std::stringstream ss;
             ss << m_config.getDataPath() << bc->getBundle().getId()
@@ -235,10 +240,6 @@ void BundleProcessor::receiveMessage(Socket sock) {
             LOG(3) << "Cannot write to socket, reason: " << sock.getLastError();
           }
           sock.close();
-          // Notify Processor that a new bundle can be processed
-          g_queueProcessEvents++;
-          std::unique_lock<std::mutex> lck(g_processorMutex);
-          g_processorConditionVariable.notify_one();
         } catch (const BundleCreationException &e) {
           LOG(3) << "Error constructing received bundle, reason: " << e.what();
         }

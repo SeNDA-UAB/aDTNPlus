@@ -118,9 +118,31 @@ TEST(BundleQueueTest, QueuePolicyBundleBiggerThanQueue) {
       new Bundle("Me", "Someone",
                  "This is a test bundle bigger thant the last one"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
-  ASSERT_THROW(queue.enqueue(std::move(bc)), DroppedBundleQueueException);
+  ASSERT_THROW(queue.enqueue(std::move(bc), false),
+               DroppedBundleQueueException);
   std::unique_ptr<BundleContainer> bc1 = queue.dequeue();
   ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
+}
+
+TEST(BundleQueueTest, QueueFullDrop) {
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle"));
+  std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle"));
+  std::unique_ptr<BundleContainer> bc1 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  BundleQueue queue = BundleQueue(
+      "/tmp", "/tmp",
+      bc->getBundle().toRaw().length() + bc1->getBundle().toRaw().length());
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc1)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone",
+                 "This is a test bundle biger to remove the other two ones"));
+  bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
+  ASSERT_THROW(queue.enqueue(std::move(bc)), DroppedBundleQueueException);
 }
 
 TEST(BundleQueueTest, QueuePolicySameSize) {
@@ -135,7 +157,7 @@ TEST(BundleQueueTest, QueuePolicySameSize) {
       new Bundle("Me", "Someone", "This is a test bundle"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
   BundleContainer* bc2 = bc.get();
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false));
   std::unique_ptr<BundleContainer> bc1 = queue.dequeue();
   ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
 }
@@ -159,7 +181,7 @@ TEST(BundleQueueTest, QueuePolicyTwoBundlesForOne) {
                  "This is a test bundle biger to remove the other two ones"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
   BundleContainer* bc2 = bc.get();
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false));
   std::unique_ptr<BundleContainer> bc3 = queue.dequeue();
   ASSERT_EQ(bc2->getBundle().toRaw(), bc3->getBundle().toRaw());
 }
@@ -188,11 +210,11 @@ TEST(BundleQueueTest, CustomQueuePolicyAsObject) {
   b = std::unique_ptr<Bundle>(
       new Bundle("Me1", "Somene", "This is a test bundle"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false));
   b = std::unique_ptr<Bundle>(
       new Bundle("Me1", "Somene", "This is a test bundle"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc), myObject));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false, myObject));
   std::unique_ptr<BundleContainer> bc1 = queue.dequeue();
   ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
 }
@@ -218,11 +240,11 @@ TEST(BundleQueueTest, CustomQueuePolicyAsFuntion) {
   b = std::unique_ptr<Bundle>(
       new Bundle("Me1", "Somene", "This is a test bundle"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false));
   b = std::unique_ptr<Bundle>(
       new Bundle("Me1", "Somene", "This is a test bundle"));
   bc = std::unique_ptr<BundleContainer>(new BundleContainer(std::move(b)));
-  ASSERT_NO_THROW(queue.enqueue(std::move(bc), myFunction));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc), false, myFunction));
   std::unique_ptr<BundleContainer> bc1 = queue.dequeue();
   ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
 }
