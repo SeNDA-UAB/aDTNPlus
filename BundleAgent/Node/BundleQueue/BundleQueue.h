@@ -91,6 +91,8 @@ class BundleQueue {
    * small to big (or from first to last) so the comp has to take this in account.
    *
    * @param bundleContainer the bundle container to add to the queue.
+   * @param drop True if when full queue drop message, false to apply policy and
+   *             remove messages to fit.
    * @param comp Binary function that accepts two elements in the range as
    *             arguments, and returns a value convertible to bool.
    *             The value returned indicates whether the element passed as
@@ -99,7 +101,8 @@ class BundleQueue {
    *             This can either be a function pointer or a function object.
    */
   template<class T = compare>
-  void enqueue(std::unique_ptr<BundleContainer> bundleContainer, T comp = T()) {
+  void enqueue(std::unique_ptr<BundleContainer> bundleContainer, bool drop =
+                   true, T comp = T()) {
     std::unique_lock<std::mutex> insertLock(m_insertMutex);
     BundleInfo bi = BundleInfo(bundleContainer->getBundle());
     // Check if the bundle currently exist in the queue
@@ -122,6 +125,12 @@ class BundleQueue {
           saveBundleToDisk(m_dropPath, *bundleContainer, true);
           throw DroppedBundleQueueException(
               "[BundleQueue] Bundle larger than queue.");
+        }
+        if (drop) {
+          // Drop the message and throw an exception.
+          insertLock.unlock();
+          saveBundleToDisk(m_dropPath, *bundleContainer, true);
+          throw DroppedBundleQueueException("[BundleQueue] Full Queue.");
         }
         // The bundle can fit in the queue, so order the bundles as the policy
         std::deque<BundleInfo> toOrder;
@@ -193,7 +202,6 @@ class BundleQueue {
                         bool timestamp = false);
 
  private:
-
   template<class T, class F>
   class indexGenerator {
    public:
