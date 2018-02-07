@@ -24,7 +24,13 @@
 #ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOWBUNDLEPROCESSOR_H_
 #define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOWBUNDLEPROCESSOR_H_
 
+#include <memory>
+#include <string>
+#include <vector>
+#include <atomic>
+#include <exception>
 #include "Bundle/BundleTypes.h"
+#include "Bundle/BundleInfo.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
 #include "Node/BundleProcessor/OppnetFlow/NumericMapedFields.h"
@@ -32,16 +38,13 @@
 #include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Node/JsonFacades/NodeStateJson.h"
-#include <memory>
-#include <string>
-#include <vector>
-#include <atomic>
-#include <exception>
+
 
 //#define LOG_SEND_METRICS = 68;
 #define LOG_SEND_METRICS 55
 #define LOG_NO_METRICS_TO_BE_SENT 98
 #define LOG_SEND_METRICS_THREAD 14
+#define LOG_LIFE_TIME = 55
 
 class MetadataExtensionBlock;
 
@@ -199,6 +202,13 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * Launches a thread that awakes each certain time and sends the network metrics.
    */
   void scheduleReportingNetworkMetrics();
+
+  /**
+   * Checks if I am the origin of the bundle.
+   * @param bundleInfo the basic information of the bundle
+   * @return true if I am the origin of the bundle false otherwise.
+   */
+  bool amITheOriginOfTheBundle(BundleInfo &bundleInfo);
 
   /**
    * Checks if the bundle is a control one. If this is the case checks whether

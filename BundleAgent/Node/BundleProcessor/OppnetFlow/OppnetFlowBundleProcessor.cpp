@@ -22,8 +22,19 @@
  *
  */
 
+#include <algorithm>
+#include <atomic>
+#include <cstddef>
+#include <ctime>
+#include <fstream>
+#include <sstream>
+#include <functional>
+#include <iterator>
+#include <stdexcept>
+#include <memory>
+#include <thread>
+#include <iostream>
 #include "Bundle/Bundle.h"
-#include "Bundle/BundleInfo.h"
 #include "Bundle/MetadataExtensionBlock.h"
 #include "Bundle/PrimaryBlock.h"
 #include "Bundle/ControlMetricsMEB.h"
@@ -42,33 +53,25 @@
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
 #include "Utils/TimestampManager.h"
-#include <algorithm>
-#include <atomic>
-#include <cstddef>
-#include <ctime>
-#include <fstream>
-#include <sstream>
-#include <functional>
-#include <iterator>
-#include <stdexcept>
-#include <memory>
-#include <thread>
-#include <iostream>
 
 NEW_PLUGIN(OppnetFlowBundleProcessor, "Basic bundle processor", "1.0",
            "Implements oppnetFlow protocol.")
 
-OppnetFlowBundleProcessor::OppnetFlowBundleProcessor() : m_controlState(m_nodeState) {}
+OppnetFlowBundleProcessor::OppnetFlowBundleProcessor()
+    : m_controlState(m_nodeState) {
+}
 
 OppnetFlowBundleProcessor::~OppnetFlowBundleProcessor() {
 }
 
-OppnetFlowBundleProcessor::ControlState::ControlState(NodeStateJson& nodeState) :
-  m_nodeState_ref(nodeState){}
+OppnetFlowBundleProcessor::ControlState::ControlState(NodeStateJson& nodeState)
+    : m_nodeState_ref(nodeState) {
+}
 
-OppnetFlowBundleProcessor::ControlState::~ControlState(){}
+OppnetFlowBundleProcessor::ControlState::~ControlState() {
+}
 
-const bool OppnetFlowBundleProcessor::ControlState::isControlReportingActive() const{
+const bool OppnetFlowBundleProcessor::ControlState::isControlReportingActive() const {
   return static_cast<bool>(m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["active"]);
 }
 
@@ -84,8 +87,10 @@ const std::string OppnetFlowBundleProcessor::ControlState::getLastControlBundleI
   return m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"];
 }
 
-void OppnetFlowBundleProcessor::ControlState::setLastControlBundleId(const std::string& lastControlBundleId) {
-  m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"] = lastControlBundleId;
+void OppnetFlowBundleProcessor::ControlState::setLastControlBundleId(
+    const std::string& lastControlBundleId) {
+  m_nodeState_ref["oppnetFlow"]["control"]["controlReportings"]["lastControlBundleId"] =
+      lastControlBundleId;
 }
 
 const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDirectives() const {
@@ -95,12 +100,13 @@ const bool OppnetFlowBundleProcessor::ControlState::doWeHaveToExecuteControlDire
 OppnetFlowBundleProcessor::ControlParameters::ControlParameters(
     NodeStateJson& nodeState) {
   int frequency =
-      (int)nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
+      (int) nodeState["oppnetFlow"]["control"]["controlReportings"]["frequency"];
   m_fields[ControlParameterCode::REPORT_FREQUENCY] = frequency;
 
 }
 
-OppnetFlowBundleProcessor::ControlParameters::~ControlParameters(){}
+OppnetFlowBundleProcessor::ControlParameters::~ControlParameters() {
+}
 
 void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
   std::stringstream ss;
@@ -112,11 +118,13 @@ void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
 }
 
 void OppnetFlowBundleProcessor::sendNetworkMetrics() {
-  if (!m_networkMetrics.isEmpty()){
-    LOG(LOG_SEND_METRICS) << "[OppnetFlowProcessor] " <<
-        "Sending network control metrics: " << m_networkMetrics.toString().c_str();
+  if (!m_networkMetrics.isEmpty()) {
+    LOG(LOG_SEND_METRICS) << "[OppnetFlowProcessor] "
+                          << "Sending network control metrics: "
+                          << m_networkMetrics.toString().c_str();
     std::unique_ptr<Bundle> bundle_ptr(
-        new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(), ""));
+        new Bundle(m_nodeState["id"], m_controlState.getControllersGroupId(),
+                   ""));
     std::shared_ptr<ControlMetricsMEB> metricsMEB_ptr(
         new ControlMetricsMEB(m_networkMetrics.getSetMapedFields()));
 
@@ -125,8 +133,8 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
     bundle_ptr->addBlock(
         std::static_pointer_cast<CanonicalBlock>(metricsMEB_ptr));
     std::unique_ptr<BundleContainer> bc_ptr = createBundleContainer(
-          std::move(bundle_ptr));
-    bc_ptr->getState()["bundleType"] = 1;//BundleType::CONTROL;
+        std::move(bundle_ptr));
+    bc_ptr->getState()["bundleType"] = 1;  //BundleType::CONTROL;
     m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
 
     try {
@@ -137,13 +145,15 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
     } catch (RemoveBundleFromDiskException &e) {
       LOG(55) << e.what();
     }
-  }else{
-    LOG(LOG_NO_METRICS_TO_BE_SENT) << "[OppnetFlowProcessor] " << "No metrics to be sent: ";
+  } else {
+    LOG(LOG_NO_METRICS_TO_BE_SENT) << "[OppnetFlowProcessor] "
+                                   << "No metrics to be sent: ";
   }
 }
 
-void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
-  uint32_t sleepTime = m_controlParameters[ControlParameterCode::REPORT_FREQUENCY];
+void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep() {
+  uint32_t sleepTime =
+      m_controlParameters[ControlParameterCode::REPORT_FREQUENCY];
   g_startedThread++;
 
   LOG(LOG_SEND_METRICS_THREAD) << "Creating reportingNetworkMetrics thread";
@@ -151,7 +161,7 @@ void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep(){
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     sendNetworkMetrics();
     m_networkMetrics.reset();
-  }//end while true loop
+  }  //end while true loop
   LOG(LOG_SEND_METRICS_THREAD) << "Exit reportingNetworkMetrics thread.";
   g_stopped++;
 }
@@ -185,7 +195,7 @@ void OppnetFlowBundleProcessor::start(
       LOG(15) << "no nodeState ";
       g_stop = true;
     }
-    if (m_controlState.isControlReportingActive()){
+    if (m_controlState.isControlReportingActive()) {
       scheduleReportingNetworkMetrics();
     }
   } else {
@@ -193,11 +203,11 @@ void OppnetFlowBundleProcessor::start(
   }
 }
 
-void OppnetFlowBundleProcessor::drop(){
+void OppnetFlowBundleProcessor::drop() {
   m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DROPS);
 }
 
-void OppnetFlowBundleProcessor::delivered(){
+void OppnetFlowBundleProcessor::delivered() {
   m_networkMetrics.incrementField(NetworkMetricsControlCode::NR_OF_DELIVERIES);
 }
 
@@ -206,8 +216,8 @@ void OppnetFlowBundleProcessor::processRecivedControlBundleIfNecessary(
   if (m_controlState.doWeHaveToExecuteControlDirectives()) {
     std::shared_ptr<ControlDirectiveMEB> controlMEB_ptr =
         std::static_pointer_cast<ControlDirectiveMEB>(
-            (bundleContainer.getBundle()).findMetadataExtensionBlock(MetadataTypes::CONTROL_DIRECTIVE_MEB)
-            );
+            (bundleContainer.getBundle()).findMetadataExtensionBlock(
+                MetadataTypes::CONTROL_DIRECTIVE_MEB));
     if (controlMEB_ptr != nullptr) {
       m_controlDirectives = NumericMapedFields<DirectiveControlCode>(
           controlMEB_ptr->getFields());
@@ -253,38 +263,33 @@ std::vector<std::string> OppnetFlowBundleProcessor::checkDispatch(
 
 bool OppnetFlowBundleProcessor::checkLifetime(
     BundleContainer &bundleContainer) {
+  bool expired = false;
   BundleInfo bi(bundleContainer.getBundle());
-  if (
-      (bi.getLifetime()
-      < (time(NULL) - g_timeFrom2000 - bi.getCreationTimestamp())) &&
-      isTheFresherControlBundle(bundleContainer)
-      )
-    return true;
-  else
-    return false;
+  if (bi.getLifetime()
+      < (time(NULL) - g_timeFrom2000 - bi.getCreationTimestamp())) {
+    expired = true;
+  } else if (isAControlBundle(bundleContainer) && amITheOriginOfTheBundle(bi)
+      && !isTheFresherControlBundle(bundleContainer)) {
+    expired = true;
+  }
+  return expired;
 }
-
 
 bool OppnetFlowBundleProcessor::isTheFresherControlBundle(
-  BundleContainer& bc) const {
+    BundleContainer& bc) const {
 
-  return (isAControlBundle(bc)
-      && (bc.getBundle().getId() == m_controlState.getLastControlBundleId()));
+  return (bc.getBundle().getId() == m_controlState.getLastControlBundleId());
 }
-
 
 bool OppnetFlowBundleProcessor::checkDestination(
     BundleContainer &bundleContainer) {
   BundleInfo bi = BundleInfo(bundleContainer.getBundle());
-  bool amIDestination = (
-      (m_controlState.hasJoinedAsAController() &&
-          (bi.getDestination() == m_controlState.getControllersGroupId())) ||
-      (bi.getDestination() == m_config.getNodeId())
-  );
+  bool amIDestination = ((m_controlState.hasJoinedAsAController()
+      && (bi.getDestination() == m_controlState.getControllersGroupId()))
+      || (bi.getDestination() == m_config.getNodeId()));
 
   return amIDestination;
 }
-
 
 bool OppnetFlowBundleProcessor::processBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
@@ -312,7 +317,8 @@ bool OppnetFlowBundleProcessor::processBundle(
     LOG(55) << "We are not the destination node.";
     LOG(55) << "Checking lifetime.";
     if (checkLifetime(*bundleContainer)) {
-      LOG(55) << "Bundle expired, discarding it.";
+      LOG(55) << "Bundle: " << bundleContainer->getBundle().getId()
+              << " expired, discarding it.";
       discard(std::move(bundleContainer));
     } else {
       LOG(55) << "Bundle is not expired yet.";
@@ -346,12 +352,13 @@ bool OppnetFlowBundleProcessor::processBundle(
             std::unique_ptr<ForwardingAlgorithm> forwardingAlgorithm =
                 m_forwardingAlgorithmFactory.getForwardingAlgorithm(
                     bundleContainer->getBundle());
-            applyControlSetupToForwardingAlgorithmIfNecessary(*forwardingAlgorithm);
-            auto f_ptr = std::bind(&OppnetFlowBundleProcessor::forward, this, _1,
-                                _2);
-            processed = processed &&
-                (forwardingAlgorithm->doForward(bundleContainer->getBundle(),
-                                           neighbours, f_ptr));
+            applyControlSetupToForwardingAlgorithmIfNecessary(
+                *forwardingAlgorithm);
+            auto f_ptr = std::bind(&OppnetFlowBundleProcessor::forward, this,
+                                   _1, _2);
+            processed = processed
+                && (forwardingAlgorithm->doForward(bundleContainer->getBundle(),
+                                                   neighbours, f_ptr));
             restore(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
@@ -371,20 +378,22 @@ bool OppnetFlowBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContainer(
     std::unique_ptr<Bundle> bundle) {
   std::unique_ptr<BundleContainer> bc(new BundleContainer(std::move(bundle)));
-  bc->getState()["bundleType"] = 0;//BundleType::DEFAULT;
+  bc->getState()["bundleType"] = 0;  //BundleType::DEFAULT;
 
   return bc;
 }
 
-bool OppnetFlowBundleProcessor::isAControlBundle(
-  BundleContainer& bc) const {
-  bool isAControlBundle = (bc.getState()["bundleType"] == 0) ? //BundleType::DEFAULT) ?
+bool OppnetFlowBundleProcessor::isAControlBundle(BundleContainer& bc) const {
+  bool isAControlBundle = (bc.getState()["bundleType"] == 0) ?  //BundleType::DEFAULT) ?
       false : true;
   return isAControlBundle;
 }
 
-const bool OppnetFlowBundleProcessor::areThereControlDirectives() const {
-   return (!m_controlDirectives.isEmpty());
+bool OppnetFlowBundleProcessor::amITheOriginOfTheBundle(BundleInfo& bi) {
+  return (m_nodeState["id"] == bi.getSource());
 }
 
+const bool OppnetFlowBundleProcessor::areThereControlDirectives() const {
+  return (!m_controlDirectives.isEmpty());
+}
 
