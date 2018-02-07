@@ -39,7 +39,7 @@ class ForwardingAlgorithm {
   virtual ~ForwardingAlgorithm() {
   }
 
-  virtual void doForward(
+  virtual bool doForward(
       Bundle& bundle,
       const std::vector<std::string> neighbors,
       std::function<void (Bundle, std::vector<std::string>)> forward) = 0;
