@@ -138,7 +138,8 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
     m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc_ptr);
 
     try {
-      m_bundleQueue->enqueue(std::move(bc_ptr));
+      //forcing the control messages to fit in the queue.
+      m_bundleQueue->enqueue(std::move(bc_ptr), false);
       removeBundleFromDisk(bundleId);
     } catch (const DroppedBundleQueueException &e) {
       LOG(55) << e.what();
