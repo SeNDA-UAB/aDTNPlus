@@ -25,6 +25,7 @@
 #define BUNDLEAGENT_BUNDLE_BUNDLEINFO_H_
 
 #include <string>
+#include <unordered_set>
 #include "Bundle/Bundle.h"
 
 /**
@@ -84,6 +85,18 @@ class BundleInfo {
    * @return The bytes size
    */
   uint64_t getSize() const;
+  /**
+   * Returns if the bundle has one metadata block of the specified type.
+   * @param type The type to search.
+   * @return True if the block exist in the bundle.
+   */
+  bool hasMetadataTypeBlock(uint8_t type) const;
+  /**
+   * Returns if the bundle has one canonical block of the specified type.
+   * @param type The type to search.
+   * @return True if the block exist in the bundle.
+   */
+  bool hasCanonicalTypeBlock(uint8_t type) const;
 
  private:
   /**
@@ -114,6 +127,14 @@ class BundleInfo {
    * Variable to hold the bundle size.
    */
   uint64_t m_size;
+  /**
+   * Variable to hold the metadata types.
+   */
+  std::unordered_set<uint8_t> m_metadataTypeBlocks;
+  /**
+   * Variable to hold the canonical block types.
+   */
+  std::unordered_set<uint8_t> m_canoniclaTypeBlocks;
 };
 
 #endif  // BUNDLEAGENT_BUNDLE_BUNDLEINFO_H_

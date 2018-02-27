@@ -25,7 +25,10 @@
 #include "Bundle/BundleInfo.h"
 #include <string>
 #include <ctime>
+#include <vector>
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/CanonicalBlock.h"
+#include "Bundle/MetadataExtensionBlock.h"
 
 const uint64_t g_timeFrom2000 = 946684800;
 
@@ -38,6 +41,19 @@ BundleInfo::BundleInfo(Bundle &bundle)
           bundle.getPrimaryBlock()->getCreationTimestampSeqNumber()),
       m_lifetime(bundle.getPrimaryBlock()->getLifetime()),
       m_size(bundle.toRaw().length()) {
+  std::vector<std::shared_ptr<Block>> blocks = bundle.getBlocks();
+  blocks.erase(blocks.begin());
+  for (auto c : blocks) {
+    std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
+        CanonicalBlock>(c);
+    m_canoniclaTypeBlocks.insert(canonical_block->getBlockType());
+    if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
+                MetadataExtensionBlock>(canonical_block);
+      m_metadataTypeBlocks.insert(meb->getMetadataType());
+    }
+  }
 }
 
 BundleInfo::~BundleInfo() {
@@ -74,3 +90,14 @@ uint64_t BundleInfo::getCurrentLifetime() const {
 uint64_t BundleInfo::getSize() const {
   return m_size;
 }
+
+bool BundleInfo::hasMetadataTypeBlock(uint8_t type) const {
+  auto it = m_metadataTypeBlocks.find(type);
+  return (it != m_metadataTypeBlocks.end());
+}
+
+bool BundleInfo::hasCanonicalTypeBlock(uint8_t type) const {
+  auto it = m_canoniclaTypeBlocks.find(type);
+  return (it != m_canoniclaTypeBlocks.end());
+}
+
