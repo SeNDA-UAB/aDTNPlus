@@ -52,7 +52,7 @@ class SDONController {
   /**
    * Default constructor that initializes all the communication parameters needed
    * for the controller to send/recv bundles. Initializes two sockets one for
-   * send and the other one for receive. It also stablishes the connection with
+   * send and the other one for receive. It also establishes the connection with
    * the node the application wants to receive bundles from.
    * It starts a thread to collect the network metrics for a period of time.
    * @throws adtnException in case the connection with the platform has failed.
@@ -67,7 +67,7 @@ class SDONController {
   virtual ~SDONController();
 
   /**
-   * Method invoqued every time a metric is received.
+   * Method invoked every time a metric is received.
    * @metrics a map with the metrics received. The metrics were encapsulated in
    * a bundle.
    */
