@@ -33,6 +33,12 @@
           "frequency" : 5,
           "lastControlBundleId" : ""
         }
+        "forwardPriorization" : {
+          myCtrlDirective : true,
+          myCtrlMetric : true,
+          forwardedCtrlDirective : true,
+          forwardedMetricDirective: true
+        }
       }           
   },
   "id" : "${hostname}"
