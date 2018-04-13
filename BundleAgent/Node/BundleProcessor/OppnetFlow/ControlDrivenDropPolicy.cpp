@@ -47,7 +47,7 @@ ControlDrivenDropPolicy::ControlDrivenDropPolicy(
 ControlDrivenDropPolicy::~ControlDrivenDropPolicy() {
 }
 
-bool ControlDrivenDropPolicy::operator ()(const BundleInfo& bundle1,
+bool ControlDrivenDropPolicy::operator()(const BundleInfo& bundle1,
                                          const BundleInfo& bundle2) const {
   uint8_t bundle1Score = calculatePriorityScore(bundle1);
   uint8_t bundle2Score = calculatePriorityScore(bundle2);
@@ -61,7 +61,7 @@ bool ControlDrivenDropPolicy::operator ()(const BundleInfo& bundle1,
 
 const uint8_t ControlDrivenDropPolicy::calculatePriorityScore(
     const BundleInfo& bundleI) const {
-  uint8_t score;
+  uint8_t score = 0;
   bool includesMEB = false;
   bool isMyBundle = (bundleI.getSource() == m_currentNodeId);
 
