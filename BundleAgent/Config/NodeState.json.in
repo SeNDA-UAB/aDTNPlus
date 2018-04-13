@@ -32,12 +32,12 @@
           "active" : true,
           "frequency" : 5,
           "lastControlBundleId" : ""
-        }
-        "forwardPriorization" : {
-          myCtrlDirective : true,
-          myCtrlMetric : true,
-          forwardedCtrlDirective : true,
-          forwardedMetricDirective: true
+        },
+       "forwardPriorization": {
+          "myCtrlDirective": true,
+          "myCtrlMetric": true,
+          "forwardedCtrlDirective": true,
+          "forwardedMetricDirective": true
         }
       }           
   },
