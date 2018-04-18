@@ -82,6 +82,18 @@ add_library(aDTNPlus_OppnetFlowBundleProcessor MODULE
   Node/JsonFacades/NodeStateJson.cpp
 )
 
+add_library(aDTNPlus_OppnetFlowBundleProcessor_for_test STATIC  
+  Node/BundleProcessor/BundleProcessor.cpp  
+  Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.cpp
+  Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.cpp
+  Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h
+  Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.cpp
+  Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.cpp
+  Node/BundleProcessor/OppnetFlow/DropPolicy.h
+  Node/BundleProcessor/OppnetFlow/ControlDrivenDropPolicy.cpp
+  Node/JsonFacades/NodeStateJson.cpp
+)
+
 # Configure adtn.ini: change node id, and default bundle path
 execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME)
 string(REGEX REPLACE "(\r?\n)+$" "" hostname "${HOSTNAME}")
