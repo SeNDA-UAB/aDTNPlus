@@ -23,6 +23,7 @@
  */
 
 #include <cstdint>
+#include <iostream>
 #include "Bundle/BundleInfo.h"
 #include "Node/BundleProcessor/OppnetFlow/ControlDrivenDropPolicy.h"
 
@@ -33,14 +34,12 @@
 ControlDrivenDropPolicy::ControlDrivenDropPolicy(
     std::string currentNodeId, NodeStateJson& nodeStateForPriorization) :
     m_currentNodeId(currentNodeId) {
-
    const std::string configurationNSEntries[] {"myCtrlDirective", "myCtrlMetric",
      "forwardedCtrlDirective", "forwardedMetricDirective"};
    uint8_t i = 0;
-
    for(auto entry : configurationNSEntries){
      m_ctrlPriorizationConfiguration[i++] =
-         (static_cast<bool>(nodeStateForPriorization[entry])) ? 1 : 0;
+         (nodeStateForPriorization["forwardPriorization"][entry]) ? 1 : 0;
    }
 }
 
@@ -49,6 +48,7 @@ ControlDrivenDropPolicy::~ControlDrivenDropPolicy() {
 
 bool ControlDrivenDropPolicy::operator()(const BundleInfo& bundle1,
                                          const BundleInfo& bundle2) const {
+  std::cout << "Operator" << std::endl;
   uint8_t bundle1Score = calculatePriorityScore(bundle1);
   uint8_t bundle2Score = calculatePriorityScore(bundle2);
   if (bundle1Score == bundle2Score){
