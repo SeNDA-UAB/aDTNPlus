@@ -23,6 +23,7 @@
  */
 
 #include <string>
+#include <iostream>
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Bundle/Bundle.h"
@@ -47,11 +48,10 @@
  */
 ControlDrivenDropPolicy getDropPolicy() {
   NodeStateJson nodeState;
-
-  nodeState["forwardPriorization"]["myCtrlDirective"] = "true";
-  nodeState["forwardPriorization"]["myCtrlMetric"] = "true";
-  nodeState["forwardPriorization"]["forwardedCtrlDirective"] = "true";
-  nodeState["forwardPriorization"]["forwardedMetricDirective"] = "true";
+  nodeState["forwardPriorization"]["myCtrlDirective"] = true;
+  nodeState["forwardPriorization"]["myCtrlMetric"] = true;
+  nodeState["forwardPriorization"]["forwardedCtrlDirective"] = true;
+  nodeState["forwardPriorization"]["forwardedMetricDirective"] = true;
 
   return ControlDrivenDropPolicy("src_me", nodeState);
 }
@@ -194,7 +194,7 @@ std::unique_ptr<BundleContainer> wrapIntoBundleContainer(
 //control bundle have priority over the normal bundles
 /**
  * Test1: Queue can store 4 bundles.
- * The bundle has room to be enqueued. The queue has to be sorted.
+ * The bundle has room to be enqueued. Remember the queue remains not sorted.
  * queue: [0] -> otherCtrolMEB, [1] -> otherMEB, [2] -> IamSrcCtrlMEB
  * priorities: IamSrcCtrlMEB > otherCtrolMEB > otherMEB
  * enters: IamSrcDirCtrlMEB
@@ -204,55 +204,49 @@ std::unique_ptr<BundleContainer> wrapIntoBundleContainer(
  */
 TEST(ControlDrivenDropPolicyTest, Test1){
   std::unique_ptr<Bundle> otherCtrolMEBBundle = buildOtherCtrlMEBBundle("Hi1");
+  Bundle* otherCtrolMEBBundle_copy = otherCtrolMEBBundle.get();
   std::unique_ptr<Bundle> otherMEBBundle = buildOtherSprayMEBBundle("Hi2");
+  Bundle* otherMEBBundle_copy = otherMEBBundle.get();
   std::unique_ptr<Bundle> iamSrcCtrlMEBBundle = buildIamSrcCtrlMEBBundle("Hi3");
+  Bundle* iamSrcCtrlMEBBundle_copy = iamSrcCtrlMEBBundle.get();
   std::unique_ptr<Bundle> iamSrcDirCtrlMEBBundle = buildIamSrcDirectiveMEBBundle("Hi4");
+  Bundle* iamSrcDirCtrlMEBBundle_copy = iamSrcDirCtrlMEBBundle.get();
   int queueSize = otherMEBBundle->toRaw().length()*4;
   BundleQueue queue = BundleQueue("/tmp/", "/tmp", queueSize);
 
   //setting the queue
+  std::cout << "First enqueue" << std::endl;
   queue.enqueue(std::move(wrapIntoBundleContainer(
       std::move(otherCtrolMEBBundle))), false, getDropPolicy());
+  std::cout << "Second enqueue" << std::endl;
   queue.enqueue(std::move(wrapIntoBundleContainer(
       std::move(otherMEBBundle))), false, getDropPolicy());
+  std::cout << "Third enqueue" << std::endl;
   queue.enqueue(std::move(wrapIntoBundleContainer(
       std::move(iamSrcCtrlMEBBundle))), false, getDropPolicy());
-  ASSERT_NO_THROW(queue.enqueue(std::move(wrapIntoBundleContainer(
+
+  std::cout << "Fourth enqueue" << std::endl;
+  EXPECT_NO_THROW(queue.enqueue(std::move(wrapIntoBundleContainer(
       std::move(iamSrcDirCtrlMEBBundle))), false, getDropPolicy()));
+  std::cout << "Dequeu" << std::endl;
+  std::unique_ptr<BundleContainer> bc = queue.dequeue(); //dequeuing queue[0]
+  ASSERT_EQ(bc->getBundle().toRaw(), otherCtrolMEBBundle_copy->toRaw());
 
-  std::unique_ptr<BundleContainer> bc = queue.dequeue();
-  ASSERT_EQ(bc->getBundle().toRaw(), otherMEBBundle->toRaw());
+  bc = queue.dequeue();//dequeuing queue[1]
+  ASSERT_EQ(bc->getBundle().toRaw(), otherMEBBundle_copy->toRaw());
 
-  bc = queue.dequeue();
-  ASSERT_EQ(bc->getBundle().toRaw(), otherCtrolMEBBundle->toRaw());
+  bc = queue.dequeue();//dequeuing queue[2]
+  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcCtrlMEBBundle_copy->toRaw());
 
-  bc = queue.dequeue();
-  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcCtrlMEBBundle->toRaw());
-
-  bc = queue.dequeue();
-  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcDirCtrlMEBBundle->toRaw());
+  bc = queue.dequeue();//dequeuing queue[3]
+  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcDirCtrlMEBBundle_copy->toRaw());
 
 }
-
-/**
- * Test2: Queue can store 4 bundles.
- * The bundle has room to be enqueued. The queue does not need to be sorted.
- * queue: [0] -> otherMEB, [1] -> otherCtrlMEB, [2] -> otherDirMEB.
- * priorities: otherDirMEB > otherCtrlMEB > otherMEB
- * enters: IamSrc
- * priorities: IamSrc > otherDirMEB > otherCtrlMEB > otherMEB
- * queue:
- */
-
-
-
-
 
 
 /**
  * Test3: Queue can store 2 bundles. A third bundle comes into place.
- * Queue has to be sorted. An stored bundle in the original tail's
- * queue goes.
+ * An stored bundle in the tail's queue goes.
  * queue: [0] -> otherDirMEB, [1] -> otherCtrlMEB.
  * priorities: otherDirMEB > otherCtrlMEB
  * enters: IamSrc
@@ -262,8 +256,7 @@ TEST(ControlDrivenDropPolicyTest, Test1){
 
 /**
  * Test4:Queue can store 3 bundles. A forth one comes into place.
- * Queue has to be sorted. An stored bundle in the original medium
- * position queue goes.
+ * An stored bundle in the original medium position queue goes.
  * queue: [0] -> IamSrc, [1] -> otherCtrlMEB, [2] -> otherOtherMEB.
  * priorities: IamSrc > otherCtrlMEB > otherOtherMEB
  * enters: otherDirMEB.
@@ -273,8 +266,7 @@ TEST(ControlDrivenDropPolicyTest, Test1){
 
 /**
  * Test5: aggregate score: Queue can store 3 bundles. A forth one comes into place.
- * Queue has to be sorted. An stored bundle in the original medium
- * position queue goes.
+ * An stored bundle in the original medium position queue goes.
  * queue: [0] -> IamSrcCtrlMEB, [1] -> otherDirMEB, [2] -> IamSrcOtherMEB.
  * priorities: IamSrcCtrlMEB >  IamSrcOtherMEB > otherDirMEB
  * enters: IamSrcDirMEB.
