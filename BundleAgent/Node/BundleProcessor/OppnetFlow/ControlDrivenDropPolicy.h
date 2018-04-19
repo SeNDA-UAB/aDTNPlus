@@ -71,7 +71,7 @@ class ControlDrivenDropPolicy : public DropPolicy{
    * Node state entries values that define if control directives and control
    * metrics bundles are prioritized over the data bundles.
    */
-  static uint8_t m_ctrlPriorizationConfiguration[CTRL_PRIORIZATION_PARAMS];
+  uint8_t m_ctrlPriorizationConfiguration[CTRL_PRIORIZATION_PARAMS];
 
   /**
    * Contains the position in the array ctrlPriorizationConfiguration of the
