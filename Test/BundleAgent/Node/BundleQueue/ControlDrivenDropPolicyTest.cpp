@@ -123,7 +123,7 @@ std::unique_ptr<Bundle> buildIamSrcDirectiveMEBBundle(std::string payload =
  * @return Returns a bundle where I am the source and has a SprayAndWait MEB
  */
 
-std::unique_ptr<Bundle> buildIamSrcSrayMEBBundle(std::string payload =
+std::unique_ptr<Bundle> buildIamSrcOtherMEBBundle(std::string payload =
     "Hello World") {
   std::unique_ptr<Bundle> bundle_ptr = std::unique_ptr<Bundle>(
       new Bundle(Bundle("src_me", "dst_other", payload)));
@@ -166,7 +166,7 @@ std::unique_ptr<Bundle> buildOtherDirectiveMEBBundle(std::string payload =
  * @return Returns a bundle where I am not the source and has a
  * SprayAndWait Ctrl MEB.
  */
-std::unique_ptr<Bundle> buildOtherSprayMEBBundle(std::string payload =
+std::unique_ptr<Bundle> buildOtherMEBBundle(std::string payload =
     "Hello World") {
   std::unique_ptr<Bundle> bundle_ptr = std::unique_ptr<Bundle>(
       new Bundle("src_other", "dst_other_1", payload));
@@ -195,10 +195,10 @@ std::unique_ptr<BundleContainer> wrapIntoBundleContainer(
  * queue: IamSrcDirCtrlMEB > IamSrcCtrlMEB > otherCtrolMEB > otherMEB
  * [0] -> otherControlMEB, [1] ->  otherMEB, [2] -> IamSrcCtrlMEB, [3] -> IamSrcDirCtrlMEB
  */
-TEST(ControlDrivenDropPolicyTest, Test1) {
+TEST(ControlDrivenDropPolicyTest, AllBundlesFitInQueu) {
   std::unique_ptr<Bundle> otherCtrolMEBBundle = buildOtherCtrlMEBBundle("Hi1");
   Bundle* otherCtrolMEBBundle_copy = otherCtrolMEBBundle.get();
-  std::unique_ptr<Bundle> otherMEBBundle = buildOtherSprayMEBBundle("Hi2");
+  std::unique_ptr<Bundle> otherMEBBundle = buildOtherMEBBundle("Hi2");
   Bundle* otherMEBBundle_copy = otherMEBBundle.get();
   std::unique_ptr<Bundle> iamSrcCtrlMEBBundle = buildIamSrcCtrlMEBBundle("Hi3");
   Bundle* iamSrcCtrlMEBBundle_copy = iamSrcCtrlMEBBundle.get();
@@ -250,12 +250,11 @@ TEST(ControlDrivenDropPolicyTest, Test1) {
  * priorities: IamSrc > otherDirMEB > otherCtrlMEB
  * queue: [0]- > otherDirMEB, [1] -> IamSrc
  */
-TEST(ControlDrivenDropPolicyTest, Test2) {
+TEST(ControlDrivenDropPolicyTest, ABundleInTheTailHasToGo) {
   std::unique_ptr<Bundle> otherDirMEBBundle = buildOtherDirectiveMEBBundle(
       "Hi1");
   Bundle* otherDirMEBBundle_copy = otherDirMEBBundle.get();
   std::unique_ptr<Bundle> otherCtrolMEBBundle = buildOtherCtrlMEBBundle("Hi2");
-  Bundle* otherCtrolMEBBundle_copy = otherCtrolMEBBundle.get();
   std::unique_ptr<Bundle> iamSrcCtrlMEBBundle = buildIamSrcCtrlMEBBundle("Hi3");
   Bundle* iamSrcCtrlMEBBundle_copy = iamSrcCtrlMEBBundle.get();
   int queueSize = otherDirMEBBundle->toRaw().length() * 2;
@@ -270,10 +269,10 @@ TEST(ControlDrivenDropPolicyTest, Test2) {
       std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
       getDropPolicy());
   std::cout << "Second enqueue" << std::endl;
-  ASSERT_THROW(
+  ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
-          false, getDropPolicy()), DroppedBundleQueueException);
+          false, getDropPolicy()));
 
   std::cout << "First Dequeu" << std::endl;
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
@@ -286,37 +285,184 @@ TEST(ControlDrivenDropPolicyTest, Test2) {
 }
 
 /**
- * Test2: Queue can store 2 bundles. A third bundle comes into place.
- * An stored bundle in the tail's queue goes.
- * queue: [0] -> otherDirMEB, [1] -> otherCtrlMEB.
- * priorities: otherDirMEB > otherCtrlMEB
- * enters: IamSrc
- * priorities: IamSrc > otherDirMEB > otherCtrlMEB
- * queue: [0]- > otherDirMEB, [1] -> IamSrc
+ * Test3: Queue can store 3 bundles. A fourth bundle comes into place.
+ * the bundle in the middle goes.
+ * queue: [0] -> otherDirMEB, [1] -> otherCtrlMEB -> [2] IamSrcDirMEB
+ * priorities: IamSrcDirMEB > otherDirMEB > otherCtrlMEB
+ * enters: IamSrcOtherMEB
+ * priorities: IamSrcDirMEB > IamSrcOtherMEB > otherDirMEB > otherCtrlMEB
+ * queue: [0] -> otherDirMEB, [1] IamSrcDirMEB, [2] IamSrcOtherMEB
  */
+TEST(ControlDrivenDropPolicyTest, ABundleInTheMiddleHasToGo) {
+  std::unique_ptr<Bundle> otherDirMEBBundle = buildOtherDirectiveMEBBundle("Hi1");
+  Bundle* otherDirMEBBundle_copy = otherDirMEBBundle.get();
+  std::unique_ptr<Bundle> otherCtrolMEBBundle = buildOtherCtrlMEBBundle("Hi2");
+  std::unique_ptr<Bundle> iamSrcDirMEBBundle = buildIamSrcDirectiveMEBBundle("Hi3");
+  Bundle* iamSrcDirMEBBundle_copy = iamSrcDirMEBBundle.get();
+  std::unique_ptr<Bundle> iamSrcOtherMEBBundle = buildIamSrcOtherMEBBundle("Hi4");
+  Bundle* iamSrcOtherMEBBundle_copy = iamSrcOtherMEBBundle.get();
+
+
+  int queueSize = iamSrcOtherMEBBundle->toRaw().length() * 3;
+  BundleQueue queue = BundleQueue("/tmp/", "/tmp", queueSize);
+
+  //setting the queue
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))), false,
+      getDropPolicy());
+
+  queue.enqueue(std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))),
+                false, getDropPolicy());
+
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))), false,
+      getDropPolicy());
+
+  ASSERT_NO_THROW(queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))), false,
+      getDropPolicy()));
+
+
+  std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
+  ASSERT_EQ(bc->getBundle().toRaw(), otherDirMEBBundle_copy->toRaw());
+
+  bc = queue.dequeue();  //dequeuing queue[1]
+  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcDirMEBBundle_copy->toRaw());
+
+  bc = queue.dequeue();  //dequeuing queue[2]
+  ASSERT_EQ(bc->getBundle().toRaw(), iamSrcOtherMEBBundle_copy->toRaw());
+
+}
+
 
 
 /**
- * Test4:Queue can store 3 bundles. A forth one comes into place.
- * The bundle stored in the second position of the queue goes.
- * queue: [0] -> IamSrc, [1] -> otherMEB, [2] -> otherCtrlMEB.
- * priorities: IamSrc > otherCtrlMEB > otherMEB
- * enters: otherDirMEB.
- * priorities: IamSrc > otherDirMEB >otherCtrlMEB > otherOtherMEB
- * queue: [0] ->IamSrc, [1] -> otherCtrlMEB, [2] -> otherDirMEB,
- */
-
-
-
-
-/**
- * Test5: aggregate score: Queue can store 3 bundles. A forth one comes into place.
- * The bundle stored in the first position of the queue goes.
- * otherDirMEB IamSrcOtherMEB IamSrcCtrlMEB
- * queue: [0] -> otherDirMEB, [1] -> IamSrcOtherMEB, [2] -> IamSrcCtrlMEB.
- * priorities: IamSrcCtrlMEB >  IamSrcOtherMEB > otherDirMEB
+ * Test4:Queue can store 2 bundles. A third one comes into place.
+ * The bundle stored in the head position of the queue goes.
+ * queue: [0] -> otherCtrlMEB, [1] ->  IamSrcOtherMEB
+ * priorities: IamSrcOtherMEB >   otherCtrlMEB
  * enters: IamSrcDirMEB.
- * priorities: IamSrcDirMEB > IamSrcCtrlMEB >IamSrcOtherMEB > otherDirMEB
- * queue: [0] -> IamSrcDirMEB, [1] -> IamSrcCtrlMEB, [2] -> IamSrcOtherMEB
+ * priorities: IamSrcDirMEB > IamSrcCtrlMEB > otherMEB
+ * queue: [0] ->IamSrcOtherMEB, [1] -> IamSrcDirMEB,
  */
+TEST(ControlDrivenDropPolicyTest, ABundleInTheHead) {
+  std::unique_ptr<Bundle> otherCtrolMEBBundle = buildOtherCtrlMEBBundle("Hi1");
+  std::unique_ptr<Bundle> iamSrcOtherMEBBundle = buildIamSrcOtherMEBBundle("Hi2");
+  Bundle* iamSrcOtherMEBBundle_copy = iamSrcOtherMEBBundle.get();
+  std::unique_ptr<Bundle> iamSrcDirMEBBundle = buildIamSrcDirectiveMEBBundle("Hi3");
+  Bundle* iamSrcDirMEBBundle_copy = iamSrcDirMEBBundle.get();
+
+  int queueSize = iamSrcOtherMEBBundle->toRaw().length() * 2;
+  BundleQueue queue = BundleQueue("/tmp/", "/tmp", queueSize);
+
+  //setting the queue
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
+      getDropPolicy());
+
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))), false,
+      getDropPolicy());
+
+  ASSERT_NO_THROW(queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))), false,
+      getDropPolicy()));
+
+  std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
+    ASSERT_EQ(bc->getBundle().toRaw(), iamSrcOtherMEBBundle_copy->toRaw());
+
+    bc = queue.dequeue();  //dequeuing queue[1]
+    ASSERT_EQ(bc->getBundle().toRaw(), iamSrcDirMEBBundle_copy->toRaw());
+}
+
+
+/**
+ * Test5: Queue can store 5 bundles. A new bundle one comes into place.
+ * It has the lesser prioriry (OtherMEB)-> it is dropped.
+ * queue: [0] IamSrcDirMEB, [1] IamSrcCtrlMEB, [2] IamSrcOtherMEB,
+ * [3] OtherDirMEB, [4] OtherCtrlMEB
+ */
+TEST(ControlDrivenDropPolicyTest, OtherMEBCannotBeEnqueued) {
+  std::unique_ptr<Bundle> iamSrcDirMEBBundle = buildIamSrcDirectiveMEBBundle("Hi1");
+  Bundle* iamSrcDirMEBBundle_copy = iamSrcDirMEBBundle.get();
+  std::unique_ptr<Bundle> iamSrcCtrlMEBBundle = buildIamSrcCtrlMEBBundle("Hi2");
+  Bundle* iamSrcCtrlMEBBundle_copy = iamSrcCtrlMEBBundle.get();
+  std::unique_ptr<Bundle> iamSrcOtherMEBBundle = buildIamSrcOtherMEBBundle("Hi3");
+  Bundle* iamSrcOtherMEBBundle_copy = iamSrcOtherMEBBundle.get();
+  std::unique_ptr<Bundle> otherDirMEBBundle = buildOtherDirectiveMEBBundle("Hi4");
+  Bundle* otherDirMEBBundle_copy = otherDirMEBBundle.get();
+  std::unique_ptr<Bundle> otherCtrlMEBBundle = buildOtherCtrlMEBBundle("Hi5");
+  Bundle* otherCtrlMEBBundle_copy = otherCtrlMEBBundle.get();
+  std::unique_ptr<Bundle> otherMEBBundle = buildOtherMEBBundle("Hi6");
+  Bundle* otherMEBBundle_copy = otherMEBBundle.get();
+
+  int queueSize = otherMEBBundle->toRaw().length() * 5;
+  BundleQueue queue = BundleQueue("/tmp/", "/tmp", queueSize);
+
+  //setting the queue
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))), false,
+      getDropPolicy());
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))), false,
+      getDropPolicy());
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))), false,
+      getDropPolicy());
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))), false,
+      getDropPolicy());
+  queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(otherCtrlMEBBundle))), false,
+      getDropPolicy());
+  EXPECT_THROW(queue.enqueue(
+      std::move(wrapIntoBundleContainer(std::move(otherMEBBundle))), false,
+      getDropPolicy()), DroppedBundleQueueException);
+
+
+  std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
+      ASSERT_EQ(bc->getBundle().toRaw(), iamSrcDirMEBBundle_copy->toRaw());
+      std::cout << "Dequeu1" << std::endl;
+      bc = queue.dequeue();
+      ASSERT_EQ(bc->getBundle().toRaw(), iamSrcCtrlMEBBundle_copy->toRaw());
+      std::cout << "Dequeu2" << std::endl;
+      bc = queue.dequeue();
+      ASSERT_EQ(bc->getBundle().toRaw(), iamSrcOtherMEBBundle_copy->toRaw());
+      std::cout << "Dequeu3" << std::endl;
+      bc = queue.dequeue();
+      ASSERT_EQ(bc->getBundle().toRaw(), otherDirMEBBundle_copy->toRaw());
+      std::cout << "Dequeu4" << std::endl;
+      bc = queue.dequeue();
+      ASSERT_EQ(bc->getBundle().toRaw(), otherCtrlMEBBundle_copy->toRaw());
+      std::cout << "Dequeu5" << std::endl;
+      bc = queue.dequeue();
+      ASSERT_EQ(bc->getBundle().toRaw(), otherMEBBundle_copy->toRaw());
+      std::cout << "Dequeu6" << std::endl;
+}
+
+/**
+ * Test6: Queue can store 4 bundles. A new bundle one comes into place.
+ * It has the lesser prioriry (OtherCtrlMEB) -> it is dropped.
+ * queue: [0] IamSrcDirMEB, [1] IamSrcCtrlMEB, [2] IamSrcOtherMEB,
+ * [3] OtherDirMEB,
+ */
+
+
+/**
+ * Test7: Queue can store 3 bundles. A new bundle one comes into place.
+ * It has the lesser prioriry (OtherDirMEB)-> it is dropped.
+ * queue: [0] IamSrcDirMEB, [1] IamSrcCtrlMEB, [2] IamSrcOtherMEB,
+ */
+
+ /**
+  * Test8: Queue can store 2 bundles. A new bundle one comes into place.
+  * It has the lesser prioriry (ImSrcOtherMEB)-> it is dropped.
+  * queue: [0] IamSrcDirMEB, [1] IamSrcCtrlMEB,
+  */
+
+ /**
+   * Test9: Queue can store 1 bundles. A new bundle one comes into place.
+   * It has the lesser prioriry (IamSrcCtrlMEB)-> it is dropped.
+   * queue: [0] IamSrcDirMEB
+   */
 
