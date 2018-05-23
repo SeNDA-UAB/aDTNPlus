@@ -20,7 +20,7 @@ if __name__ == '__main__':
     if (args.window != 0):
         # Look for all the created db and generate the json files, with the
         # given window.
-        generateWindowValues(args.files, args.window)
+        generateJSON(args.files, args.window)
     else:
         # Generate all the db from the file list
         parseFiles(args.files)

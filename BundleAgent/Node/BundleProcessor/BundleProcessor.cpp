@@ -245,7 +245,8 @@ void BundleProcessor::receiveMessage(Socket sock) {
             PERF(PerfMessages::MESSAGE_CREATED) << bundleId;
           } else if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
             PERF(PerfMessages::MESSAGE_RELAYED_FROM) << bundleId << " "
-                                                     << sock.getPeerName();
+                                                     << sock.getPeerName()
+                                                     << " " << bundleLength;
           }
           sock.close();
         } catch (const BundleCreationException &e) {
@@ -379,12 +380,12 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                             static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
                       } else {
                         LOG(46) << "Received bundle ACK: " << static_cast<unsigned int>(ack);
-                        if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
+                        if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED) || ack == static_cast<uint8_t>(BundleACK::QUEUE_FULL)) {
                           LOG(11) << "A bundle of length " << bundleLength
                           << " has been sent to " << nb->getNodeAddress()
                           << ":" << nb->getNodePort() << " from "
                           << s.getPeerName();
-                          PERF(MESSAGE_RELAYED) << bundleId << " " << s.getPeerName();
+                          PERF(MESSAGE_RELAYED) << bundleId << " " << s.getPeerName() << " " << bundleLength;
                         } else {
                           std::stringstream ss;
                           uint8_t error;
