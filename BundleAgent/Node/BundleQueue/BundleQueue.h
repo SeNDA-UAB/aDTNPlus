@@ -92,17 +92,21 @@ class BundleQueue {
    *
    * @param bundleContainer the bundle container to add to the queue.
    * @param drop True if when full queue drop message, false to apply policy and
-   *             remove messages to fit.
+   *             remove messages to fit. (True by default)
    * @param comp Binary function that accepts two elements in the range as
    *             arguments, and returns a value convertible to bool.
    *             The value returned indicates whether the element passed as
    *             first argument is considered to go before the second in the
    *             specific strict weak ordering it defines.
    *             This can either be a function pointer or a function object.
+   * @param checkEnqueue True if when applying policy the bundle to enqueue must
+   *             pass the policy also, if the bundle to enqueue has the least
+   *             priority, it will be dropped. (False by default)
    */
   template<class T = compare>
   void enqueue(std::unique_ptr<BundleContainer> bundleContainer, bool drop =
-                   true, T comp = T()) {
+                   true,
+               T comp = T(), bool checkEnqueue = false) {
     std::unique_lock<std::mutex> insertLock(m_insertMutex);
     BundleInfo bi = BundleInfo(bundleContainer->getBundle());
     // Check if the bundle currently exist in the queue
@@ -134,12 +138,15 @@ class BundleQueue {
         }
         // The bundle can fit in the queue, so order the bundles as the policy
         std::deque<BundleInfo> toOrder;
-        std::deque<int> order(m_bundles.size(), 0);
-        std::iota(order.begin(), order.end(), 0);
         // create an order deque, that will be sort with the policy
         for (auto &ptr : m_bundles) {
           toOrder.push_back(BundleInfo(ptr->getBundle()));
         }
+        if (checkEnqueue) {
+          toOrder.push_back(BundleInfo(bundleContainer->getBundle()));
+        }
+        std::deque<int> order(toOrder.size(), 0);
+        std::iota(order.begin(), order.end(), 0);
         std::sort(order.begin(), order.end(),
                   indexGenerator<std::deque<BundleInfo>, T>(toOrder, comp));
         uint64_t accumulatedSize = m_queueByteSize;
@@ -148,6 +155,13 @@ class BundleQueue {
         while ((m_queueMaxByteSize - accumulatedSize) < bi.getSize()) {
           accumulatedSize -= toOrder[order.front()].getSize();
           toRemove.push_back(order.front());
+          if (checkEnqueue
+              && toOrder[order.front()].getId()
+                  == bundleContainer->getBundle().getId()) {
+            insertLock.unlock();
+            saveBundleToDisk(m_dropPath, *bundleContainer, true);
+            throw DroppedBundleQueueException("[BundleQueue] Full Queue.");
+          }
           order.pop_front();
         }
         std::sort(toRemove.begin(), toRemove.end(), std::greater<int>());

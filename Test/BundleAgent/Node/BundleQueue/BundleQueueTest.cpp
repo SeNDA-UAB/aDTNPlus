@@ -249,3 +249,74 @@ TEST(BundleQueueTest, CustomQueuePolicyAsFuntion) {
   ASSERT_EQ(bc2->getBundle().toRaw(), bc1->getBundle().toRaw());
 }
 
+bool myFunction1(const BundleInfo& a, const BundleInfo &b) {
+  if (a.getSource() == "Me")
+    return false;
+  else if (b.getSource() == "Me")
+    return true;
+  else if (a.getDestination() == "Someone")
+    return false;
+  else if (b.getDestination() == "Someone")
+    return true;
+  else
+    return (a.getCreationTimestamp() < b.getCreationTimestamp());
+}
+
+TEST(BundleQueueTest, DropIfLessPriority) {
+  uint32_t size = 0;
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle1"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc1 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("You", "Someone",
+                 "This is a test bundle large enough to generate a drop"));
+  std::unique_ptr<BundleContainer> bc2 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Them", "Them", "This is a test bundle"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc3 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  BundleQueue queue = BundleQueue("/tmp", "/tmp", size);
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc1)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc3)));
+  ASSERT_THROW(queue.enqueue(std::move(bc2), false, myFunction1, true),
+               DroppedBundleQueueException);
+}
+
+TEST(BundleQueueTest, NoDropIfMorePriority) {
+  uint32_t size = 0;
+  std::unique_ptr<Bundle> b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Me", "Someone", "This is a test bundle1"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc1 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(new Bundle("You", "Someone", "This is a test"));
+  std::unique_ptr<BundleContainer> bc2 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  b = std::unique_ptr<Bundle>(
+      new Bundle("Them", "Them", "This is a test bundle large enough"));
+  size += b->toRaw().length();
+  std::unique_ptr<BundleContainer> bc3 = std::unique_ptr<BundleContainer>(
+      new BundleContainer(std::move(b)));
+  BundleQueue queue = BundleQueue("/tmp", "/tmp", size);
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc1)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc3)));
+  ASSERT_NO_THROW(queue.enqueue(std::move(bc2), false, myFunction1, true));
+  ASSERT_EQ((int)queue.getSize(), 3);
+}
+
