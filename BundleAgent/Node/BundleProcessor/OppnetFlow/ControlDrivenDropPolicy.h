@@ -32,7 +32,7 @@
 class ControlDrivenDropPolicy : public DropPolicy{
  public:
   ControlDrivenDropPolicy(std::string currentNodeId,
-                          NodeStateJson& nodeStateForPriorization);
+                          const NodeStateJson& nodeStateForPriorization);
   virtual ~ControlDrivenDropPolicy();
 
 
@@ -46,7 +46,7 @@ class ControlDrivenDropPolicy : public DropPolicy{
    * @param bundle2
    * @return true if bundle1 should be discared in pro of bundle2.
    */
-  bool operator()(const BundleInfo& bundle1, const BundleInfo& bundle2) const;
+  bool operator()(const BundleInfo& bundle1, const BundleInfo& bundle2);
 
  protected:
    static const uint8_t I_AM_SRC_NODE_SCORE = 100;
