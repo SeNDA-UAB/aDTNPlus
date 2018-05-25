@@ -45,10 +45,10 @@
  */
 ControlDrivenDropPolicy getDropPolicy() {
   NodeStateJson nodeState;
-  nodeState["forwardPriorization"]["myCtrlDirective"] = true;
-  nodeState["forwardPriorization"]["myCtrlMetric"] = true;
-  nodeState["forwardPriorization"]["forwardedCtrlDirective"] = true;
-  nodeState["forwardPriorization"]["forwardedMetricDirective"] = true;
+  nodeState["myCtrlDirective"] = true;
+  nodeState["myCtrlMetric"] = true;
+  nodeState["forwardedCtrlDirective"] = true;
+  nodeState["forwardedMetricDirective"] = true;
 
   return ControlDrivenDropPolicy("src_me", nodeState);
 }
@@ -225,7 +225,7 @@ TEST(ControlDrivenDropPolicyTest, AllBundlesFitInQueu) {
   EXPECT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcDirCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   std::cout << "Dequeu" << std::endl;
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
   ASSERT_EQ(bc->getBundle().toRaw(), otherCtrolMEBBundle_copy->toRaw());
@@ -263,16 +263,16 @@ TEST(ControlDrivenDropPolicyTest, ABundleInTheTailHasToGo) {
 
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
   std::cout << "First enqueue" << std::endl;
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
   std::cout << "Second enqueue" << std::endl;
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
 
   std::cout << "First Dequeu" << std::endl;
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
@@ -309,18 +309,18 @@ TEST(ControlDrivenDropPolicyTest, ABundleInTheMiddleHasToGo) {
   //setting the queue
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(),true);
 
   queue.enqueue(std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))),
-                false, getDropPolicy());
+                false, getDropPolicy(), true);
 
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
 
   ASSERT_NO_THROW(queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))), false,
-      getDropPolicy()));
+      getDropPolicy(), true));
 
 
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
@@ -358,15 +358,15 @@ TEST(ControlDrivenDropPolicyTest, ABundleInTheHeadHasToGo) {
   //setting the queue
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
 
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
 
   ASSERT_NO_THROW(queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))), false,
-      getDropPolicy()));
+      getDropPolicy(), true));
 
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
     ASSERT_EQ(bc->getBundle().toRaw(), iamSrcOtherMEBBundle_copy->toRaw());
@@ -420,27 +420,27 @@ TEST(ControlDrivenDropPolicyTest, AllFitInQueueEnqueuDequeueAll) {
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   EXPECT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherMEBBundle))), false,
-          getDropPolicy()));
+          getDropPolicy(), true));
 
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
   EXPECT_EQ(bc->getBundle().toRaw(), iamSrcDirMEBBundle_copy->toRaw());
@@ -517,27 +517,27 @@ TEST(ControlDrivenDropPolicyTest, OtherMEBHasNoRoom) {
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   EXPECT_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherMEBBundle))), false,
-          getDropPolicy()), DroppedBundleQueueException);
+          getDropPolicy(), true), DroppedBundleQueueException);
 
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
   std::cout << "Dequeu1 length: " << bc->getBundle().toRaw().length() << std::endl;
@@ -612,23 +612,23 @@ TEST(ControlDrivenDropPolicyTest, OtherCtrlMEBHasNoRoom) {
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcOtherMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))),
-          false, getDropPolicy()));
+          false, getDropPolicy(), true));
   EXPECT_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(otherCtrlMEBBundle))), false,
-          getDropPolicy()), DroppedBundleQueueException);
+          getDropPolicy(), true), DroppedBundleQueueException);
 
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
   std::cout << "Dequeu1 length: " << bc->getBundle().toRaw().length() << std::endl;
