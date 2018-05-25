@@ -40,7 +40,7 @@ class DropPolicy {
    * @param bundle2
    * @return true if bundle1 should be discared in pro of bundle2.
    */
-  virtual bool operator()(const BundleInfo& bundle1, const BundleInfo& bundle2) const = 0;
+  virtual bool operator()(const BundleInfo& bundle1, const BundleInfo& bundle2) = 0;
 };
 
 #endif  // BUNDLEAGENT_NODE_BUNDLEPROCESSOR_OPPNETFLOW_DROPPOLICY_H_
