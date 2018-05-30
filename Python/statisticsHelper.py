@@ -4,6 +4,7 @@ import rabaDB.fields as rf
 from rabaDB.filters import *
 from numpy import mean, median, bincount
 from collections import defaultdict
+from operator import itemgetter
 
 # Globals
 smallestTimestamp = sys.maxint
@@ -114,7 +115,7 @@ def calculateBufferTime(name):
         if (len(aux) > 0):
             times.append(aux[0].timestamp - e.timestamp)
             processedID.append(aux[0].raba_id)
-    return (median(times), mean(times))
+    return (median(times), mean(times), times)
 
 
 def getBytes(name):
@@ -143,13 +144,13 @@ def calculateReceivedInfo(name):
         count += 1
     if len(copies) > 0:
         return (median(copies), mean(copies), median(times), mean(times),
-                count, len(alreadyProcessed))
+                count, len(alreadyProcessed), copies, times)
     else:
         if len(times) > 0:
             return (0, 0, median(times), mean(times),
-                    count, len(alreadyProcessed))
+                    count, len(alreadyProcessed), 0, times)
         else:
-            return (0, 0, 0, 0, count, len(alreadyProcessed))
+            return (0, 0, 0, 0, count, len(alreadyProcessed), 0, 0)
 
 
 def getBytesDelivered(name):
@@ -192,7 +193,7 @@ def getNeighbourInfo(name):
             times.append(diff)
             processedID.append(aux[0].raba_id)
             times_dist[aux[0].to_id] += diff / 1000
-    return (contacts, median(times), mean(times), times_dist)
+    return (contacts, median(times), mean(times), times_dist, times)
 
 
 def getContactsInfo(name):
@@ -220,48 +221,109 @@ def getBytesContact(name):
         send_bytes[e.to_id] += e.size_bundle
     bytes_send = [v for k, v in send_bytes.iteritems()]
     if (len(bytes_send) > 0):
-        return (median(bytes_send), mean(bytes_send))
+        return (median(bytes_send), mean(bytes_send), bytes_send)
     return (0, 0, 0, 0)
 
 
-def hopPath(info):
-    conn = RabaConnection('statistics')
-    # conn.enableQueryPrint(True)
+def hopPath(info, alreadyProcessed):
     hops = 0
     q = RabaQuery(Entry)
-    res = q.runWhere("type_id = ? and file_from = ? and bundle_id = ? and timestamp / 1000 <= ? ORDER BY timestamp DESC",
-                     ("3", info.file_from, info.bundle_id, info.timestamp / 1000))
+    res = q.runWhere("type_id = ? and file_from = ? and bundle_id = ? and"
+                     " timestamp / 1000 <= ? and raba_id NOT IN {} ORDER"
+                     " BY timestamp DESC".format(
+                         str(tuple(alreadyProcessed))).replace(',)', ')'),
+                     ("3", info.file_from, info.bundle_id,
+                      info.timestamp / 1000))
+    if (len(res) > 0):
+        alreadyProcessed.add(res[0].raba_id)
     while(len(res) > 0):
         n = res[0]
         p = RabaQuery(Entry)
-        # p.addFilter({"type_id": "4", "bundle_id": n.bundle_id,
-        #             "file_from": n.from_id, "to_id": n.file_from,
-        #             "timestamp / 1000 <=": n.timestamp / 1000})
-        #res = p.run(sqlTail="ORDER By timestamp DESC")
-        res = p.runWhere("type_id = ? and bundle_id = ? and file_from = ? and to_id = ? and timestamp / 1000 <= ? ORDER BY timestamp DESC",
-                         ("4", n.bundle_id, n.from_id, n.file_from, n.timestamp / 1000))
-        if (len(res) > 0):
-            n1 = res[0]
-            r = RabaQuery(Entry)
-            # r.addFilter({"type_id": "3", "bundle_id": n.bundle_id,
-            #             "file_from": n1.file_from,
-            #             "timestamp / 1000 <=": n1.timestamp / 1000})
-            #res = r.run(sqlTail="ORDER By timestamp DESC")
-            res = r.runWhere("type_id = ? and bundle_id = ? and file_from = ? and timestamp / 1000 <= ? ORDER BY timestamp DESC",
-                             ("3", n.bundle_id, n1.file_from, n1.timestamp / 1000))
-            hops += 1
-    # conn.enableQueryPrint(False)
+        res = p.runWhere("type_id = ? and bundle_id = ? and file_from = ?"
+                         " and timestamp / 1000 <= ? ORDER BY timestamp DESC",
+                         ("3", n.bundle_id, n.from_id, n.timestamp / 1000))
+        hops += 1
     return hops
 
 
 def hopCount():
     q = RabaQuery(Entry)
     q.addFilter(type_id="8")
+    alreadyProcessed = set()
+    hops = list()
     for e in q.iterRun(sqlTail="ORDER By timestamp DESC"):
-        print hopPath(e)
+        hops.append(hopPath(e, alreadyProcessed))
+    dist = bincount(hops)
+    hopsDist = {x: dist[x] for x in range(1, len(dist)) if dist[x] != 0}
+    if (len(hops) > 0):
+        return (median(hops), mean(hops), hopsDist)
+    else:
+        return (0, 0, hopsDist)
+
+
+def latencyCount():
+    q = RabaQuery(Entry)
+    q.addFilter(type_id="2")
+    times = list()
+    for e in q.iterRun():
+        p = RabaQuery(Entry)
+        p.addFilter(type_id="8", bundle_id=e.bundle_id)
+        res = p.run()
+        if len(res) > 0:
+            times.append(res[0].timestamp - e.timestamp)
+    if len(times) > 0:
+        return (median(times), mean(times))
+    else:
+        return (0, 0)
+
+
+def networkCopies():
+    r = RabaQuery(Entry)
+    r.addFilter(type_id="2")
+    copies = []
+    for b in r.iterRun():
+        times = []
+        processedID = []
+        f = RabaQuery(Entry)
+        f.addFilter(type_id="2", bundle_id=b.bundle_id)
+        f.addFilter(type_id="3", bundle_id=b.bundle_id)
+        for e in f.iterRun():
+            times.append((e.timestamp, 's'))
+            q = RabaQuery(Entry)
+            q.addFilter(type_id="7", file_from=e.file_from,
+                        bundle_id=b.bundle_id)
+            p = q.run()
+            aux = [x for x in p if x.raba_id not in processedID]
+            if (len(aux) > 0):
+                times.append((aux[0].timestamp, 'e'))
+                processedID.append(aux[0].raba_id)
+        times.sort(key=itemgetter(0))
+        count = 0
+        max_val = 0
+        for e in times:
+            if (e[1] == "s"):
+                count += 1
+            else:
+                count -= 1
+            max_val = max(max_val, count)
+        q = RabaQuery(Entry)
+        q.addFilter(type_id="8", bundle_id=b.bundle_id)
+        if q.count() > 0:
+            max_val -= 1
+        copies.append(max_val)
+    dist = bincount(copies)
+    copiesDist = {x: dist[x] for x in range(1, len(dist)) if dist[x] != 0}
+    if len(copies) > 0:
+        return (mean(copies), copiesDist)
+    else:
+        return (0, 0)
 
 
 def generateJSON(files, window):
+    copiesReceivedTotal = []
+    lifetimeReceivedTotal = []
+    bufferTimeTotal = []
+    contactTimesTotal = []
     for f in files:
         # Generate the node dictionary
         info_node = {"node_id": f.name, "message": dict(), "node": dict()}
@@ -295,9 +357,14 @@ def generateJSON(files, window):
         info_node["message"]["lifeTimeReceived_avg"] = receivedInfo[3] / 1000
         info_node["message"]["received_total"] = receivedInfo[4]
         info_node["message"]["received_unique"] = receivedInfo[5]
+        if receivedInfo[6] != 0:
+            copiesReceivedTotal.extend(receivedInfo[6])
+        if receivedInfo[7] != 0:
+            lifetimeReceivedTotal.extend(receivedInfo[7])
         bufferTime = calculateBufferTime(f.name)
         info_node["message"]["bufferTime_med"] = bufferTime[0] / 1000
         info_node["message"]["bufferTime_avg"] = bufferTime[1] / 1000
+        bufferTimeTotal.extend(bufferTime[2])
         try:
             overhead_ratio = (info_node["message"]["received_bytes"] -
                               info_node["message"]["delivered_bytes"]) \
@@ -310,6 +377,7 @@ def generateJSON(files, window):
         info_node["node"]["contactTime_med"] = contactInfo[1] / 1000
         info_node["node"]["contactTime_avg"] = contactInfo[2] / 1000
         info_node["node"]["totalContactTime_dist"] = contactInfo[3]
+        contactTimesTotal.extend(contactInfo[4])
         contactDists = getContactsInfo(f.name)
         info_node["node"]["nrOfContactsBetweenNodes_dist"] = contactDists[0]
         info_node["node"]["nrOfContacts_dist"] = contactDists[1]
@@ -319,6 +387,7 @@ def generateJSON(files, window):
 
         # Append the node
         info["nodes"].append(info_node)
+    # Calculate the aggregated ones
     aggr = {"message": dict(), "node": dict()}
     aggr["message"]["created"] = sum(
         x["message"]["created"] for x in info["nodes"])
@@ -330,13 +399,39 @@ def generateJSON(files, window):
         x["message"]["received_bytes"] for x in info["nodes"])
     aggr["message"]["delivered_bytes"] = sum(
         x["message"]["delivered_bytes"] for x in info["nodes"])
-    overhead_ratio = (aggr["message"]["received_bytes"] - aggr["message"]["delivered_bytes"]) / aggr[
-        "message"]["delivered_bytes"]
-    aggr["message"]["CopiesReceivedPerMsg_avg"] = mean([x["message"]["CopiesReceivedPerMsg_avg"] for x in info[
-                                                       "nodes"] if x["message"]["CopiesReceivedPerMsg_avg"] is not 0])
-    aggr["message"]["CopiesReceivedPerMsg_med"] = median([x["message"]["CopiesReceivedPerMsg_med"] for x in info[
-                                                         "nodes"] if x["message"]["CopiesReceivedPerMsg_med"] is not 0])
+    try:
+        overhead_ratio = (aggr["message"]["received_bytes"] -
+                          aggr["message"]["delivered_bytes"]) \
+            / aggr["message"]["delivered_bytes"]
+    except ZeroDivisionError:
+        overhead_ratio = 'NaN'
+    aggr["message"]["overhead_ratio_bytes"] = overhead_ratio
+    latencyValues = latencyCount()
+    aggr["message"]["latency_med"] = latencyValues[0]
+    aggr["message"]["latency_avg"] = latencyValues[1]
+    aggr["message"]["CopiesReceivedPerMsg_med"] = median(
+        copiesReceivedTotal) if len(copiesReceivedTotal) > 0 else 0
+    aggr["message"]["CopiesReceivedPerMsg_avg"] = mean(
+        copiesReceivedTotal) if len(copiesReceivedTotal) > 0 else 0
+    copiesValues = networkCopies()
+    aggr["message"]["CopiesInTheNetwork_avg"] = copiesValues[0]
+    aggr["message"]["CopiesInTheNetwork_dist"] = copiesValues[1]
+    aggr["message"]["dropped"] = sum(
+        x["message"]["dropped"] for x in info["nodes"])
+    aggr["message"]["lifeTimeReceived_med"] = median(
+        lifetimeReceivedTotal) / 1000 if len(lifetimeReceivedTotal) > 0 else 0
+    aggr["message"]["lifeTimeReceived_avg"] = mean(
+        lifetimeReceivedTotal) / 1000 if len(lifetimeReceivedTotal) > 0 else 0
+    hopsValues = hopCount()
+    aggr["message"]["hopcount_med"] = hopsValues[0]
+    aggr["message"]["hopcount_avg"] = hopsValues[1]
+    aggr["message"]["hopcount_dist"] = hopsValues[2]
+    aggr["message"]["bufferTime_med"] = median(bufferTimeTotal) / 1000
+    aggr["message"]["bufferTime_avg"] = mean(bufferTimeTotal) / 1000
+    aggr["node"]["contacts"] = sum(
+        x["node"]["contacts"] for x in info["nodes"])
+    aggr["node"]["contactTime_med"] = median(contactTimesTotal) / 1000
+    aggr["node"]["contactTime_avg"] = mean(contactTimesTotal) / 1000
     info["aggregated"] = aggr
-    print hopCount()
     with open('data.txt', 'w') as outfile:
         json.dump(info, outfile)
