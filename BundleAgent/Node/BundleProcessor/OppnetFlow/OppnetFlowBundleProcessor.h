@@ -37,6 +37,7 @@
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
+#include "Node/BundleProcessor/OppnetFlow/DropPolicy.h"
 #include "Node/JsonFacades/NodeStateJson.h"
 
 
@@ -110,7 +111,9 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   std::vector<std::string> checkDispatch(BundleContainer &bundleContainer);
   /**
-   * Function that checks the lifetime of a bundle.
+   * Function that checks the lifetime of a bundle. A bundle expires if:
+   * bundle creation time + bundle lifetime < current time.
+   * It is also expired if it is a control bundle and in the queue there is a
    *
    * @param bundleContainer The container with the bundle.
    * @return True if the lifetime has expired, false otherwise.
@@ -163,6 +166,13 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * @param bundleContainer The bundle received.
    */
   void processRecivedControlBundleIfNecessary(BundleContainer &bundleContainer);
+
+  /**
+   * @brief Function that returns the dropPolicy to be applied to the queue. It
+   * lazily initializes the property m_dropPolicy.
+   * @return the DropPolicy to be applied.
+   */
+  virtual std::shared_ptr<DropPolicy> getDropPolicy();
 
   /**
    * Variable that holds the parameters used in the processor calls.
@@ -248,9 +258,17 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   NumericMapedFields<DirectiveControlCode> m_controlDirectives;
 
+  /**
+   * Pointer to the policy to be used to drop messages if there is no room
+   * in the queue.
+   */
+  std::shared_ptr<DropPolicy> m_dropPolicy;
 
   /**
-   * Wrapper that holds the control state variables in the nodeState Json.
+   * Wrapper that holds the control state variables in the nodeState Json. The
+   * Control state variables give information regarding if the current node
+   * has joined as a controller; If the node has to report metrics; If the
+   * node can execute directives, etc...
    */
   class ControlState{
    public:

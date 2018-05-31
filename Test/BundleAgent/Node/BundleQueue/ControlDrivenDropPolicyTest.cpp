@@ -212,7 +212,7 @@ TEST(ControlDrivenDropPolicyTest, AllBundlesFitInQueu) {
   std::cout << "First enqueue" << std::endl;
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
-      getDropPolicy());
+      getDropPolicy(), true);
   std::cout << "Second enqueue" << std::endl;
   queue.enqueue(std::move(wrapIntoBundleContainer(std::move(otherMEBBundle))),
                 false, getDropPolicy());

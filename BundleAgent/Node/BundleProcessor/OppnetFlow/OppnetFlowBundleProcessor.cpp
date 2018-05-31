@@ -44,6 +44,7 @@
 #include "Node/BundleProcessor/OppnetFlow/ForwardingAlgorithmFactory.h"
 #include "Node/BundleProcessor/OppnetFlow/SprayAndWaitAlgorithm.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.h"
+#include "Node/BundleProcessor/OppnetFlow/ControlDrivenDropPolicy.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Node/BundleQueue/BundleQueue.h"
 #include "Node/BundleQueue/BundleContainer.h"
@@ -139,7 +140,11 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
 
     try {
       //forcing the control messages to fit in the queue.
-      m_bundleQueue->enqueue(std::move(bc_ptr), false);
+      ControlDrivenDropPolicy cdp =
+          *(std::dynamic_pointer_cast<ControlDrivenDropPolicy>(getDropPolicy()));
+
+      m_bundleQueue->enqueue(std::move(bc_ptr), false, cdp, true);
+      //m_bundleQueue->enqueue(std::move(bc_ptr), false);
       removeBundleFromDisk(bundleId);
     } catch (const DroppedBundleQueueException &e) {
       LOG(55) << e.what();
@@ -300,7 +305,7 @@ bool OppnetFlowBundleProcessor::processBundle(
 
   LOG(51) << "Processing a bundle container.";
   LOG(55) << "Checking destination node.";
-  if (checkDestination(*bundleContainer)) {
+  if (checkDestination(*bundleContainer)) { //I am a destination as a node or as a controller.
     LOG(55) << "We are the destination node.";
     processRecivedControlBundleIfNecessary(*bundleContainer);
     delivered();
@@ -314,7 +319,7 @@ bool OppnetFlowBundleProcessor::processBundle(
       LOG(55) << "No listening app, restoring the bundle.";
       restore(std::move(bundleContainer));
     }
-  } else {
+  } else { //We are not the destination node
     LOG(55) << "We are not the destination node.";
     LOG(55) << "Checking lifetime.";
     if (checkLifetime(*bundleContainer)) {
@@ -379,12 +384,14 @@ bool OppnetFlowBundleProcessor::processBundle(
 std::unique_ptr<BundleContainer> OppnetFlowBundleProcessor::createBundleContainer(
     std::unique_ptr<Bundle> bundle) {
   std::unique_ptr<BundleContainer> bc(new BundleContainer(std::move(bundle)));
-  bc->getState()["bundleType"] = 0;  //BundleType::DEFAULT;
+  //bc->getState()["bundleType"] = static_cast<uint8_t>(BundleType::DEFAULT);
 
   return bc;
 }
 
 bool OppnetFlowBundleProcessor::isAControlBundle(BundleContainer& bc) const {
+  Bundle bundle = bc.getBundle();
+
   bool isAControlBundle = (bc.getState()["bundleType"] == 0) ?  //BundleType::DEFAULT) ?
       false : true;
   return isAControlBundle;
@@ -392,6 +399,16 @@ bool OppnetFlowBundleProcessor::isAControlBundle(BundleContainer& bc) const {
 
 bool OppnetFlowBundleProcessor::amITheOriginOfTheBundle(BundleInfo& bi) {
   return (m_nodeState["id"] == bi.getSource());
+}
+
+std::shared_ptr<DropPolicy> OppnetFlowBundleProcessor::getDropPolicy() {
+  if (m_dropPolicy == nullptr) {
+    m_dropPolicy = std::shared_ptr<DropPolicy>(
+        new ControlDrivenDropPolicy(
+            m_nodeState["id"],
+            m_nodeState["oppnetFlow"]["control"]["forwardPriorization"]));
+  }
+  return m_dropPolicy;
 }
 
 const bool OppnetFlowBundleProcessor::areThereControlDirectives() const {
