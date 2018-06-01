@@ -4,8 +4,8 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(../BundleAgent)
 set(TEST_EXEC BundleAgent_test)
 
-#file(GLOB_RECURSE TEST_SRC_FILES "BundleAgent/*.cpp")
-set(TEST_SRC_FILES BundleAgent/main.cpp BundleAgent/Node/BundleQueue/ControlDrivenDropPolicyTest.cpp)
+file(GLOB_RECURSE TEST_SRC_FILES "BundleAgent/*.cpp")
+#set(TEST_SRC_FILES BundleAgent/main.cpp BundleAgent/Node/BundleQueue/ControlDrivenDropPolicyTest.cpp)
 
 add_executable(${TEST_EXEC} ${TEST_SRC_FILES})
 target_link_libraries(${TEST_EXEC} BundleAgent_lib aDTNPlus_OppnetFlowBundleProcessor_for_test ${CMAKE_DL_LIBS} gtest)
