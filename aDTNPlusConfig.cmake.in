@@ -10,3 +10,8 @@ endif()
 if (NOT DEFINED DATADIR)
   set(DATADIR "/var/lib/adtnPlus" CACHE PATH "Data files path" FORCE)
 endif()
+
+option(TOOLS "Build the given tools." ON)
+option(TESTS "Build test program." OFF)
+option(PYTHON "Build the python library." ON) 
+option(LEPTON "Build for lepton use." OFF)

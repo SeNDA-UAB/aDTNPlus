@@ -53,7 +53,7 @@ CanonicalBlock::~CanonicalBlock() {
 }
 
 void CanonicalBlock::initFromRaw(const std::string &rawData) {
-  LOG(39) << "Generating canonicalblock from raw data";
+  LOG(83) << "Generating canonicalblock from raw data";
   // Get the Block Type
   try {
     m_blockType = static_cast<uint8_t>(rawData[0]);
@@ -109,17 +109,17 @@ uint8_t CanonicalBlock::getBlockType() {
 }
 
 void CanonicalBlock::setProcFlag(CanonicalBlockControlFlags procFlag) {
-  LOG(38) << "Setting Flag " << static_cast<int>(procFlag);
+  LOG(83) << "Setting Flag " << static_cast<int>(procFlag);
   m_procFlags.set(static_cast<uint32_t>(procFlag));
 }
 
 void CanonicalBlock::unsetProcFlag(CanonicalBlockControlFlags procFlag) {
-  LOG(38) << "Clearing Flag " << static_cast<int>(procFlag);
+  LOG(83) << "Clearing Flag " << static_cast<int>(procFlag);
   m_procFlags.reset(static_cast<uint32_t>(procFlag));
 }
 
 bool CanonicalBlock::checkProcFlag(CanonicalBlockControlFlags procFlag) {
-  LOG(38) << "Testing Flag " << static_cast<int>(procFlag);
+  LOG(83) << "Testing Flag " << static_cast<int>(procFlag);
   return m_procFlags.test(static_cast<uint32_t>(procFlag));
 }
 

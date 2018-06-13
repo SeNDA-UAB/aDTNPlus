@@ -28,10 +28,11 @@
 #include <cstring>
 #include <cstdlib>
 #include <sstream>
+#include <vector>
 #include "Utils/Logger.h"
 
 Beacon::Beacon(std::string rawData) {
-  LOG(69) << "Generating beacon from raw Data";
+  LOG(90) << "Generating beacon from raw Data";
   char buff[2048];
   const char* dataChar = rawData.c_str();
   strcpy(&buff[0], dataChar);
@@ -60,7 +61,7 @@ Beacon::Beacon(const std::string &nodeId, const std::string &nodeAddress,
       m_nodeAddress(nodeAddress),
       m_nodePort(nodePort),
       m_endpoints(endpoints) {
-  LOG(69) << "Generating beacon from parameters [nodeId: " << nodeId
+  LOG(90) << "Generating beacon from parameters [nodeId: " << nodeId
           << "][nodeAddress: " << nodeAddress << "][nodePort: " << nodePort
           << "]";
   std::stringstream ss;

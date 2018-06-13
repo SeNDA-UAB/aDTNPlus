@@ -52,9 +52,9 @@ Bundle::Bundle(const std::string &rawData)
    * A bundle is formed by a PrimaryBlock, and other blocks.
    * In this other blocks one of it must be a PayloadBlock.
    */
-  LOG(35) << "New Bundle from raw Data";
+  LOG(81) << "New Bundle from raw Data";
   // First generate a PrimaryBlock with the data.
-  LOG(35) << "Generating Primary Block";
+  LOG(81) << "Generating Primary Block";
   try {
     m_primaryBlock = std::shared_ptr<PrimaryBlock>(new PrimaryBlock(rawData));
     m_blocks.push_back(m_primaryBlock);
@@ -67,7 +67,7 @@ Bundle::Bundle(const std::string &rawData)
         case CanonicalBlockTypes::PAYLOAD_BLOCK: {
           // Check if another payload block is present
           if (m_payloadBlock == nullptr) {
-            LOG(35) << "Generating Payload Block";
+            LOG(81) << "Generating Payload Block";
             b = std::shared_ptr<PayloadBlock>(new PayloadBlock(data, true));
             m_payloadBlock = std::static_pointer_cast<PayloadBlock>(b);
           } else {
@@ -79,9 +79,9 @@ Bundle::Bundle(const std::string &rawData)
         case CanonicalBlockTypes::METADATA_EXTENSION_BLOCK: {
           // This is an abstraction of the metadata block, so we need to create
           // a derived block of it.
-          LOG(35) << "Generating Metadata Extension Block";
+          LOG(81) << "Generating Metadata Extension Block";
           auto m = MetadataExtensionBlock(data);
-          LOG(35) << std::to_string(m.getMetadataType());
+          LOG(81) << std::to_string(m.getMetadataType());
           switch (static_cast<MetadataTypes>(m.getMetadataType())) {
             case MetadataTypes::ROUTING_SELECTION_MEB: {
               b = std::make_shared<RoutingSelectionMEB>(
@@ -89,23 +89,23 @@ Bundle::Bundle(const std::string &rawData)
               break;
             }
             case MetadataTypes::FORWARDING_MEB: {
-              LOG(35) << "Generating ForwardingMEB Block.";
+              LOG(81) << "Generating ForwardingMEB Block.";
               b = std::make_shared<ForwardingMEB>(ForwardingMEB(data, true));
               break;
             }
             case MetadataTypes::ROUTE_REPORTING_MEB: {
-              LOG(35) << "Generating RouteReporting Metadata Extension Block";
+              LOG(81) << "Generating RouteReporting Metadata Extension Block";
               b = std::make_shared<RouteReportingMEB>(RouteReportingMEB(data));
               break;
             }
             case MetadataTypes::CODE_DATA_CARRIER_MEB: {
-              LOG(35) << "Generating New Metadata Extension Block";
+              LOG(81) << "Generating New Metadata Extension Block";
               b = std::make_shared<CodeDataCarrierMEB>(
                   CodeDataCarrierMEB(data));
               break;
             }
             case MetadataTypes::FRAMEWORK_MEB: {
-              LOG(35) << "Generating New Framework Metadata Extension Block";
+              LOG(81) << "Generating New Framework Metadata Extension Block";
               b = std::make_shared<FrameworkMEB>(FrameworkMEB(data));
               break;
             }
@@ -113,7 +113,7 @@ Bundle::Bundle(const std::string &rawData)
           break;
         }
         default: {
-          LOG(35) << "Generating Canonical Block";
+          LOG(81) << "Generating Canonical Block";
           b = std::shared_ptr<CanonicalBlock>(new CanonicalBlock(data));
           break;
         }
@@ -137,7 +137,7 @@ Bundle::Bundle(const std::string &rawData)
 
 Bundle::Bundle(std::string origin, std::string destination, std::string payload)
     : m_raw() {
-  LOG(34) << "Generating new bundle with parameters [Source: " << origin
+  LOG(82) << "Generating new bundle with parameters [Source: " << origin
           << "][Destination: " << destination << "][Payload: " << payload
           << "]";
   TimestampManager *tm = TimestampManager::getInstance();
@@ -151,7 +151,7 @@ Bundle::Bundle(std::string origin, std::string destination, std::string payload)
 }
 
 Bundle::~Bundle() {
-  LOG(36) << "Deleting Bundle";
+  LOG(83) << "Deleting Bundle";
 }
 
 std::string Bundle::getRaw() {
@@ -159,10 +159,10 @@ std::string Bundle::getRaw() {
 }
 
 std::string Bundle::toRaw() {
-  LOG(36) << "Generating bundle in raw format";
+  LOG(81) << "Generating bundle in raw format";
   std::string raw = m_raw;
   std::stringstream ss;
-  LOG(36) << "Getting the primary block in raw";
+  LOG(81) << "Getting the primary block in raw";
   std::vector<std::shared_ptr<Block>>::reverse_iterator finalBlock = m_blocks
       .rbegin();
   std::static_pointer_cast<CanonicalBlock>(*finalBlock)->setProcFlag(
@@ -191,20 +191,21 @@ std::vector<std::shared_ptr<Block>> Bundle::getBlocks() {
 void Bundle::addBlock(std::shared_ptr<CanonicalBlock> newBlock) {
 // Check if the block type is a PayloadBlock
 // only one can be present into a bundle.
-  LOG(37) << "Adding new Block to the bundle";
+  LOG(81) << "Adding new Block to the bundle";
   if (newBlock->getBlockType()
       != static_cast<uint8_t>(CanonicalBlockTypes::PAYLOAD_BLOCK)) {
     m_blocks.push_back(newBlock);
   } else {
-    LOG(3) << "Some one is trying to add another Payload block";
+    LOG(5) << "Some one is trying to add another Payload block";
     throw BundleException("[Bundle] a paylod block is present");
   }
 }
 
 std::string Bundle::getId() {
   std::stringstream ss;
-  ss << m_primaryBlock->getSource() << "_" << m_primaryBlock->getCreationTimestamp()
-     << "_" << m_primaryBlock->getCreationTimestampSeqNumber();
+  ss << m_primaryBlock->getSource() << "_"
+     << m_primaryBlock->getCreationTimestamp() << "_"
+     << m_primaryBlock->getCreationTimestampSeqNumber();
   return ss.str();
 }
 

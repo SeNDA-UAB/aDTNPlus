@@ -111,6 +111,7 @@ void adtnSocket::connect(std::string appId) {
 std::string adtnSocket::recv() {
   int payloadSize = 0;
   int receivedSize = ::recv(m_recvSocket, &payloadSize, sizeof(payloadSize), 0);
+  payloadSize = ntohl(payloadSize);
   char* payloadraw = new char[payloadSize];
   int receivedLength = 0;
   while (receivedLength != payloadSize) {
@@ -137,7 +138,7 @@ void adtnSocket::send(std::string destination, std::string message) {
         for (auto ext = it->second.begin(); ext != it->second.end(); ++ext) {
           framework->addExtension(ext->first, ext->second);
         }
-        m_blocksToAdd.push_back(framework);
+        b.addBlock(framework);
       }
     }
     for (auto c : m_blocksToAdd) {
@@ -165,6 +166,8 @@ void adtnSocket::send(std::string destination, std::string message) {
         uint32_t nBundleLength = htonl(bundleLength);
         ::send(sock, &nBundleLength, sizeof(nBundleLength), 0);
         ::send(sock, bundleRaw.c_str(), bundleLength, 0);
+        uint16_t ack;
+        ::recv(sock, &ack, sizeof(ack), 0);
       }
       close(sock);
     }

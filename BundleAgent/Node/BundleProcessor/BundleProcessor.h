@@ -24,11 +24,14 @@
 #ifndef BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
 #define BUNDLEAGENT_NODE_BUNDLEPROCESSOR_BUNDLEPROCESSOR_H_
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <string>
 #include <exception>
+#include <map>
 #include "Node/Config.h"
+#include "Utils/Socket.h"
 
 class Bundle;
 class BundleQueue;
@@ -37,11 +40,66 @@ class NeighbourTable;
 class ListeningEndpointsTable;
 class Neighbour;
 
+/**
+ * Esception with a list of what error occurred at each neighbour.
+ */
 class ForwardException : public std::runtime_error {
  public:
-  explicit ForwardException(const std::string &what)
-      : runtime_error(what) {
+  explicit ForwardException(const std::string &what,
+                            std::map<std::string, uint8_t> errorList)
+      : runtime_error(what),
+        m_errorList(errorList) {
   }
+
+  std::map<std::string, uint8_t> errors() const {
+    return m_errorList;
+  }
+
+ private:
+  std::map<std::string, uint8_t> m_errorList;
+};
+
+/**
+ * Exception that saves the error value
+ */
+class ForwardNetworkException : public std::runtime_error {
+ public:
+  explicit ForwardNetworkException(const std::string &what, uint8_t error)
+      : runtime_error(what),
+        m_error(error) {
+  }
+
+  uint8_t error() const {
+    return m_error;
+  }
+
+ private:
+  uint8_t m_error;
+};
+
+/**
+ * Enum for ACK possible values
+ */
+enum class BundleACK
+  : uint8_t {
+    CORRECT_RECEIVED = 0x00,
+  ALREADY_IN_QUEUE = 0x01,
+  QUEUE_FULL = 0x02
+};
+
+/**
+ * Error codes for network.
+ */
+enum class NetworkError
+  : uint8_t {
+    SOCKET_ERROR = 0x00,
+  SOCKET_TIMEOUT_ERROR = 0x01,
+  SOCKET_CONNECT_ERROR = 0x02,
+  SOCKET_WRITE_ERROR = 0x03,
+  SOCKET_RECEIVE_ERROR = 0x04,
+  NEIGHBOUR_FULL_QUEUE = 0x05,
+  NEIGHBOUR_IN_QUEUE = 0x06,
+  NEIGHBOUR_BAD_ACK = 0x07
 };
 
 /**
@@ -122,6 +180,18 @@ class BundleProcessor {
    */
   void restore(std::unique_ptr<BundleContainer> bundleContainer);
   /**
+   * @bief Function that is called when a drop occur.
+   *
+   * This function by default does nothing.
+   */
+  virtual void drop();
+  /**
+   * Function to execute code control when a new bundle is received.
+   *
+   * @param bundleContainer The bundle received.
+   */
+  virtual void processControl(BundleContainer &bundleContainer);
+  /**
    * Variable that holds the configuration.
    */
   Config m_config;
@@ -152,14 +222,16 @@ class BundleProcessor {
    *
    * @param sock Socket to read the message.
    */
-  void receiveMessage(int sock);
+  void receiveMessage(Socket sock);
   /**
    * Function that processes one given bundle container.
    * Virtual function, all the bundleProcessors must implement it.
    *
    * @param bundleContainer The bundle container to process.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
    */
-  virtual void processBundle(
+  virtual bool processBundle(
       std::unique_ptr<BundleContainer> bundleContainer) = 0;
   /**
    * Function that creates a bundle container.

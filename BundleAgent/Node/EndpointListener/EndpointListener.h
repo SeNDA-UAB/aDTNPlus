@@ -28,6 +28,7 @@
 #include <string>
 #include "Node/EndpointListener/ListeningEndpointsTable.h"
 #include "Node/Config.h"
+#include "Utils/Socket.h"
 
 /**
  * CLASS EndpointListener
@@ -86,7 +87,7 @@ class EndpointListener {
   /**
    * Function that gets the Endpoint to listen.
    */
-  void startListening(int sock);
+  void startListening(Socket sock);
 };
 
 #endif  // BUNDLEAGENT_NODE_ENDPOINTLISTENER_ENDPOINTLISTENER_H_

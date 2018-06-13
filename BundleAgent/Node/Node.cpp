@@ -30,34 +30,45 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <thread>
 #include "Node/Node.h"
 #include "Node/Neighbour/NeighbourTable.h"
 #include "Node/BundleProcessor/PluginAPI.h"
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
+#include "Utils/PerfLogger.h"
 #include "Utils/Functions.h"
 #include "Utils/globals.h"
 #include "Node/JsonFacades/NodeStateJson.h"
+#include "Utils/Socket.h"
 
 Node::Node(std::string filename) {
   m_config = Config(filename);
   Logger::getInstance()->setLoggerConfigAndStart(m_config.getLogFileName());
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Main");
   LOG(6) << "Starting Node...";
-  LOG(6) << "Starting NeighbourDiscovery";
+  PerfLogger::getInstance()->setConfigAndStart("/tmp/" + m_config.getNodeId());
+  PERF(PLATFORM_START) << m_config.getNodeId() << " " << m_config.getNodeAddress();
+  g_queueProcessEvents = 0;
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
       new ListeningEndpointsTable());
+  LOG(6) << "Starting NeighbourDiscovery";
   m_neighbourDiscovery = std::shared_ptr<NeighbourDiscovery>(
       new NeighbourDiscovery(m_config, m_neighbourTable, m_listeningAppsTable));
+  LOG(6) << "Starting BundleQueue";
   m_bundleQueue = std::shared_ptr<BundleQueue>(
-      new BundleQueue(m_config.getTrashReception()));
+      new BundleQueue(m_config.getTrashReception(), m_config.getTrashDrop(),
+                      m_config.getQueueByteSize()));
+  LOG(6) << "Starting EndpointListener";
   m_appListener = std::shared_ptr<EndpointListener>(
       new EndpointListener(m_config, m_listeningAppsTable));
   m_listeningAppsTable->update(
       m_config.getNodeId(),
-      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, -1));
+      std::make_shared<Endpoint>(m_config.getNodeId(), "", 0, Socket(-1)));
+  LOG(6) << "Getting bundle processor";
   m_handle = dlopen(m_config.getBundleProcessorName().c_str(), RTLD_NOW);
   if (!m_handle) {
     LOG(1) << "Error loading plugin " << m_config.getBundleProcessorName()
@@ -72,9 +83,13 @@ Node::Node(std::string filename) {
       LOG(1) << "Error getting object from plugin, reason: " << error;
       g_stop = true;
     } else {
+      LOG(6) << "Starting BundleProcessor: " << info->pluginName
+              << " version: " << info->pluginVersion << " from class: "
+              << info->className;
       reinterpret_cast<BundleProcessor*>(info->getPlugin())->start(
           m_config, m_bundleQueue, m_neighbourTable, m_listeningAppsTable);
       // Try to restore the bundles.
+      LOG(6) << "Restoring Bundles...";
       std::vector<std::string> bundles = getFilesInFolder(
           m_config.getDataPath());
       if (m_config.getClean()) {
@@ -83,7 +98,7 @@ Node::Node(std::string filename) {
                       [this](std::string &bundle) {
                         int val = std::remove(bundle.c_str());
                         if (val != 0) {
-                          LOG(1) << "The bundle: " << bundle
+                          LOG(2) << "The bundle: " << bundle
                           << " cannot be deleted, reason: " << strerror(errno);
                         }
                       });
@@ -111,5 +126,6 @@ Node::~Node() {
     dlclose(m_handle);
   }
   delete Logger::getInstance();
+  delete PerfLogger::getInstance();
 }
 

@@ -67,9 +67,10 @@ class BasicBundleProcessor : public BundleProcessor {
    * @param bundleQueue The queue that will hold all the bundles.
    * @param neighbourTable The neighbour table to check the neighbours.
    */
-  virtual void start(Config config, std::shared_ptr<BundleQueue> bundleQueue,
-                     std::shared_ptr<NeighbourTable> neighbourTable,
-                     std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
+  virtual void start(
+      Config config, std::shared_ptr<BundleQueue> bundleQueue,
+      std::shared_ptr<NeighbourTable> neighbourTable,
+      std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
  protected:
   /**
@@ -77,7 +78,7 @@ class BasicBundleProcessor : public BundleProcessor {
    *
    * @param bundleContainer The bundle container to process.
    */
-  virtual void processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+  virtual bool processBundle(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    *

@@ -23,16 +23,12 @@
  */
 
 #include "Node/EndpointListener/EndpointListener.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/select.h>
-#include <unistd.h>
 #include <memory>
 #include <thread>
 #include <string>
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
+#include "Utils/Socket.h"
 
 EndpointListener::EndpointListener(
     Config config,
@@ -48,120 +44,73 @@ EndpointListener::~EndpointListener() {
 }
 
 void EndpointListener::listenEndpoints() {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Endpoint listener");
   LOG(17) << "Creating Listening Endpoints thread.";
-  sockaddr_in listenAddr = { 0 };
-  listenAddr.sin_family = AF_INET;
-  listenAddr.sin_port = htons(m_config.getListenerPort());
-  listenAddr.sin_addr.s_addr = inet_addr(m_config.getListenerAddress().c_str());
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock == -1) {
+  Socket s = Socket();
+  if (!s) {
     // Stop the application
     LOG(1) << "Cannot create socket into listenEndpoints thread, reason: "
-           << strerror(errno);
+           << s.getLastError();
     g_stop = true;
   } else {
-    if (bind(sock, reinterpret_cast<sockaddr*>(&listenAddr), sizeof(listenAddr))
-        == -1) {
+    s.setReuseAddress();
+    if (!s.bind(m_config.getListenerAddress(), m_config.getListenerPort())) {
       // Stop the application
       LOG(1) << "Cannot bind socket to " << m_config.getListenerAddress()
-             << ", reason: " << strerror(errno);
+             << ", reason: " << s.getLastError();
       g_stop = true;
     } else {
-      if (listen(sock, 50) != 0) {
+      if (!s.listen(50)) {
         // Stop the application
         LOG(1) << "Cannot set the socket to listen, reason: "
-               << strerror(errno);
+               << s.getLastError();
         g_stop = true;
       } else {
         LOG(17) << "Listening petitions at (" << m_config.getListenerAddress()
                 << ":" << m_config.getListenerPort() << ")";
-        fd_set readfds;
         g_startedThread++;
         while (!g_stop.load()) {
-          FD_ZERO(&readfds);
-          FD_SET(sock, &readfds);
-          struct timeval tv;
-          tv.tv_sec = m_config.getSocketTimeout();
-          int sel = select(sock + 1, &readfds, NULL, NULL, &tv);
-          if (sel <= 0)
+          Socket newSocket = Socket(-1);
+          if (!s.accept(m_config.getSocketTimeout(), newSocket)) {
             continue;
-          if (FD_ISSET(sock, &readfds)) {
-            sockaddr_in clientAddr = { 0 };
-            socklen_t clientLen = sizeof(clientAddr);
-            int newsock = accept(sock, reinterpret_cast<sockaddr*>(&clientAddr),
-                                 &clientLen);
-            if (newsock == -1) {
-              LOG(1) << "Cannot accept connection, reason: " << strerror(errno);
-              continue;
-            }
+          }
+          if (!newSocket) {
+            LOG(4) << "Cannot accept connection, reason: "
+                   << newSocket.getLastError();
+            continue;
+          } else {
             LOG(80) << "Connection received.";
-            std::thread(&EndpointListener::startListening, this, newsock).detach();
+            std::thread(&EndpointListener::startListening, this, newSocket)
+                .detach();
           }
         }
       }
     }
-    close(sock);
+    s.close();
   }
   LOG(17) << "Exit Endpoint Listener thread.";
   g_stopped++;
 }
 
-void EndpointListener::startListening(int sock) {
+void EndpointListener::startListening(Socket sock) {
+  Logger::getInstance()->setThreadName(std::this_thread::get_id(),
+                                       "Connection thread");
   LOG(69) << "Processing new connection";
-  sockaddr_in bundleSrc = { 0 };
-  socklen_t bundleSrcLength = sizeof(bundleSrc);
-  if (getpeername(sock, reinterpret_cast<sockaddr*>(&bundleSrc),
-                  &bundleSrcLength) != 0) {
-    LOG(3) << "Cannot get peer name, reason: " << strerror(errno);
-  } else {
-    LOG(10) << "Receiving bundle from " << inet_ntoa(bundleSrc.sin_addr) << ":"
-            << ntohs(bundleSrc.sin_port);
-  }
-  uint8_t type = 100;
-  int receivedSize = recv(sock, &type, sizeof(type), 0);
+  LOG(17) << "Receiving endpoint petition from " << sock.getPeerName();
+  uint8_t type;
+  sock >> type;
   if (type == 0) {
     LOG(17) << "Someone asked to add an EndpointId";
     uint32_t eid = 0;
-
-    receivedSize = recv(sock, &eid, sizeof(eid), 0);
-    eid = ntohl(eid);
-    char* buffer = new char[eid];
-    uint32_t receivedLength = 0;
-    while (receivedLength < eid) {
-      receivedSize = recv(sock, buffer + receivedLength, eid - receivedLength,
-                          0);
-
-      if (receivedSize == -1) {
-        LOG(1) << "Error receiving bundle from "
-               << inet_ntoa(bundleSrc.sin_addr) << ", reason: "
-               << strerror(errno);
-        break;
-      } else if (receivedSize == 0) {
-        LOG(1) << "Peer " << inet_ntoa(bundleSrc.sin_addr)
-               << " closed the connection.";
-        break;
-      }
-      receivedLength += receivedSize;
+    sock >> eid;
+    std::string buffer;
+    StringWithSize sws = StringWithSize(buffer, eid);
+    if (!(sock >> sws)) {
+      LOG(4) << "Error receiving endpoint, reason: " << sock.getLastError();
     }
-    std::string endpointId = std::string(buffer, eid);
-    delete[] (buffer);
-    if (static_cast<uint32_t>(receivedSize) != eid) {
-      if (receivedSize == 0) {
-        LOG(1) << "Error receiving bundle length from "
-               << inet_ntoa(bundleSrc.sin_addr)
-               << " Probably peer has disconnected.";
-      } else if (receivedSize < 0) {
-        LOG(1) << "Error receiving bundle length from "
-               << inet_ntoa(bundleSrc.sin_addr);
-      } else {
-        LOG(1) << "Error receiving bundle length from "
-               << inet_ntoa(bundleSrc.sin_addr)
-               << " Length not in the correct format.";
-      }
-    } else {
-      m_listeningEndpointsTable->update(
-          endpointId, std::make_shared<Endpoint>(endpointId, "", 0, sock));
-      LOG(1) << "Registered endpoint: " << endpointId;
-    }
+    m_listeningEndpointsTable->update(
+        buffer, std::make_shared<Endpoint>(buffer, "", 0, sock));
+    LOG(17) << "Registered endpoint: " << buffer;
   }
 }

@@ -6,9 +6,10 @@
 ''' aDTNPlus user-defined service.
 '''
 
-from core.service import CoreService, addservice
+from core.service import CoreService, ServiceManager
 from core.misc.utils import *
 from core.constants import *
+
 
 class AdtnPlus(CoreService):
     '''This is the aDTNPlus user-defined service.
@@ -52,8 +53,8 @@ class AdtnPlus(CoreService):
     @classmethod
     def generateconfigadtn(cls, node, filename, services):
         for ifc in node.netifs():
-                nodeip = ifc.addrlist[0].split("/")[0]
-                break
+            nodeip = ifc.addrlist[0].split("/")[0]
+            break
         return """\
 # This file contains the configuration of the aDTNPlus.
 
@@ -95,6 +96,11 @@ level : 21
 [Constants]
 # Socket timeout in seconds.
 timeout : 10
+# Queue max size it bytes, K M and G can be used to express KB, MB and GB
+queueByteSize : 1M
+# Process timeout in seconds. If no events triggered the queue to process, it 
+# will be processed after this timeout.
+processTimeout : 10
 
 [BundleProcess]
 # Path to save the bundles, it has to exist and the application has to have
@@ -111,6 +117,8 @@ deliveryPath : %s/adtnPlus/Delivered/
 trashAggregationReception : %s/adtnPlus/Trash/aggregation/reception/
 # Path to save the trashed bundles when aggregating in the delivery.
 trashAggregationDelivery : %s/adtnPlus/Trash/aggregation/delivery/
+# Path to save the trashed bundles when dropped by full queue.
+trashDropp : %s/adtnPlus/Trash/drop/
 
 [AppListener]
 # IP address to listen
@@ -122,8 +130,8 @@ listenerPort : 50000
 # Default node state path
 path : %s/adtnPlus/NodeState.json
 """ % (node.name, nodeip, node.nodedir, node.nodedir,
-            node.nodedir, node.nodedir, node.nodedir, node.nodedir,node.nodedir,
-            nodeip, node.nodedir)
+            node.nodedir, node.nodedir, node.nodedir, node.nodedir,
+            node.nodedir, node.nodedir, nodeip, node.nodedir)
 
     @classmethod
     def generatenodeState(cls, node, filename, services):
@@ -172,6 +180,7 @@ mkdir -p adtnPlus/Delivered
 mkdir -p adtnPlus/Codes
 mkdir -p adtnPlus/Trash/aggregation/delivery
 mkdir -p adtnPlus/Trash/aggregation/reception
+mkdir -p adtnPlus/Trash/drop
 CFGPATH=%s
 sleep 2
 # launch aDTNPlus platform service
@@ -192,5 +201,11 @@ sleep 3
 rm -fr adtnPlus
 """
 
-# this line is required to add the above class to the list of available services
-addservice(AdtnPlus)
+# this is needed to load desired services when being integrated into core,
+# otherwise this is not needed
+
+
+def load_services():
+    # this line is required to add the above class to the list of available
+    # services
+    ServiceManager.add(MyService)

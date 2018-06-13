@@ -24,6 +24,7 @@
 #ifndef BUNDLEAGENT_NODE_CONFIG_H_
 #define BUNDLEAGENT_NODE_CONFIG_H_
 
+#include <cstdint>
 #include <string>
 #include "Utils/ConfigLoader.h"
 
@@ -186,6 +187,24 @@ class Config {
    * @return The path to save the bundles.
    */
   std::string getTrashReception();
+  /**
+   * Get the path to save the dropped bundles from the queue.
+   *
+   * @return The path to save the bundles.
+   */
+  std::string getTrashDrop();
+  /**
+   * Get the size of the queue in bytes.
+   *
+   * @return The size of the queue in bytes.
+   */
+  uint64_t getQueueByteSize();
+  /**
+   * Get the process timeout.
+   *
+   * @return The process timeout.
+   */
+  int getProcessTimeout();
 
  private:
   /**
@@ -277,6 +296,18 @@ class Config {
    */
   std::string m_trashReceptionPath;
   /**
+   * The path to save the trashed bundles when dropped in enqueue.
+   */
+  std::string m_trashDropPath;
+  /**
+   * The size of the queue in bytes.
+   */
+  uint64_t m_queueByteSize;
+  /**
+   * The timeout for processing bundles if static scenario.
+   */
+  int m_processTimeout;
+  /**
    * Variable that holds the Config Loader.
    */
   ConfigLoader m_configLoader;
@@ -305,6 +336,10 @@ class Config {
   static const std::string DELIVEREDPATH;
   static const std::string TRASHDELIVERYPATH;
   static const std::string TRASHRECEPTIONPATH;
+  static const std::string TRASHDROPPATH;
+  static const std::string QUEUEBYTESIZE;
+  static const uint64_t QUEUEBYTESIZEVALUE;
+  static const int PROCESSTIMEOUT;
 };
 
 #endif  // BUNDLEAGENT_NODE_CONFIG_H_

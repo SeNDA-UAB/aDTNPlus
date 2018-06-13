@@ -38,6 +38,11 @@ level : ${log_level}
 [Constants]
 # Socket timeout in seconds.
 timeout : 10
+# Queue max size it bytes, K M and G can be used to express KB, MB and GB
+queueByteSize : 1M
+# Process timeout in seconds. If no events triggered the queue to process, it 
+# will be processed after this timeout.
+processTimeout : 10
 
 [BundleProcess]
 # Path to save the bundles, it has to exist and the application has to have 
@@ -54,6 +59,8 @@ deliveryPath : ${DATADIR}/Delivered/
 trashAggregationReception : ${DATADIR}/Trash/aggregation/reception/
 # Path to save the trashed bundles when aggregating in the delivery.
 trashAggregationDelivery : ${DATADIR}/Trash/aggregation/delivery/
+# Path to save the trashed bundles when dropped by full queue.
+trashDropp : ${DATADIR}/Trash/drop/
 
 [AppListener]
 # IP address to listen

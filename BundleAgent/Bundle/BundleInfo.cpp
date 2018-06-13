@@ -24,35 +24,80 @@
 
 #include "Bundle/BundleInfo.h"
 #include <string>
+#include <ctime>
+#include <vector>
 #include "Bundle/PrimaryBlock.h"
+#include "Bundle/CanonicalBlock.h"
+#include "Bundle/MetadataExtensionBlock.h"
+
+const uint64_t g_timeFrom2000 = 946684800;
 
 BundleInfo::BundleInfo(Bundle &bundle)
-    : m_bundle(bundle) {
+    : m_id(bundle.getId()),
+      m_destination(bundle.getPrimaryBlock()->getDestination()),
+      m_source(bundle.getPrimaryBlock()->getSource()),
+      m_creationTimestamp(bundle.getPrimaryBlock()->getCreationTimestamp()),
+      m_creationTimestampSeqNumber(
+          bundle.getPrimaryBlock()->getCreationTimestampSeqNumber()),
+      m_lifetime(bundle.getPrimaryBlock()->getLifetime()),
+      m_size(bundle.toRaw().length()) {
+  std::vector<std::shared_ptr<Block>> blocks = bundle.getBlocks();
+  blocks.erase(blocks.begin());
+  for (auto c : blocks) {
+    std::shared_ptr<CanonicalBlock> canonical_block = std::static_pointer_cast<
+        CanonicalBlock>(c);
+    m_canoniclaTypeBlocks.insert(canonical_block->getBlockType());
+    if (static_cast<CanonicalBlockTypes>(canonical_block->getBlockType())
+        == CanonicalBlockTypes::METADATA_EXTENSION_BLOCK) {
+      std::shared_ptr<MetadataExtensionBlock> meb = std::static_pointer_cast<
+                MetadataExtensionBlock>(canonical_block);
+      m_metadataTypeBlocks.insert(meb->getMetadataType());
+    }
+  }
 }
 
 BundleInfo::~BundleInfo() {
 }
 
-std::string BundleInfo::getId() {
-  return m_bundle.getId();
+std::string BundleInfo::getId() const {
+  return m_id;
 }
 
-std::string BundleInfo::getDestination() {
-  return m_bundle.getPrimaryBlock()->getDestination();
+std::string BundleInfo::getDestination() const {
+  return m_destination;
 }
 
-std::string BundleInfo::getSource() {
-  return m_bundle.getPrimaryBlock()->getSource();
+std::string BundleInfo::getSource() const {
+  return m_source;
 }
 
-uint64_t BundleInfo::getCreationTimestamp() {
-  return m_bundle.getPrimaryBlock()->getCreationTimestamp();
+uint64_t BundleInfo::getCreationTimestamp() const {
+  return m_creationTimestamp;
 }
 
-uint64_t BundleInfo::getCreationTimestampSeqNumber() {
-  return m_bundle.getPrimaryBlock()->getCreationTimestampSeqNumber();
+uint64_t BundleInfo::getCreationTimestampSeqNumber() const {
+  return m_creationTimestampSeqNumber;
 }
 
-uint64_t BundleInfo::getLifetime() {
-  return m_bundle.getPrimaryBlock()->getLifetime();
+uint64_t BundleInfo::getLifetime() const {
+  return m_lifetime;
 }
+
+uint64_t BundleInfo::getCurrentLifetime() const {
+  return (time(NULL) - g_timeFrom2000 - m_creationTimestamp - m_lifetime);
+}
+
+uint64_t BundleInfo::getSize() const {
+  return m_size;
+}
+
+bool BundleInfo::hasMetadataTypeBlock(uint8_t type) const {
+  auto it = m_metadataTypeBlocks.find(type);
+  return (it != m_metadataTypeBlocks.end());
+}
+
+bool BundleInfo::hasCanonicalTypeBlock(uint8_t type) const {
+  auto it = m_canoniclaTypeBlocks.find(type);
+  return (it != m_canoniclaTypeBlocks.end());
+}
+
