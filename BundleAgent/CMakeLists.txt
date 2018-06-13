@@ -1,5 +1,9 @@
 include(../aDTNPlusConfig.cmake.in)
 
+if(LEPTON)
+  add_definitions(-DLEPTON)
+endif(LEPTON)
+
 add_subdirectory(Bundle)
 add_subdirectory(Utils)
 add_subdirectory(ExternTools)

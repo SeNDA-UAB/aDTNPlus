@@ -37,9 +37,9 @@
 Socket::Socket(bool stream)
     : m_socket(-1),
       m_stream(stream),
-      m_socketAddr( { 0 }),
-      m_destinationAddr( { 0 }),
-      m_multicastAddr( { 0 }),
+      m_socketAddr({ 0 }),
+      m_destinationAddr({ 0 }),
+      m_multicastAddr({ 0 }),
       m_lastError("") {
   if (stream) {
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -51,9 +51,9 @@ Socket::Socket(bool stream)
 Socket::Socket(int socket)
     : m_socket(socket),
       m_stream(true),
-      m_socketAddr( { 0 }),
-      m_destinationAddr( { 0 }),
-      m_multicastAddr( { 0 }),
+      m_socketAddr({ 0 }),
+      m_destinationAddr({ 0 }),
+      m_multicastAddr({ 0 }),
       m_lastError("") {
   if (socket == -1) {
     m_lastError = std::string(strerror(errno));
@@ -337,4 +337,38 @@ bool Socket::operator>>(uint32_t &value) {
 
 Socket::operator bool() const {
   return (m_socket != -1);
+}
+
+bool Socket::canRead(int timeout) {
+  struct timeval tv;
+  tv.tv_sec = timeout;
+  tv.tv_usec = 0;
+  fd_set readfds;
+  FD_ZERO(&readfds);
+  FD_SET(m_socket, &readfds);
+  int sel = select(m_socket + 1, &readfds, NULL, NULL, &tv);
+  if (sel <= 0) {
+    return false;
+  } else if (FD_ISSET(m_socket, &readfds)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool Socket::canSend(int timeout) {
+  struct timeval tv;
+  tv.tv_sec = timeout;
+  tv.tv_usec = 0;
+  fd_set writefds;
+  FD_ZERO(&writefds);
+  FD_SET(m_socket, &writefds);
+  int sel = select(m_socket + 1, NULL, &writefds, NULL, &tv);
+  if (sel <= 0) {
+    return false;
+  } else if (FD_ISSET(m_socket, &writefds)) {
+    return true;
+  } else {
+    return false;
+  }
 }

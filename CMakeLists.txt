@@ -15,9 +15,7 @@ endif()
 enable_testing()
 
 set(CMAKE_CXX_STANDARD 14)
-option(TOOLS "Build the given tools." ON)
-option(TESTS "Build test program." OFF)
-option(PYTHON "Build the python library." ON) 
+include(aDTNPlusConfig.cmake.in)
 
 set(CMAKE_CXX_FLAGS_PROFILE ${CMAKE_CXX_FLAGS} "-ggdb -Wall -std=c++14 -lpthread --coverage")
 add_compile_options(-std=c++14)

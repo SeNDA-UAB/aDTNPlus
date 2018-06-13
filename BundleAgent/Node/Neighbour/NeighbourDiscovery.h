@@ -31,6 +31,9 @@
 #include <memory>
 #include "Node/Config.h"
 #include "Node/Neighbour/NeighbourTable.h"
+#ifdef LEPTON
+#include "Utils/Socket.h"
+#endif
 
 class ListeningEndpointsTable;
 
@@ -89,6 +92,13 @@ class NeighbourDiscovery {
   std::shared_ptr<NeighbourTable> m_neighbourTable;
 
   std::shared_ptr<ListeningEndpointsTable> m_listeningEndpointsTable;
+
+#ifdef LEPTON
+  /**
+   * Socket to read and send beacons if using the platform with LEPTON
+   */
+  Socket s;
+#endif
 
  private:
   /**
