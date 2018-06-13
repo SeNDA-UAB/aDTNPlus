@@ -37,6 +37,7 @@
 #include "Node/BundleProcessor/BundleProcessor.h"
 #include "Node/BundleQueue/BundleContainer.h"
 #include "Utils/Logger.h"
+#include "Utils/PerfLogger.h"
 #include "Utils/Functions.h"
 #include "Utils/globals.h"
 #include "Node/JsonFacades/NodeStateJson.h"
@@ -48,6 +49,8 @@ Node::Node(std::string filename) {
   Logger::getInstance()->setLogLevel(m_config.getLogLevel());
   Logger::getInstance()->setThreadName(std::this_thread::get_id(), "Main");
   LOG(6) << "Starting Node...";
+  PerfLogger::getInstance()->setConfigAndStart("/tmp/" + m_config.getNodeId());
+  PERF(PLATFORM_START) << m_config.getNodeId() << " " << m_config.getNodeAddress();
   g_queueProcessEvents = 0;
   m_neighbourTable = std::unique_ptr<NeighbourTable>(new NeighbourTable());
   m_listeningAppsTable = std::shared_ptr<ListeningEndpointsTable>(
@@ -123,5 +126,6 @@ Node::~Node() {
     dlclose(m_handle);
   }
   delete Logger::getInstance();
+  delete PerfLogger::getInstance();
 }
 

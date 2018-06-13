@@ -218,6 +218,20 @@ class Socket {
    * Function that returns true if the socket is a valid file descriptor.
    */
   operator bool() const;
+  /**
+   * Function that returns true if the socket can read, it will block till the
+   * timeout.
+   * @param timeout To stop the block.
+   * @return True if the socket has a pending read operation.
+   */
+  bool canRead(int timeout);
+  /**
+   * Function that returns true if the socket can send, it will block till the
+   * timeout.
+   * @param timeout To stop the block.
+   * @return True if the socket can do the send.
+   */
+  bool canSend(int timeout);
 
  private:
   /**

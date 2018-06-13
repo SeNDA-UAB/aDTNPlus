@@ -31,6 +31,7 @@
 #include <algorithm>
 #include "Utils/Logger.h"
 #include "Utils/globals.h"
+#include "Utils/PerfLogger.h"
 
 NeighbourTable::NeighbourTable() {
 }
@@ -66,6 +67,7 @@ void NeighbourTable::update(std::shared_ptr<Neighbour> neighbour) {
     g_queueProcessEvents++;
     std::unique_lock<std::mutex> lck(g_processorMutex);
     g_processorConditionVariable.notify_one();
+    PERF(NEIGH_APPEAR) << neighbour->getId();
   }
   m_mutex.unlock();
 }
@@ -127,7 +129,8 @@ void NeighbourTable::clean(int expirationTime) {
   m_mutex.lock();
   for (auto it = m_neigbours.begin(); it != m_neigbours.end();) {
     if ((*it).second->getElapsedActivityTime() >= expirationTime) {
-      LOG(21) << "Neighbour " << (*it).second->getId() << " has disappeared";
+      LOG(21) << "Neighbour " << it->second->getId() << " has disappeared";
+      PERF(NEIGH_DISAPPEAR) << it->second->getId();
       remove(it->second->getEndpoints(), it->second->getId());
       it = m_neigbours.erase(it);
     } else {
