@@ -27,11 +27,20 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <signal.h>
+#include <atomic>
 #include <string>
 #include <iostream>
 #include <cstring>
+#include <thread>
+
 #include "adtnSocket.h"
 #include "SDONController.h"
+
+std::atomic<bool> g_stop;
+std::atomic<uint16_t> g_stopped;
+std::atomic<uint16_t> g_startedThread;
 
 static void help(std::string program_name) {
   std::cout
@@ -43,20 +52,25 @@ static void help(std::string program_name) {
       << "   [-r | --nodePortToRecv] port\t\t\tPort where the node is writing to.\n"
       << "Supported options:\n"
       << "   [-a | --app_addr] destinationAddress\t\t\tBundle destination "
-      << "address the application needs to consume, receive.\n"
+      << "address for the application.\n"
       << "   [-d | --send_to_addr] Bundle destination\t\t\tDestination "
       << "node/s of the bundle.\n"
-      << "   [-t | --timeWindow] timeWindow\t\t\tTime window while the "
-      << "application receives bundles. By default is set to 1minute=60miliseconds\n"
+      << "   [-t | --timeWindow] windowTim\t\t\tWindow time while the controller "
+      << "will be receiving bundles. By default is set to 1minute=60miliseconds\n"
       << "   [-v | --verbose]\t\t\t\tPrints the last metrics' bundle received.\n"
       << "   [-h | --help]\t\t\t\tShows this help message.\n"
       << "Launches a controller that communicates with node <nodeIp>. "
       << "The nodeIp uses the port 40000 to send bundles to the network and "
       << "uses port 50000 to receive bundles from the network. The controller "
-      << "receives all the bundles that have as destination <app_addr>. "
-      << "The application sends the bundle that generates to the nodes with "
-      << "address send_to_addr."
+      << "receives and consumes all the bundles that have as destination <app_addr>. "
+      << "The controller sends control directives to the nodes in the network "
+      << " which are subscribed to receive control messages. This group identifier "
+      << " is send_to_addr."
       << std::endl;
+}
+
+void stop(int signal) {
+  g_stop = true;
 }
 
 int main(int argc, char **argv) {
@@ -67,8 +81,11 @@ int main(int argc, char **argv) {
   std::string app_addr = "";
   std::string send_to_addr = "";
   int recvWindowTime = -1;
-
   bool verbose = false;
+  struct sigaction sigIntHandler;
+  sigIntHandler.sa_handler = stop;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
 
 static struct option long_options[] = {
     {"nodeIp", required_argument, 0, 'n'},
@@ -127,9 +144,14 @@ static struct option long_options[] = {
     exit(0);
   }
 
+  sigaction(SIGINT, &sigIntHandler, NULL);
+  sigaction(SIGTERM, &sigIntHandler, NULL);
+  g_stopped = 0;
+  g_stop = false;
+
   try {
     SDONController myController(nodeIp, nodePortToSend, nodePortToRecv,
-                                  app_addr, send_to_addr, recvWindowTime);
+                                app_addr, send_to_addr, recvWindowTime);
     while (true) {
       std::map<NetworkMetricsControlCode, value_t> recvMetrics = myController
           .recvControlMetrics();
@@ -139,6 +161,11 @@ static struct option long_options[] = {
     std::cout << "An error has occurred: " << e.what() << std::endl;
 
   }
+
+  while (!g_stop || (g_stopped.load() < g_startedThread)) {
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
+
   return 0;
 }
 
