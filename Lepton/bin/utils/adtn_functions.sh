@@ -142,9 +142,6 @@ send() {
     dst=$1
     message=${*:2:$#}
 
-    echo $message
-    echo \"$message\"
-
     init_dirs
 
     check_running
@@ -152,7 +149,6 @@ send() {
     ip_src=$(cat $conf_file | grep nodeAddress | cut -d" " -f 3)
     port_src=$(cat $conf_file | grep nodePort | cut -d" " -f 3)
 
-    echo $adtnsend -i $ip_src -p $port_src -d $dst -m "$message"
     $adtnsend -i $ip_src -p $port_src -d $dst -m "$message"
 }
 
