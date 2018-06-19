@@ -48,7 +48,6 @@ ControlDrivenDropPolicy::~ControlDrivenDropPolicy() {
 
 bool ControlDrivenDropPolicy::operator()(const BundleInfo& bundle1,
                                          const BundleInfo& bundle2) const{
-  std::cout << "Operator" << std::endl;
   uint8_t bundle1Score = calculatePriorityScore(bundle1);
   uint8_t bundle2Score = calculatePriorityScore(bundle2);
   if (bundle1Score == bundle2Score){
