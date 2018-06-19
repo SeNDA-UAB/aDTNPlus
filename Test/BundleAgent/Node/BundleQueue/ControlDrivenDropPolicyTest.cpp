@@ -264,21 +264,21 @@ TEST(ControlDrivenDropPolicyTest, ABundleInTheTailHasToGo) {
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherDirMEBBundle))), false,
       getDropPolicy(), true);
-  std::cout << "First enqueue" << std::endl;
+  //std::cout << "First enqueue" << std::endl;
   queue.enqueue(
       std::move(wrapIntoBundleContainer(std::move(otherCtrolMEBBundle))), false,
       getDropPolicy(), true);
-  std::cout << "Second enqueue" << std::endl;
+  //std::cout << "Second enqueue" << std::endl;
   ASSERT_NO_THROW(
       queue.enqueue(
           std::move(wrapIntoBundleContainer(std::move(iamSrcCtrlMEBBundle))),
           false, getDropPolicy(), true));
 
-  std::cout << "First Dequeu" << std::endl;
+  //std::cout << "First Dequeu" << std::endl;
   std::unique_ptr<BundleContainer> bc = queue.dequeue();  //dequeuing queue[0]
   ASSERT_EQ(bc->getBundle().toRaw(), otherDirMEBBundle_copy->toRaw());
 
-  std::cout << "Second Dequeu" << std::endl;
+  //std::cout << "Second Dequeu" << std::endl;
   bc = queue.dequeue();  //dequeuing queue[0]
   ASSERT_EQ(bc->getBundle().toRaw(), iamSrcCtrlMEBBundle_copy->toRaw());
 
