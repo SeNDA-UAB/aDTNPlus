@@ -30,8 +30,13 @@
 #include <string>
 #include <cstdint>
 #include <sstream>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
 #include "adtnSocket.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
+
+#define LOG_CONTROLLER 68
 
 class NetworkMetricsNotFoundException : public std::exception{
  public:
@@ -53,7 +58,7 @@ class SDONController {
    * Default constructor that initializes all the communication parameters needed
    * for the controller to send/recv bundles. Initializes two sockets one for
    * send and the other one for receive. It also establishes the connection with
-   * the node the application wants to receive bundles from.
+   * the node, the application wants to receive bundles from.
    * It starts a thread to collect the network metrics for a period of time.
    * @throws adtnException in case the connection with the platform has failed.
    */
@@ -83,7 +88,24 @@ class SDONController {
    */
   const std::map<NetworkMetricsControlCode, value_t> recvControlMetrics();
 
+  /**
+   * Method that receives a bundle with metrics or directives information.
+   * @param metrics a vector with all the maps with the network metrics received
+   * during a window time.
+   * @param directives a vector with all the maps with the controllers directives
+   * received during a window time.
+   * We cannot use the member vectors to store this information as may be
+   * they are locked by the consumer who might be  processing them.
+   * Therefore we need an accessible vector to add the meanwhile received
+   * metrics/directives.
+   */
+  void recvControlInfo(
+      std::vector<std::map<NetworkMetricsControlCode, value_t>> &metrics,
+      std::vector<std::map<DirectiveControlCode, value_t>> &directives);
+
  private:
+  static const uint64_t DEFAULT_RECV_WINDOW_TIME = 60;
+
   /**
    * An application running in a node can receive/send bundles from/to the node
    * where the application is running or from other nodes. The normal case is
@@ -125,30 +147,86 @@ class SDONController {
   adtnSocket m_socket_to_recv;
 
 
+  /**
+   * Mutex used to implement the mutual exclusion section, performed by a
+   * unique_lock over this variable. This lock is necessary to implement the
+   * locking section between a producer and a consumer for a network metric.
+   */
+  std::mutex m_mutex;
 
-  static const uint64_t DEFAULT_RECV_WINDOW_TIME = 60;
+  /**
+   * Condition variable over the control information (metrics /directives)
+   * received.
+   */
+  std::condition_variable m_conditionVariableOverControlInfo;
 
+
+  std::vector<std::map<DirectiveControlCode, value_t>> m_receivedControlDirectives;
+
+  std::vector<std::map<NetworkMetricsControlCode, value_t>> m_receivedControlMetrics;
 
 
   /**
-   * For a window time receives ControlMetrics bundles and collects the metrics
-   * in a list for later evaluation.
+   * Method that launches a thread that collects control metrics for a window
+   * time forever. @see collectControlMetricsForAWindowTime().
+   */
+  void launchControlMetricsProducer();
+
+  /**
+   * Method executed by a thread. This method receives control metrics/directives
+   * for a window time. Uses a mutex controlled by a lock to implement a mutual
+   * exclusion over a variable that contains a Vector with all the collected
+   * data during window time. This variable contains always the last window
+   * time metrics. If the controller is too slow to consume this data, the
+   * new window time collected data will overwrite the old one.
+   * In here the receive is not blocking.
+   * The method will implement a while true loop.
    */
   void collectControlMetricsForAWindowTime();
+
+  /**
+   *
+   */
+  void consumeControlMetrics();
+
+  /**
+   * Process the metrics collected in a window time infers a directive and sends it
+   * in broadcast.
+   */
+  void processControlMetrics();
+
+  /**
+   * For a window time receives ControlMetrics bundles and collects the metrics
+   * in a list. After the window time, processes the received metrics and
+   * sends, in broadcast, a control directive.
+   */
+  //void collectControlMetricsForAWindowTimeAndSendDirective();
+
+  /**
+   * Launches a thread that for a window time receives ControlMetrics. After
+   * this time, with the collected metrics infers a directive and sends it
+   * in broadcast. The whole process is done while the platfom is on.
+   * It implements  all the logic to add a new thread to the global threads counter
+   * and decreases the thread counter when the function finishes.
+   */
+  //void scheduleCollectControlMetricsAndSendDirective();
+
 
   /**
    * After processing the received metrics a directives map is generated and
    * sent.
    * @param directives the map to be encapsulated in a bundle and sent.
    */
-  void sendControlDirectives(std::map<DirectiveControlCode, value_t> directives);
+  //void sendControlDirectives(std::map<DirectiveControlCode, value_t> directives);
 
   /**
    * Process the metrics gathered in a list.
    * @param metrics the list of all the metrics to be processed
    */
+  /*
   void processControlMetrics(
       std::forward_list<std::map<NetworkMetricsControlCode, value_t>>& metricsLst);
+*/
 
 
 };
