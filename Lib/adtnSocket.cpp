@@ -109,8 +109,24 @@ void adtnSocket::connect(std::string appId) {
 }
 
 std::string adtnSocket::recv() {
+  try {
+    return recv(0);
+  } catch (...) {
+    throw;
+  }
+}
+
+std::string adtnSocket::recv(int timeout) {
+  struct timeval tv;
+  tv.tv_sec = timeout;
+  tv.tv_usec = 0;
   int payloadSize = 0;
+  bool res = (setsockopt(m_recvSocket, SOL_SOCKET, SO_RCVTIMEO,
+                         (struct timeval *) &tv, sizeof(struct timeval)) != -1);
   int receivedSize = ::recv(m_recvSocket, &payloadSize, sizeof(payloadSize), 0);
+  if (receivedSize == -1) {
+    throw adtnSocketTimeoutException("Timeout");
+  }
   payloadSize = ntohl(payloadSize);
   char* payloadraw = new char[payloadSize];
   int receivedLength = 0;

@@ -44,6 +44,7 @@
 #include "Bundle/PayloadBlock.h"
 #include "Utils/globals.h"
 #include "Utils/Logger.h"
+#include "Utils/PerfLogger.h"
 #include "Utils/TimestampManager.h"
 #include "Utils/Functions.h"
 #include "Utils/Socket.h"
@@ -206,7 +207,8 @@ void BundleProcessor::receiveMessage(Socket sock) {
           std::unique_ptr<BundleContainer> bc = createBundleContainer(
               std::move(b));
           // Save the bundleContainer to disk
-          LOG(42) << "Saving bundle " << bc->getBundle().getId() << " to disk";
+          std::string bundleId = bc->getBundle().getId();
+          LOG(42) << "Saving bundle " << bundleId << " to disk";
           m_bundleQueue->saveBundleToDisk(m_config.getDataPath(), *bc);
           // Execute process control
           processControl(*bc);
@@ -221,8 +223,7 @@ void BundleProcessor::receiveMessage(Socket sock) {
 
           } catch (const DroppedBundleQueueException &e) {
             std::stringstream ss;
-            ss << m_config.getDataPath() << bc->getBundle().getId()
-               << ".bundle";
+            ss << m_config.getDataPath() << bundleId << ".bundle";
             int success = std::remove(ss.str().c_str());
             if (success != 0) {
               LOG(3) << "Cannot delete bundle " << ss.str();
@@ -230,6 +231,7 @@ void BundleProcessor::receiveMessage(Socket sock) {
             LOG(40) << e.what();
             drop();
             ack = static_cast<uint8_t>(BundleACK::QUEUE_FULL);
+            PERF(PerfMessages::MESSAGE_DROPPED) << bundleId;
           } catch (const InBundleQueueException &e) {
             LOG(40) << e.what();
             ack = static_cast<uint8_t>(BundleACK::ALREADY_IN_QUEUE);
@@ -238,6 +240,13 @@ void BundleProcessor::receiveMessage(Socket sock) {
           LOG(42) << "Sending Bundle ACK: " << static_cast<unsigned int>(ack);
           if (!(sock << ack)) {
             LOG(3) << "Cannot write to socket, reason: " << sock.getLastError();
+          }
+          if (srcNodeId == "_ADTN_LIB_") {
+            PERF(PerfMessages::MESSAGE_CREATED) << bundleId;
+          } else if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
+            PERF(PerfMessages::MESSAGE_RELAYED_FROM) << bundleId << " "
+                                                     << sock.getPeerName()
+                                                     << " " << bundleLength;
           }
           sock.close();
         } catch (const BundleCreationException &e) {
@@ -275,6 +284,9 @@ void BundleProcessor::delivery(BundleContainer &bundleContainer,
                                           bundleContainer, true);
         }
       }
+      PERF(MESSAGE_RECEIVED)
+          << bundleContainer.getBundle().getId() << " " << payloadSize << " "
+          << BundleInfo(bundleContainer.getBundle()).getCreationTimestamp();
     } catch (const TableException &e) {
       LOG(3) << "Error getting appId, reason: " << e.what();
       LOG(11) << "Saving not delivered bundle to disk.";
@@ -289,11 +301,12 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
   std::string bundleRaw = bundle.toRaw();
 // Bundle length, this will limit the max length of a bundle to 2^32 ~ 4GB
   uint32_t bundleLength = bundleRaw.length();
+  std::string bundleId = bundle.getId();
   if (bundleLength <= 0) {
     LOG(3) << "The bundle to forward has a length of 0, aborting forward.";
   } else {
     auto forwardFunction =
-        [this, bundleRaw, bundleLength](std::string &nh) {
+        [this, bundleRaw, bundleLength, bundleId](std::string &nh) {
           LOG(45) << "Forwarding bundle to " << nh;
           LOG(50) << "Bundle to forward " << bundleRaw;
           std::shared_ptr<Neighbour> nb = m_neighbourTable->getValue(nh);
@@ -367,11 +380,12 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
                             static_cast<uint8_t>(NetworkError::SOCKET_RECEIVE_ERROR));
                       } else {
                         LOG(46) << "Received bundle ACK: " << static_cast<unsigned int>(ack);
-                        if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED)) {
+                        if (ack == static_cast<uint8_t>(BundleACK::CORRECT_RECEIVED) || ack == static_cast<uint8_t>(BundleACK::QUEUE_FULL)) {
                           LOG(11) << "A bundle of length " << bundleLength
                           << " has been sent to " << nb->getNodeAddress()
                           << ":" << nb->getNodePort() << " from "
                           << s.getPeerName();
+                          PERF(MESSAGE_RELAYED) << bundleId << " " << s.getPeerName() << " " << bundleLength;
                         } else {
                           std::stringstream ss;
                           uint8_t error;
@@ -424,6 +438,7 @@ void BundleProcessor::discard(
     LOG(3) << "Cannot delete bundle " << ss.str();
   }
   LOG(51) << "Deleting bundleContainer.";
+  PERF(PerfMessages::MESSAGE_REMOVED) << bundleContainer->getBundle().getId();
   bundleContainer.reset();
   m_bundleQueue->resetLast();
 }

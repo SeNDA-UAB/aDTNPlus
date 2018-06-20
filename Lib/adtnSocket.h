@@ -45,7 +45,14 @@ class adtnSocketException : public std::runtime_error {
 class adtnMissingBundleException : public std::runtime_error {
  public:
   explicit adtnMissingBundleException(const std::string &what)
-    : runtime_error(what) {
+      : runtime_error(what) {
+  }
+};
+
+class adtnSocketTimeoutException : public std::runtime_error {
+ public:
+  explicit adtnSocketTimeoutException(const std::string &what)
+      : runtime_error(what) {
   }
 };
 
@@ -108,6 +115,17 @@ class adtnSocket {
    * @return An string containing the received message.
    */
   std::string recv();
+  /**
+   * @brief Receives a message from the node.
+   *
+   * This function will block until a message is received from the node.
+   * The adtnSocket must have been connected before using this function.
+   *
+   * @param timeout seconds to timeout the receive call.
+   * @return An string containing the received message.
+   */
+  std::string recv(int timeout);
+
   /**
    * @brief Sends a message with the following parameters:
    *
