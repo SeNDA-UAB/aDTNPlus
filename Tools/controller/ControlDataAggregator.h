@@ -25,27 +25,61 @@
 #define TOOLS_CONTROLDATAAGGREGATOR_H_
 
 #include <map>
+#include <memory>
 #include <vector>
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 
+/**
+ * This class acts as a container of aggragated data. It contains the raw
+ * format of data, the canonical format and the aggregated format.
+ */
 template <class T>
 class ControlDataAggregator{
-
  public:
-  ControlDataAggregator(){};
+  ControlDataAggregator() {}
   virtual ~ControlDataAggregator() {
   }
 
   /**
-   * For each entry in the map process it process
-   * the list of the collected values.
-   * @param data an array with all the data maps received from the nodes. The maps
-   * in the vector might not be the same.
-   * @return a map with the aggregated value .
+   * For each entry in the canonical map it processes the list of the collected values.
+   * @return a map with the metric/directive and the aggregated value
    */
-  virtual const std::map<T, value_t> aggregateData(const
-      std::vector<std::map<T,value_t>>& data) const = 0;
+  virtual const std::map<T, value_t>& getAggregatedData() = 0;
 
+  /**
+   * Builds a canonical map from the raw data. For each map element in the vector
+   * gets the map entries and adds the entry in the map. Each entry as a value
+   * has a vector of values.
+   * @return the canonical map.
+   */
+  const std::map<T, std::vector<value_t>>& getCanonicalData() {
+    if ((m_rawData != nullptr) && (m_canonicalData.size() == 0)){ // it has not been set yet.
+      for(const auto& aMap : m_rawData) {
+          for(const auto& entry : aMap) {
+            m_canonicalData[entry.first].push_back(entry.second);
+          }
+        }
+    }
+    return m_canonicalData;
+  }
+
+  /**
+   * @return the raw collected data.
+   */
+  const std::vector<std::map<T, value_t> >& getRawData() const {
+    return *m_rawData;
+  }
+
+  void init(const std::vector<std::map<T, value_t> >& rawData){
+    m_rawData = rawData;
+    m_aggregatedData.clear();
+    m_canonicalData.clear();
+  }
+
+ protected:
+  std::shared_ptr<std::vector<std::map<T, value_t>>> m_rawData;
+  std::map<T, std::vector<value_t>> m_canonicalData;
+  std::map<T, value_t> m_aggregatedData;
 
 };
 
