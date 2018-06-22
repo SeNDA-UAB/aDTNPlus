@@ -54,7 +54,7 @@ class ControlDataAggregator{
    */
   const std::map<T, std::vector<value_t>>& getCanonicalData() {
     if ((m_rawData != nullptr) && (m_canonicalData.size() == 0)){ // it has not been set yet.
-      for(const auto& aMap : m_rawData) {
+      for(const auto& aMap : *m_rawData) {
           for(const auto& entry : aMap) {
             m_canonicalData[entry.first].push_back(entry.second);
           }
@@ -66,18 +66,18 @@ class ControlDataAggregator{
   /**
    * @return the raw collected data.
    */
-  const std::vector<std::map<T, value_t> >& getRawData() const {
-    return *m_rawData;
+  const std::vector<std::map<T, value_t> >* getRawData() const {
+    return m_rawData;
   }
 
-  void init(const std::vector<std::map<T, value_t> >& rawData){
+  void init(const std::vector<std::map<T, value_t> >* rawData){
     m_rawData = rawData;
     m_aggregatedData.clear();
     m_canonicalData.clear();
   }
 
  protected:
-  std::shared_ptr<std::vector<std::map<T, value_t>>> m_rawData;
+  std::vector<std::map<T, value_t>>* m_rawData;
   std::map<T, std::vector<value_t>> m_canonicalData;
   std::map<T, value_t> m_aggregatedData;
 

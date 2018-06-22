@@ -143,7 +143,6 @@ void SDONController::collectControlDataForAWindowTime() {
     while (endWindowTime_s > std::chrono::steady_clock::now()) {
       recvControlData(metrics, directives,
                       endWindowTime_s - std::chrono::steady_clock::now());
-      // falta que el recive bolquegi pel temps restant al timeout.
     } //end window time
 
     //start locking code section
@@ -193,22 +192,16 @@ void SDONController::processControlData() {
   //TODO: Think about how to aggregate the directives.
   //TODO: think about how to combine the aggregated directives with the metrics
   //TODO: Use a factory to get the aggregator
-  std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>> aggregator =
-      std::make_shared<ControlDataAggregatorByAverage<NetworkMetricsControlCode>>();
-  aggregator->init(m_receivedControlMetrics);
-  std::shared_ptr<ControlDataProcessor> processor = std::make_shared<>()(new ControlDataProcessor());
-
-  std::map<NetworkMetricsControlCode, value_t> aggregatedMetrics =
-      aggregator->aggregateData(metrics);
-
-  //TODO: Use a factory to get the processor
-  processor->processMetrics(aggregatedMetrics)
+  std::unique_ptr<ControlDataAggregator<NetworkMetricsControlCode>> aggregator
+  (new ControlDataAggregatorByAverage<NetworkMetricsControlCode>());
+  aggregator->init(&m_receivedControlMetrics);
+  std::unique_ptr<ControlDataProcessor> processor(new BasicControlDataProcessor());
+  processor->init(&(*aggregator));
+  std::map<DirectiveControlCode, value_t>processor->processMetrics();
 
 }
 
 
-
-}
 //void SDONController::collectControlMetricsForAWindowTimeAndSendDirective() {
 ///*
 // uint32_t sleepTime =

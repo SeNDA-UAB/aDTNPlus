@@ -40,7 +40,7 @@ class ControlDataProcessor{
    * sets the controlMetrics aggregator attribute.
    * @param controlMetricsAggregator the metrics aggregator.
    */
-  void init(const std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>>& controlMetricsAggregator){
+  void init(const ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator){
     m_controlMetricsAggregator = controlMetricsAggregator;
   }
 
@@ -48,7 +48,7 @@ class ControlDataProcessor{
    * sets the controlDirectives aggregator attribute.
    * @param controlDirectivesAggregator the directives aggregator.
    */
-  void init(const std::shared_ptr<ControlDataAggregator<DirectiveControlCode>>& controlDirectiveAggregator){
+  void init(const ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
     m_controlDirectivesAggregator = controlDirectiveAggregator;
   }
 
@@ -57,8 +57,8 @@ class ControlDataProcessor{
    * @param controlMetricsAggregator the metrics aggregator.
    * @param controlDirectivesAggregator the directives aggregator.
    */
-  void init(const std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>>& controlMetricsAggregator,
-            const std::shared_ptr<ControlDataAggregator<DirectiveControlCode>>& controlDirectiveAggregator){
+  void init(const ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator,
+            const ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
     m_controlMetricsAggregator = controlMetricsAggregator;
     m_controlDirectivesAggregator = controlDirectiveAggregator;
   }
@@ -90,8 +90,8 @@ class ControlDataProcessor{
   virtual const std::map<DirectiveControlCode, value_t> processData() const;
 
  protected:
-  std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>> m_controlMetricsAggregator;
-  std::shared_ptr<ControlDataAggregator<DirectiveControlCode>> m_controlDirectivesAggregator;
+  ControlDataAggregator<NetworkMetricsControlCode>* m_controlMetricsAggregator;
+  ControlDataAggregator<DirectiveControlCode>* m_controlDirectivesAggregator;
 };
 
 

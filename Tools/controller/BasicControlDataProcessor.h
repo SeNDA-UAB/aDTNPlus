@@ -32,6 +32,9 @@
 
 
 class BasicControlDataProcessor : public ControlDataProcessor {
+ public:
+  BasicControlDataProcessor();
+  ~BasicControlDataProcessor();
   /**
    * Generates a directiveControlCode map with the directives to be applied
    * given the aggregated metrics encapsulated in the aggregator.
