@@ -33,12 +33,10 @@ class ControlDataAggregatorByAverage : public ControlDataAggregator<T>{
   virtual ~ControlDataAggregatorByAverage();
 
   /**
-   * For each entry in the map process it process
-   * the list of the collected values by calculating the average.
-   * @return a Directive map with the directives to be applied by the nodes
-   * which will be the calculated average.
+   * For each entry in the canonical it map process the list of the collected values.
+   * @return a map with the metric/directive and the aggregated value
    */
-  const std::map<T, value_t> aggregateData(const std::vector<std::map<T,value_t>>& data) const;
+  const std::map<T, value_t>& getAggregatedData();
 
 };
 

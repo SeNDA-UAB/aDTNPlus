@@ -35,24 +35,15 @@ ControlDataAggregatorByAverage<T>::~ControlDataAggregatorByAverage() {
 }
 
 template<class T>
-const std::map<T, value_t> ControlDataAggregatorByAverage<T>::aggregateData(
-    const std::vector<std::map<T,value_t>>& data) const {
-  std::map<T, value_t> aggregatedData;
-  std::map<T, std::vector<value_t>> canonicalMap;
-
-
-  for(const auto& aMap : data){
-    for(const auto& entry : aMap){
-      canonicalMap[entry.first].push_back(entry.second);
+const std::map<T, value_t>& ControlDataAggregatorByAverage<T>::getAggregatedData(){
+  if(m_aggregatedData.size() == 0){ // it has not been set yet
+    for(const auto& entry : getCanonicalData()){
+      m_aggregatedData[entry.first] = std::round(
+          std::accumulate(entry.second.begin(), entry.second.end(), 0.0) /
+          entry.second.size());
     }
   }
 
-  for(const auto& entry : canonicalMap){
-    aggregatedData[entry.first] = std::round(
-        std::accumulate(entry.second.begin(), entry.second.end(), 0.0) /
-        entry.second.size());
-  }
-
-  return aggregatedData;
+  return m_aggregatedData;
 }
 
