@@ -24,7 +24,7 @@
 
 #include <map>
 #include <vector>
-#include <controller/BasicControlDataProcessor.h>
+#include "BasicControlDataProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 
 BasicControlDataProcessor::BasicControlDataProcessor() {
@@ -35,13 +35,10 @@ BasicControlDataProcessor::~BasicControlDataProcessor() {
 }
 
 
-const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::processMetrics(
-    const std::vector<std::map<NetworkMetricsControlCode, value_t>>& data,
-    std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>> aggregator) const {
-  std::map<NetworkMetricsControlCode, value_t> aggregatedData =
-        aggregator->aggregateData(data);
+const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::processMetrics() const {
 
-  if(aggregatedData.find(NetworkMetricsControlCode::NR_OF_DROPS))
+  if(m_controlMetricsAggregator->getAggregatedData().find(NetworkMetricsControlCode::NR_OF_DROPS)){
 
+  }
 }
 

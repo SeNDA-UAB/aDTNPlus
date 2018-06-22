@@ -33,43 +33,29 @@
 
 class BasicControlDataProcessor : public ControlDataProcessor {
   /**
-   * Generates a directiveControlCode map with the directives given the data
-   * to be processed.
-   * @param data the networkMetrics to be processed.
-   * @param aggregator the aggregator to aggregate the networkMetrics
+   * Generates a directiveControlCode map with the directives to be applied
+   * given the aggregated metrics encapsulated in the aggregator.
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processMetrics(
-      const std::vector<std::map<NetworkMetricsControlCode,value_t>>& data,
-      ControlDataAggregator<NetworkMetricsControlCode>& aggregator) const;
+  const std::map<DirectiveControlCode, value_t> processMetrics() const;
 
   /**
-   * Generates a directiveControlCode map with the directives given the data
-   * to be processed.
-   * @param data the directives to be processed.
-   * @param aggregator the aggregator to aggregate the directives
+   * Generates a directiveControlCode map with the directives to be applied
+   * given the aggregated directives encapsulated in the aggregator.
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processDirectives(
-      const std::vector<std::map<DirectiveControlCode,value_t>>& data,
-      ControlDataAggregator<DirectiveControlCode>& aggregator) const;
+  const std::map<DirectiveControlCode, value_t> processDirectives() const;
 
   /**
-   * Generates a directiveControlCode map with the directives given the data
-   * to be processed. In this case the data to be processed is a combination
-   * between network metrics and
-   * @param data the directives to be processed.
-   * @param aggregator the aggregator to aggregate the directives
+   * Generates a directiveControlCode map with the directives to be applied
+   * given the aggregated directives combined with the metrics encapsulated in
+   * both aggregators.
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processData(
-      const std::vector<std::map<NetworkMetricsControlCode,value_t>>& metrics,
-      const std::vector<std::map<DirectiveControlCode,value_t>>& directives,
-      ControlDataAggregator<NetworkMetricsControlCode>& metricsAggregator,
-      ControlDataAggregator<DirectiveControlCode>& directivesAggregator) const;
+  const std::map<DirectiveControlCode, value_t> processData() const;
 };
 
 #endif  // TOOLS_CONTROLLER_BASICCONTROLDATAPROCESSOR_H_
