@@ -193,14 +193,16 @@ void SDONController::processControlData() {
   //TODO: Think about how to aggregate the directives.
   //TODO: think about how to combine the aggregated directives with the metrics
   //TODO: Use a factory to get the aggregator
-  std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>> aggregator
-   (new ControlDataAggregatorByAverage<NetworkMetricsControlCode>());
-  std::shared_ptr<ControlDataProcessor> processor(new ControlDataProcessor());
+  std::shared_ptr<ControlDataAggregator<NetworkMetricsControlCode>> aggregator =
+      std::make_shared<ControlDataAggregatorByAverage<NetworkMetricsControlCode>>();
+  aggregator->init(m_receivedControlMetrics);
+  std::shared_ptr<ControlDataProcessor> processor = std::make_shared<>()(new ControlDataProcessor());
 
   std::map<NetworkMetricsControlCode, value_t> aggregatedMetrics =
       aggregator->aggregateData(metrics);
 
   //TODO: Use a factory to get the processor
+  processor->processMetrics(aggregatedMetrics)
 
 }
 
