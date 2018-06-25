@@ -22,7 +22,7 @@
  *
  */
 
-#include <ControlDataAggregatorByAverage.h>
+#include "ControlDataAggregatorByAverage.h"
 #include <numeric>
 #include <cmath>
 
@@ -36,14 +36,14 @@ ControlDataAggregatorByAverage<T>::~ControlDataAggregatorByAverage() {
 
 template<class T>
 const std::map<T, value_t>& ControlDataAggregatorByAverage<T>::getAggregatedData(){
-  if(m_aggregatedData.size() == 0){ // it has not been set yet
-    for(const auto& entry : getCanonicalData()){
-      m_aggregatedData[entry.first] = std::round(
+  if(this->m_aggregatedData.size() == 0){ // it has not been set yet
+    for(const auto& entry : this->getCanonicalData()){
+      this->m_aggregatedData[entry.first] = std::round(
           std::accumulate(entry.second.begin(), entry.second.end(), 0.0) /
           entry.second.size());
     }
   }
 
-  return m_aggregatedData;
+  return this->m_aggregatedData;
 }
 

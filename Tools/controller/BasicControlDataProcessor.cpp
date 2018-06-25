@@ -36,9 +36,13 @@ BasicControlDataProcessor::~BasicControlDataProcessor() {
 
 
 const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::processMetrics() const {
-
-  if(m_controlMetricsAggregator->getAggregatedData().find(NetworkMetricsControlCode::NR_OF_DROPS)){
+  std::map<DirectiveControlCode, value_t> directivesToBeApplied;
+  if(m_controlMetricsAggregator->getAggregatedData().find(NetworkMetricsControlCode::NR_OF_DROPS)!=
+      m_controlMetricsAggregator->getAggregatedData().end()){
 
   }
+
+  return directivesToBeApplied;
+
 }
 

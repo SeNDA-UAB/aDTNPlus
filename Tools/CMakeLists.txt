@@ -28,13 +28,9 @@ set(CODE_CHECK_FILES
   codeCheck.cpp
 )
 
-set(CONTROLLER_NAME sdon-controller)
-set(CONTROLLER_FILES
-  SDONController.cpp
-  controller.cpp
-)
-
 include_directories(../Lib ../BundleAgent ../Tools)
+
+add_subdirectory(controller)
 
 add_executable(${BASIC_SENDER_NAME} ${BASIC_SENDER_FILES})
 target_link_libraries(${BASIC_SENDER_NAME} aDTNLib Bundle_lib)
@@ -54,10 +50,6 @@ target_link_libraries(${ADTN_RECEIVER_NAME} aDTNLib Bundle_lib)
 add_executable(${CODE_CHECK_NAME} ${CODE_CHECK_FILES})
 target_link_libraries(${CODE_CHECK_NAME} Bundle_lib ${CMAKE_DL_LIBS})
 
-add_executable(${CONTROLLER_NAME} ${CONTROLLER_FILES})
-target_link_libraries(${CONTROLLER_NAME} aDTNLib Bundle_lib)
-
-
 install(TARGETS ${BASIC_SENDER_NAME} ${BASIC_RECEIVER_NAME} ${BASIC_VIEWER_NAME}
-  ${ADTN_SENDER_NAME} ${ADTN_RECEIVER_NAME} ${CODE_CHECK_NAME} ${CONTROLLER_NAME}
+  ${ADTN_SENDER_NAME} ${ADTN_RECEIVER_NAME} ${CODE_CHECK_NAME}
   RUNTIME DESTINATION bin)

@@ -37,6 +37,7 @@
 
 #include "adtnSocket.h"
 #include "SDONController.h"
+#include "Node/Config.h"
 
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;

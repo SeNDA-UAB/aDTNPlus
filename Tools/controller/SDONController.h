@@ -33,7 +33,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
-#include "Lib/adtnSocket.h"
+#include "adtnSocket.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 
 #define LOG_CONTROLLER 68

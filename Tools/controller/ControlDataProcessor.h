@@ -40,7 +40,7 @@ class ControlDataProcessor{
    * sets the controlMetrics aggregator attribute.
    * @param controlMetricsAggregator the metrics aggregator.
    */
-  void init(const ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator){
+  void init(ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator){
     m_controlMetricsAggregator = controlMetricsAggregator;
   }
 
@@ -48,7 +48,7 @@ class ControlDataProcessor{
    * sets the controlDirectives aggregator attribute.
    * @param controlDirectivesAggregator the directives aggregator.
    */
-  void init(const ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
+  void init(ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
     m_controlDirectivesAggregator = controlDirectiveAggregator;
   }
 
@@ -57,8 +57,8 @@ class ControlDataProcessor{
    * @param controlMetricsAggregator the metrics aggregator.
    * @param controlDirectivesAggregator the directives aggregator.
    */
-  void init(const ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator,
-            const ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
+  void init(ControlDataAggregator<NetworkMetricsControlCode>* controlMetricsAggregator,
+               ControlDataAggregator<DirectiveControlCode>* controlDirectiveAggregator){
     m_controlMetricsAggregator = controlMetricsAggregator;
     m_controlDirectivesAggregator = controlDirectiveAggregator;
   }

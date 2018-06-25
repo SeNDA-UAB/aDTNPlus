@@ -37,7 +37,7 @@
 #include "Bundle/NumericMEB.h"
 #include "Bundle/ControlMetricsMEB.h"
 #include "Bundle/ControlDirectiveMEB.h"
-#include "Tools/controller/controllerGlobals.h"
+#include "controllerGlobals.h"
 
 
 
@@ -126,7 +126,7 @@ void SDONController::launchControlDataProducer() {
   "Creating SDONController::metrics producer thread";
 
   std::thread metricsProducer(
-      &SDONController::collectControlDataForAWindowTime(), this);
+      &SDONController::collectControlDataForAWindowTime, this);
   metricsProducer.detach();
 
 }
@@ -142,7 +142,7 @@ void SDONController::collectControlDataForAWindowTime() {
 
     while (endWindowTime_s > std::chrono::steady_clock::now()) {
       recvControlData(metrics, directives,
-                      endWindowTime_s - std::chrono::steady_clock::now());
+                      (endWindowTime_s - std::chrono::steady_clock::now()).count());
     } //end window time
 
     //start locking code section
@@ -167,7 +167,7 @@ void SDONController::launchControlDataConsumer() {
     "Creating SDONController::data consumer thread";
 
     std::thread dataConsumer(
-        &SDONController::consumeControlData(), this);
+        &SDONController::consumeControlData, this);
     dataConsumer.detach();
 }
 
@@ -196,8 +196,9 @@ void SDONController::processControlData() {
   (new ControlDataAggregatorByAverage<NetworkMetricsControlCode>());
   aggregator->init(&m_receivedControlMetrics);
   std::unique_ptr<ControlDataProcessor> processor(new BasicControlDataProcessor());
-  processor->init(&(*aggregator));
-  std::map<DirectiveControlCode, value_t>processor->processMetrics();
+  processor->init(aggregator.get());
+  std::map<DirectiveControlCode, value_t> directivesToBeApplied =
+      processor->processMetrics();
 
 }
 

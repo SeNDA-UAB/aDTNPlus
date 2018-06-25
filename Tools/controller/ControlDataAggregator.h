@@ -70,7 +70,7 @@ class ControlDataAggregator{
     return m_rawData;
   }
 
-  void init(const std::vector<std::map<T, value_t> >* rawData){
+  void init(std::vector<std::map<T, value_t> >* rawData){
     m_rawData = rawData;
     m_aggregatedData.clear();
     m_canonicalData.clear();
