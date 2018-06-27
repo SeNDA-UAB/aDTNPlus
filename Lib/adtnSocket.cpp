@@ -41,6 +41,8 @@
 #include "Bundle/BundleTypes.h"
 #include "Bundle/FrameworkMEB.h"
 #include "Bundle/FrameworkExtension.h"
+#include "Bundle/ControlDirectiveMEB.h"
+
 
 adtnSocket::adtnSocket(std::string ip, int sendPort, int recvPort,
                        std::string recvIp)
@@ -202,6 +204,10 @@ void adtnSocket::addRoutingSelection(uint8_t type) {
 
 void adtnSocket::addActiveForwarding(std::string code) {
   m_blocksToAdd.push_back(std::make_shared<ForwardingMEB>(code));
+}
+
+void adtnSocket::addControlDirectivesBlock(ControlDirectiveMEB controlDirectiveMEB){
+  m_blocksToAdd.push_back(std::make_shared<ControlDirectiveMEB> (controlDirectiveMEB));
 }
 
 void adtnSocket::clearBlocks() {

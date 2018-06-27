@@ -30,6 +30,7 @@
 #include <vector>
 #include <map>
 #include "Bundle/BundleTypes.h"
+#include "Bundle/ControlDirectiveMEB.h"
 
 class Bundle;
 class CanonicalBlock;
@@ -155,6 +156,11 @@ class adtnSocket {
    * @param code The code that will be executed when forwarding.
    */
   void addActiveForwarding(std::string code);
+
+  /**
+   * @param controlDirective MEB with control directives
+   */
+  void addControlDirectivesBlock(ControlDirectiveMEB controlDirectiveMEB);
   /**
    * @brief Ask to clear all the cached blocks that will go to a bundle.
    */
