@@ -46,18 +46,28 @@ std::atomic<uint16_t> g_startedThread;
 static void help(std::string program_name) {
   std::cout
       << program_name << " is part of the SeNDA aDTNPlus platform\n"
-      << "Usage: " << program_name << " -n '127.0.0.1' -s '40000' -r '50000' -a 'ap1' -d 'n2' \n"
+      << "Usage: " << program_name << " -n '127.0.0.1' -w '40000' -r '50000' -a 'ap1' -d 'n2' \n"
       << "Required options:\n"
       << "   [-n | --nodeIp] node Ip\t\t\tIP of the listening node.\n"
-      << "   [-w | --nodePortToSend] port\t\t\t\tPort where the node is reading from.\n"
-      << "   [-r | --nodePortToRecv] port\t\t\tPort where the node is writing to.\n"
-      << "Supported options:\n"
+      << "   [-w | --nodePortToSend] port\t\t\t\t"
+      << "          The application sends the bundles to this port of the node.\n"
+      << "          The node receives bundles from the app or other nodes through a socket binded "
+      << "          to this port. If the bundle received by the node though this port comes "
+      << "          from an APP, the node sends the bundle to the network. If the bundle "
+      << "          comes from another platform, if the bundle dest is the application running "
+      << "          over the node, the node sends the bundle to the application. If not, relies "
+      << "          the bundle to another node(platform). \n"
+      << "   [-r | --nodePortToRegisterToRecv] port\t\t\t We send a message to "
+      << " to this node's port to register the APP to receive bundles from "
+      << " the network.\n"
       << "   [-a | --app_addr] destinationAddress\t\t\tBundle destination "
       << "address for the application.\n"
       << "   [-d | --send_to_addr] Bundle destination\t\t\tDestination "
       << "node/s of the bundle.\n"
-      << "   [-t | --timeWindow] windowTim\t\t\tWindow time while the controller "
+      << "   [-t | --timeWindow] windowTime\t\t\tWindow time while the controller "
+      << "   [-c | --configFile] configFile\t\t\tPath to the adt.ini.in config file.\n"
       << "will be receiving bundles. By default is set to 1minute=60miliseconds\n"
+      << "Supported options:\n"
       << "   [-v | --verbose]\t\t\t\tPrints the last metrics' bundle received.\n"
       << "   [-h | --help]\t\t\t\tShows this help message.\n"
       << "Launches a controller that communicates with node <nodeIp>. "
@@ -78,10 +88,11 @@ int main(int argc, char **argv) {
   int opt = -1, option_index = 0;
   std::string nodeIp = "";
   int nodePortToSend = -1;
-  int nodePortToRecv = -1;
+  int nodePortToRegisterToRecv = -1;
   std::string app_addr = "";
   std::string send_to_addr = "";
   int recvWindowTime = -1;
+  std::string configFilePath = "";
   bool verbose = false;
   struct sigaction sigIntHandler;
   sigIntHandler.sa_handler = stop;
@@ -91,7 +102,7 @@ int main(int argc, char **argv) {
 static struct option long_options[] = {
     {"nodeIp", required_argument, 0, 'n'},
     { "nodePortToSend", required_argument, 0, 'w'},
-    {"nodePortToRecv", required_argument, 0, 'r'},
+    {"nodePortToRegisterToRecv", required_argument, 0, 'r'},
     {"app_addr", required_argument, 0, 'a'},
     {"send_to_addr", required_argument, 0, 'd'},
     {"recvWindowTime", required_argument, 0, 't'},
@@ -110,7 +121,7 @@ static struct option long_options[] = {
         nodePortToSend = atoi(optarg);
         break;
       case 'r':
-        nodePortToRecv = atoi(optarg);
+        nodePortToRegisterToRecv = atoi(optarg);
         break;
       case 'a':
         app_addr = std::string(optarg);
@@ -120,6 +131,9 @@ static struct option long_options[] = {
         break;
       case 't':
         recvWindowTime = atoi(optarg);
+        break;
+      case 'c':
+        configFilePath = std::string(optarg);
         break;
       case 'v':
         verbose = true;
@@ -135,12 +149,14 @@ static struct option long_options[] = {
   }
 
 
-  if (nodeIp == "" || nodePortToSend == -1 || nodePortToRecv == -1 ||
-      app_addr == "" || send_to_addr == "") {
+  if (nodeIp == "" || nodePortToSend == -1 || nodePortToRegisterToRecv == -1 ||
+      app_addr == "" || send_to_addr == "" || (recvWindowTime == -1) ||
+          (configFilePath == "")){
     std::cout << "Número de paràmetres: " << argc << std::endl; //DEBUG
     std::cout << "nodeIp: " << nodeIp << " portSend: " << nodePortToSend <<
-        " nodePortRecv: " << nodePortToRecv << " app_addr: " << app_addr <<
-        " sent_to_addr: " << send_to_addr << std::endl;
+        " portToRegister: " << nodePortToRegisterToRecv << " app_addr: " << app_addr <<
+        " sent_to_addr: " << send_to_addr << " configFilePath: " << configFilePath
+        << std::endl;
     help(std::string(argv[0]));
     exit(0);
   }
@@ -151,19 +167,19 @@ static struct option long_options[] = {
   g_stop = false;
 
   try {
-    SDONController myController(nodeIp, nodePortToSend, nodePortToRecv,
-                              app_addr, send_to_addr, recvWindowTime);
+    SDONController myController(nodeIp, nodePortToSend, nodePortToRegisterToRecv,
+                              app_addr, send_to_addr, configFilePath, recvWindowTime);
     /*
     while (true) {
       std::map<NetworkMetricsControlCode, value_t> recvMetrics = myController
           .recvControlMetrics();
       SDONController::printReceivedControlMetrics(recvMetrics);
-    }
+    }*/
   } catch (const adtnSocketException &e) {
     std::cout << "An error has occurred: " << e.what() << std::endl;
 
   }
-  */
+
 
   while (!g_stop || (g_stopped.load() < g_startedThread)) {
     std::this_thread::sleep_for(std::chrono::seconds(5));

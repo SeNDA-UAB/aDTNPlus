@@ -33,8 +33,8 @@
 class ControlDataProcessor{
  public:
 
-  ControlDataProcessor(){}
-  virtual ~ControlDataProcessor(){}
+  ControlDataProcessor(){};
+  virtual ~ControlDataProcessor(){};
 
   /**
    * sets the controlMetrics aggregator attribute.
@@ -70,7 +70,7 @@ class ControlDataProcessor{
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processMetrics() const;
+  virtual const std::map<DirectiveControlCode, value_t> processMetrics() const = 0;
 
   /**
    * Generates a directiveControlCode map with the directives to be applied
@@ -78,7 +78,7 @@ class ControlDataProcessor{
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processDirectives() const;
+  virtual const std::map<DirectiveControlCode, value_t> processDirectives() const = 0;
 
   /**
    * Generates a directiveControlCode map with the directives to be applied
@@ -87,7 +87,7 @@ class ControlDataProcessor{
    * @return a directiveControlCode map with the control directives to be
    * applied.
    */
-  virtual const std::map<DirectiveControlCode, value_t> processData() const;
+  virtual const std::map<DirectiveControlCode, value_t> processData() const = 0;
 
  protected:
   ControlDataAggregator<NetworkMetricsControlCode>* m_controlMetricsAggregator;

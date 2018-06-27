@@ -39,10 +39,18 @@ const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::process
   std::map<DirectiveControlCode, value_t> directivesToBeApplied;
   if(m_controlMetricsAggregator->getAggregatedData().find(NetworkMetricsControlCode::NR_OF_DROPS)!=
       m_controlMetricsAggregator->getAggregatedData().end()){
-
+    directivesToBeApplied[DirectiveControlCode::NR_OF_COPIES] /=2;
   }
 
   return directivesToBeApplied;
 
+}
+
+const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::processDirectives() const {
+  return std::map<DirectiveControlCode, value_t>();
+}
+
+const std::map<DirectiveControlCode, value_t> BasicControlDataProcessor::processData() const {
+  return std::map<DirectiveControlCode, value_t>();
 }
 

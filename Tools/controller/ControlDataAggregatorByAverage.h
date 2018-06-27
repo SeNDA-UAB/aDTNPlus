@@ -25,18 +25,29 @@
 #define TOOLS_CONTROLDATAAGGREGATORBYAVERAGE_H_
 
 #include "ControlDataAggregator.h"
+#include <numeric>
+#include <cmath>
 
 template <class T>
 class ControlDataAggregatorByAverage : public ControlDataAggregator<T>{
  public:
-  ControlDataAggregatorByAverage();
-  virtual ~ControlDataAggregatorByAverage();
+  ControlDataAggregatorByAverage() {};
+  virtual ~ControlDataAggregatorByAverage() {};
 
   /**
    * For each entry in the canonical it map process the list of the collected values.
    * @return a map with the metric/directive and the aggregated value
    */
-  const std::map<T, value_t>& getAggregatedData();
+  const std::map<T, value_t>& getAggregatedData() {
+    if(this->m_aggregatedData.size() == 0){ // it has not been set yet
+      for(const auto& entry : this->getCanonicalData()){
+        this->m_aggregatedData[entry.first] = std::round(
+            std::accumulate(entry.second.begin(), entry.second.end(), 0.0) /
+            entry.second.size());
+      }
+    }
+    return this->m_aggregatedData;
+  }
 
 };
 

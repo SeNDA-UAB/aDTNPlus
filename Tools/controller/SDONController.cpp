@@ -23,6 +23,7 @@
  */
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -33,6 +34,7 @@
 #include "ControlDataProcessor.h"
 #include "BasicControlDataProcessor.h"
 #include "Node/BundleProcessor/OppnetFlow/OppnetFlowBundleProcessor.h"
+#include "Node/BundleProcessor/OppnetFlow/OppnetFlowTypes.h"
 #include "Bundle/BundleTypes.h"
 #include "Bundle/NumericMEB.h"
 #include "Bundle/ControlMetricsMEB.h"
@@ -42,21 +44,46 @@
 
 
 SDONController::SDONController(std::string nodeIp, int nodePortToSend,
-                               int nodePortToRecv, std::string app_addr,
-                               std::string send_to_addr, uint64_t windowTime)
+                               int nodePortToRegisterToRecv, std::string app_addr,
+                               std::string send_to_addr,
+                               std::string configFilePath, uint64_t windowTime)
     : m_nodeIp(nodeIp),
       m_nodePortToSend(nodePortToSend),
-      m_nodePortToRecv(nodePortToRecv),
+      m_nodePortToRegisterToRecv(nodePortToRegisterToRecv),
       m_app_addr(app_addr),
       m_send_to_addr(send_to_addr),
       m_recvWindowTime(windowTime),
       m_socket_to_send(adtnSocket(nodeIp, nodePortToSend)),
-      m_socket_to_recv(adtnSocket(nodeIp, nodePortToRecv, false)) {
-  m_socket_to_recv.connect(app_addr);
-  //launch producer thread.
-  launchControlDataProducer();
-  launchControlDataConsumer();
+      m_socket_to_recv(adtnSocket(nodeIp, nodePortToRegisterToRecv, false)),
+      m_config(Config(configFilePath)){
+
+    std::ifstream nodeState(m_config.getNodeStatePath());
+    if (nodeState) {
+      try {
+        nodeState >> m_nodeState;
+        nodeState.close();
+        loadControlConfiguration();
+
+        m_socket_to_recv.connect(app_addr);
+        //launch producer thread.
+        launchControlDataProducer();
+        launchControlDataConsumer();
+      } catch (const std::invalid_argument &e) {
+        LOG(1) << "Error in NodeState json: " << e.what();
+        g_stop = true;
+      }
+
+    } else {
+      LOG(11) << "Cannot open the file " << m_config.getNodeStatePath();
+    }
+
 }
+
+void SDONController::loadControlConfiguration() {
+  m_controlConfig[ControlParameterCode::NR_OF_COPIES] =
+      (int) m_nodeState["oppnetFlow"]["sprayandwait"]["nrofCopies"];
+}
+
 
 SDONController::~SDONController() {
 }
@@ -181,6 +208,7 @@ void SDONController::consumeControlData() {
   }
 }
 
+
 void SDONController::processControlData() {
   //to avoid data race over the metrics/directives list.
   //the producer might be quicker than the consumer to produce more
@@ -199,7 +227,12 @@ void SDONController::processControlData() {
   processor->init(aggregator.get());
   std::map<DirectiveControlCode, value_t> directivesToBeApplied =
       processor->processMetrics();
-
+  m_socket_to_send.addControlDirectivesBlock(ControlDirectiveMEB(directivesToBeApplied));
+  //To send to all the platforms we use a non existing destination address.
+  //All the platforms will receive the bundle and no one will promote it to
+  //the application, as there is no application listening.
+  m_socket_to_send.send("broadcast", "");
+  m_socket_to_send.clearBlocks();
 }
 
 
