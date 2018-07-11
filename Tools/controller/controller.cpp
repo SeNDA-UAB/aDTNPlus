@@ -48,8 +48,8 @@ static void help(std::string program_name) {
       << program_name << " is part of the SeNDA aDTNPlus platform\n"
       << "Usage: " << program_name << " -n '127.0.0.1' -w '40000' -r '50000' -a 'ap1' -d 'n2' \n"
       << "Required options:\n"
-      << "   [-n | --nodeIp] node Ip\t\t\tIP of the listening node.\n"
-      << "   [-w | --nodePortToSend] port\t\t\t\t"
+      << "   [-n | --nodeIp] node Ip\tIP of the listening node.\n"
+      << "   [-w | --nodePortToSend] port\t"
       << "          The application sends the bundles to this port of the node.\n"
       << "          The node receives bundles from the app or other nodes through a socket binded "
       << "          to this port. If the bundle received by the node though this port comes "
@@ -57,19 +57,19 @@ static void help(std::string program_name) {
       << "          comes from another platform, if the bundle dest is the application running "
       << "          over the node, the node sends the bundle to the application. If not, relies "
       << "          the bundle to another node(platform). \n"
-      << "   [-r | --nodePortToRegisterToRecv] port\t\t\t We send a message to "
+      << "   [-r | --nodePortToRegisterToRecv] port\tWe send a message to "
       << " to this node's port to register the APP to receive bundles from "
       << " the network.\n"
-      << "   [-a | --app_addr] destinationAddress\t\t\tBundle destination "
+      << "   [-a | --app_addr] destinationAddress\tBundle destination "
       << "address for the application.\n"
-      << "   [-d | --send_to_addr] Bundle destination\t\t\tDestination "
+      << "   [-d | --send_to_addr] Bundle destination\tDestination "
       << "node/s of the bundle.\n"
-      << "   [-t | --timeWindow] windowTime\t\t\tWindow time while the controller "
-      << "   [-c | --configFile] configFile\t\t\tPath to the adt.ini.in config file.\n"
+      << "   [-t | --timeWindow] windowTime\tWindow time while the controller "
+      << "   [-c | --configFile] configFile\tPath to the adt.ini.in config file.\n"
       << "will be receiving bundles. By default is set to 1minute=60miliseconds\n"
       << "Supported options:\n"
-      << "   [-v | --verbose]\t\t\t\tPrints the last metrics' bundle received.\n"
-      << "   [-h | --help]\t\t\t\tShows this help message.\n"
+      << "   [-v | --verbose]\tPrints the last metrics' bundle received.\n"
+      << "   [-h | --help]\tShows this help message.\n"
       << "Launches a controller that communicates with node <nodeIp>. "
       << "The nodeIp uses the port 40000 to send bundles to the network and "
       << "uses port 50000 to receive bundles from the network. The controller "
@@ -106,12 +106,13 @@ static struct option long_options[] = {
     {"app_addr", required_argument, 0, 'a'},
     {"send_to_addr", required_argument, 0, 'd'},
     {"recvWindowTime", required_argument, 0, 't'},
+    {"configFilePath", required_argument, 0, 'c'},
     {"verbose", no_argument, 0, 'v'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}}
 ;
 
-  while ((opt = getopt_long(argc, argv, "n:w:r:a:d:t:vh", long_options, &option_index))) {
+  while ((opt = getopt_long(argc, argv, "n:w:r:a:d:t:c:vh", long_options, &option_index))) {
     //std::cout << (char)opt << " " << optarg << std::endl;
     switch (opt) {
       case 'n':
