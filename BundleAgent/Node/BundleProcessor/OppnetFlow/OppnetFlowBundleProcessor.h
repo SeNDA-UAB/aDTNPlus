@@ -45,7 +45,9 @@
 #define LOG_SEND_METRICS 55
 #define LOG_NO_METRICS_TO_BE_SENT 98
 #define LOG_SEND_METRICS_THREAD 14
-#define LOG_LIFE_TIME = 55
+#define LOG_LIFE_TIME 55
+#define LOG_OPPNET_FLOW 68
+#define LOG_OPPNET_FLOW_PREFIX "[OppnetFlowProcessor]"
 
 class MetadataExtensionBlock;
 
@@ -101,6 +103,55 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
              std::shared_ptr<ListeningEndpointsTable> listeningAppsTable);
 
 
+  /**
+   * @param bundleContainer The container with the bundle.
+   * @return true if the bundle contains a control metrics MEB and
+   * false otherwise.
+   */
+  static bool isAControlMetricsBundle(BundleContainer &bundleContainer);
+
+  /**
+   * @param bundleContainer The container with the bundle.
+   * @return true if the bundle contains a control directive MEB and
+   * false otherwise.
+   */
+  static bool isAControlDirectiveBundle(BundleContainer &bundleContainer);
+
+  /**
+   * Checks the list of neighbours, and if there is any it forwards the
+   * bundle.
+   * @param bundleContainer the container containing the bundle to be forwarded.
+   * @param neighbours the list of the node current neighbours.
+   * @return true If the bundle has successfully been forwarded to all the
+   * neighbours. If the forwarding has failed for one or more neighbours it
+   * returns false. If the forwarding has failed because the neighbour already
+   * has the bundle, the forwarding is not considered as a failure.
+   */
+  bool doForwardAndRestore(std::unique_ptr<BundleContainer> bundleContainer,
+                 const std::vector<std::string> &neighbours);
+
+
+  /**
+   * Checks if the bundle's destination is one of the neighbours.
+   * If one of the neighbours is the destination it delivers the bundle to it.
+   * @param bundleContainer the container containing the bundle to be delivered.
+   * @return true if we have found a neighbour.
+   */
+  bool directDeliver(std::unique_ptr<BundleContainer> bundleContainer,
+                               const std::vector<std::string> &neighbours);
+
+  /**
+   * Method that checks if there is an application listening as a destination
+   * of the bundle. If true the bundle is delivered to the application or
+   * applications listening.
+   * @param bundleContainer the container containing the bundle to be delivered.
+   * @param hasToBeDiscarded Once the bundle is delivered, by default,
+   * it is not discarded.
+   * If this parameter is set to false, the bundle won't be discarded.
+   * @return true if the bundle has been delivered false otherwise.
+   */
+  bool deliverToApplicationIfAny(std::unique_ptr<BundleContainer> bundleContainer,
+                        bool hasToBeDiscarded = false);
 
  protected:
   /**
@@ -135,8 +186,64 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * Virtual function, all the bundleProcessors must implement it.
    *
    * @param bundleContainer The bundle container to process.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
    */
   bool processBundle(std::unique_ptr<BundleContainer> bundleContainer);
+
+  /**
+   * Method that processes (consumes) a directive bundle from the queue.
+   * If the node is a controller and the bundle is not out of date,
+   * it consumes the bundle (scalate to the application layer) and forwards
+   * it to a broadcast address. <br />
+   * If the node is a controller and is the creator of the bundle, it applies
+   * the directive to itself and forwards it to a broadcast address. <br />
+   * If the node is not a controller it applies the directive and forwards
+   * it to a broadcast address. <br />
+   * @param bundleContainer The bundle container to be processed.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
+   */
+  bool processControlDirectiveBundle(
+      std::unique_ptr<BundleContainer> bundleContainer);
+
+  /**
+   * Method that processes (consumes) a metrics bundle from the queue.
+   * If the bundle has not expired then:
+   * If the node is a controller -> it is the destination of the metric.
+   * If the node is the src of the bundle:
+   *   : and the metric is not his fresher one, it is discarded.
+   *   : If the metric is the fresher one and the node is the destination
+   *   (means the node is a controller) the metric is delivered + forwarded+
+   *   restored;
+   *     : If the node is not the destination it is forwared and restored.
+   * If the node it is not the src of the bundle, if the node is the destination
+   * (means it is a controller) the metric is delivered forwarded+
+   *   restored;
+   * If it is not the destination the bundle is forwarded and restored.
+   * @param bundleContainer The bundle container to be processed.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
+   */
+  bool processControlMetricsBundle(
+      std::unique_ptr<BundleContainer> bundleContainer);
+
+  /**
+   * If the bundle is not a control one, it is avaluated in the following way:
+   * If the node is the destination and there is a listening application it
+   * is delivered to it. If not, it is restored (enqueued again).
+   * If the node is not the destination and has expired it is discarded.
+   * If it has not expired the node tries to perform a direct delivery and
+   * discards the bundle. If the direct delivery is not possible the bundle
+   * is forwarded and restored.
+   * @param bundleContainer The bundle container to be processed.
+   * @return Returns True if the bundle is correctly processed. False
+   *         if a new process event must be triggered.
+   */
+  bool processBundleByDefault(std::unique_ptr<BundleContainer> bundleContainer);
+
+
+  bool processBundle2(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    * Virtual function, all the bundleProcessors must implement it.
@@ -146,6 +253,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    */
   std::unique_ptr<BundleContainer> createBundleContainer(
       std::unique_ptr<Bundle> bundle);
+
 
   /**
    * @bief Function that is called when a drop occur.
@@ -157,15 +265,16 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   /**
    * Funtion called when a message has been received and I am the final destination.
    */
-  virtual void delivered();
+  virtual void handleDelivered();
 
 
   /**
-   * Function to execute code control when a new bundle is received.
+   * Function that applies the control directive when a new control directive
+   * bundle is received.
    *
    * @param bundleContainer The bundle received.
    */
-  void processRecivedControlBundleIfNecessary(BundleContainer &bundleContainer);
+  void applyControlDirectives(BundleContainer &bundleContainer);
 
   /**
    * @brief Function that returns the dropPolicy to be applied to the queue. It
@@ -173,6 +282,12 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * @return the DropPolicy to be applied.
    */
   virtual std::shared_ptr<DropPolicy> getDropPolicy();
+
+
+  /**
+   * @return a vector with the node neighbours.
+   */
+  const std::vector<std::string>& getNeighbours();
 
   /**
    * Variable that holds the parameters used in the processor calls.
@@ -183,6 +298,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * Factory to get from a forwardingAlgorithm to forward the bundle.
    */
   ForwardingAlgorithmFactory m_forwardingAlgorithmFactory;
+
 
  private:
 
@@ -215,37 +331,41 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
   /**
    * Checks if I am the origin of the bundle.
-   * @param bundleInfo the basic information of the bundle
+   * @param bundleContainer The bundle container containing the bundle we
+   * whant to check if the current node is the src of the bundle.
+   * From the container we will get the BundleInfo wrapper that contains this
+   * information.
+   * @return true if I am the origin of the bundle false otherwise.
+   */
+  bool amITheOriginOfTheBundle(BundleContainer &bundleContainer);
+
+  /**
+   * Checks if I am the origin of the bundle.
+   * @param bundleInfo the basic information of the bundle.
    * @return true if I am the origin of the bundle false otherwise.
    */
   bool amITheOriginOfTheBundle(BundleInfo &bundleInfo);
 
   /**
-   * Checks if the bundle is a control one. If this is the case checks whether
-   * is the last control bundle generated or not.
+   * Checks if the bundle is a control Metrics one. If positive checks whether
+   * is the last control metrics bundle generated or not.
    * @param bundleContainer the bundle conatiner that wraps the bundle
    * @return true if this is the last control bundle generated, false otherwise.
    */
-  bool isTheFresherControlBundle(BundleContainer &bundleContainer) const;
-
-  /**
-   * Checks if the bundle is a control one.
-   * @return true if the bundle is a control one, false otherwise
-   */
-  bool isAControlBundle(BundleContainer& bc) const;
+  bool isTheFresherControlMetricsBundle(BundleContainer &bundleContainer) const;
 
   /**
    * Method that applies the configuration stored in the property m_controlSetup
    * specified by the controller to the forwarding algorithm parameters.
    * @param forwardAlgorithm the forwarding algorithm to be used.
    */
-  void applyControlSetupToForwardingAlgorithmIfNecessary(ForwardingAlgorithm& forwardingAlgorithm);
+  void setupForwardingAlgorithm(ForwardingAlgorithm& forwardingAlgorithm);
 
   /**
    * Checks whether there are controlDirectives to be applied.
    * @return true if m_controlDirectives has entries.
    */
-  const bool areThereControlDirectives() const;
+  //const bool areThereControlDirectives() const;
 
 
   /**
@@ -256,7 +376,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   /**
    * Map to store the control directives sent by a controller.
    */
-  NumericMapedFields<DirectiveControlCode> m_controlDirectives;
+  //NumericMapedFields<DirectiveControlCode> m_controlDirectives;
 
   /**
    * Pointer to the policy to be used to drop messages if there is no room
@@ -282,9 +402,9 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
     const std::string getControllersGroupId() const;
 
-    const std::string getLastControlBundleId() const;
+    const std::string getLastControlMetricsBundleId() const;
 
-    void setLastControlBundleId(const std::string& lastControlBundleId);
+    void setLastControlMetricsBundleId(const std::string& lastControlBundleId);
 
     const bool doWeHaveToExecuteControlDirectives() const;
 
@@ -303,6 +423,24 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
     ControlParameters(NodeStateJson& nodeState);
     virtual ~ControlParameters();
   } m_controlParameters;
+
+  /**
+   * Wrapper that holds information about all the already processed directives
+   * and the timeStamp of the lastProcessedDirective.
+   */
+  /*
+  class ProcessedDirectivesHandler {
+   private:
+    std::vector<std::string> processedDirectives;
+    uint64_t creationTimestamp;
+
+   public:
+    void push(BundleContainer& bc);
+    void setLastProcessedDirectiveTimestamp(BundleContainer& bc);
+    uint64_t getLastProcessedDirectiveTimestamp();
+
+  } m_processedDirectivesHandler;
+  */
 
 };
 
