@@ -45,13 +45,13 @@
 
 SDONController::SDONController(std::string nodeIp, int nodePortToSend,
                                int nodePortToRegisterToRecv, std::string app_addr,
-                               std::string send_to_addr,
+                               std::string destination_addr,
                                std::string configFilePath, uint64_t windowTime)
     : m_nodeIp(nodeIp),
       m_nodePortToSend(nodePortToSend),
       m_nodePortToRegisterToRecv(nodePortToRegisterToRecv),
       m_app_addr(app_addr),
-      m_send_to_addr(send_to_addr),
+      m_destination_addr(destination_addr),
       m_recvWindowTime(windowTime),
       m_socket_to_send(adtnSocket(nodeIp, nodePortToSend)),
       m_socket_to_recv(adtnSocket(nodeIp, nodePortToRegisterToRecv, false)),
@@ -149,7 +149,7 @@ void SDONController::recvControlData(
 }
 
 void SDONController::launchControlDataProducer() {
-  LOG(LOG_CONTROLLER) <<
+  LOG(LOG_CONTROLLER) << LOG_CONTROLLER_PREFIX <<
   "Creating SDONController::metrics producer thread";
 
   std::thread metricsProducer(
@@ -210,6 +210,8 @@ void SDONController::consumeControlData() {
 
 
 void SDONController::processControlData() {
+  LOG(LOG_CONTROLLER) <<
+      "Processed control data";
   //to avoid data race over the metrics/directives list.
   //the producer might be quicker than the consumer to produce more
   //data. That's why the maps are copied into a local variable.
@@ -231,7 +233,7 @@ void SDONController::processControlData() {
   //To send to all the platforms we use a non existing destination address.
   //All the platforms will receive the bundle and no one will promote it to
   //the application, as there is no application listening.
-  m_socket_to_send.send("broadcast", "");
+  m_socket_to_send.send(m_destination_addr, "");
   m_socket_to_send.clearBlocks();
 }
 

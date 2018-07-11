@@ -40,6 +40,7 @@
 #include "ExternTools/json/json.hpp"
 
 #define LOG_CONTROLLER 68
+#define LOG_CONTROLLER_PREFIX "[Contoller]"
 
 class NetworkMetricsNotFoundException : public std::exception{
  public:
@@ -70,10 +71,13 @@ class SDONController {
    * connect to the node to register itself to receive bundles from the network.
    * @param app_addr the Identifier of the applicataion.
    * @param send_to_addr the destination(nodeID) of the bundle.
+   * @param configFilePath Configuration file with node configuration. Can be
+   * the same as the node's configuration file.
+   * @param windowTime time window in seconds.
    * @throws adtnException in case the connection with the platform has failed.
    */
   SDONController(std::string nodeIp, int nodePortToSend, int nodePortToRegisterToRecv,
-                 std::string app_addr, std::string send_to_addr,
+                 std::string app_addr, std::string destination_addr,
                  std::string configFilePath,
                  uint64_t windowTime = DEFAULT_RECV_WINDOW_TIME);
 
@@ -150,7 +154,7 @@ class SDONController {
   /**
    * Destination address where the app wants to send the bundle to.
    */
-  std::string m_send_to_addr;
+  std::string m_destination_addr;
 
   /**
    * Time window while the controller is receiving bundle metrics.
