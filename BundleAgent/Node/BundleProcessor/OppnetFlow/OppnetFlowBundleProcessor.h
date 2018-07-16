@@ -287,7 +287,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   /**
    * @return a vector with the node neighbours.
    */
-  const std::vector<std::string>& getNeighbours();
+  const std::vector<std::string> getNeighbours() const;
 
   /**
    * Variable that holds the parameters used in the processor calls.

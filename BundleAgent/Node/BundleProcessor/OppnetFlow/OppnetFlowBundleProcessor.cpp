@@ -248,7 +248,7 @@ void OppnetFlowBundleProcessor::applyControlDirectives(
   } //directives have to be executed
 }
 
-const std::vector<std::string>& OppnetFlowBundleProcessor::getNeighbours() {
+const std::vector<std::string> OppnetFlowBundleProcessor::getNeighbours() const {
   return m_neighbourTable->getSingletonConnectedEID();
 }
 
@@ -260,6 +260,7 @@ void OppnetFlowBundleProcessor::setupForwardingAlgorithm(
             static_cast<int16_t>(m_controlParameters.getFieldAt(
                 ControlParameterCode::NR_OF_COPIES)));
       } catch (std::out_of_range& e) {
+        LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << e.what();
       }
     }
 
@@ -418,16 +419,22 @@ bool OppnetFlowBundleProcessor::doForwardAndRestore(
       << "Forwarding the bundle following sprayAndWait algorithm to "
       << "The neighbors list.";
   try {
+    LOG(LOG_OPPNET_FLOW) << std::string("000") << std::endl;
     std::unique_ptr<ForwardingAlgorithm> forwardingAlgorithm =
         m_forwardingAlgorithmFactory.getForwardingAlgorithm(
             bundleContainer->getBundle());
+    LOG(LOG_OPPNET_FLOW) << std::string("1") << std::endl;
     setupForwardingAlgorithm(*forwardingAlgorithm);
+    LOG(LOG_OPPNET_FLOW) << std::string("2") << std::endl;
     auto f_ptr = std::bind(&OppnetFlowBundleProcessor::forward, this,
                            _1, _2);
+    LOG(LOG_OPPNET_FLOW) << std::string("3") << std::endl;
     processed = processed
         && (forwardingAlgorithm->doForward(bundleContainer->getBundle(),
                                            neighbours, f_ptr));
+    LOG(LOG_OPPNET_FLOW) << std::string("4") << std::endl;
     restore(std::move(bundleContainer));
+    LOG(LOG_OPPNET_FLOW) << std::string("5") << std::endl;
   } catch (const ForwardException &e) {
     LOG(1) << e.what();
     LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
@@ -466,6 +473,8 @@ bool OppnetFlowBundleProcessor::directDeliver(
         restore(std::move(bundleContainer));
       }
   }
+  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
+        << "No neighbour in direct delivery.";
 
   return foundNeighbour;
 }
@@ -564,7 +573,7 @@ bool OppnetFlowBundleProcessor::processBundleByDefault(
   bool processed = true;
 
   LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX <<
-      "Processing a ControlMetricsBundle." << std::endl;
+      "Processing a data Bundle." << std::endl;
   if(checkDestination(*bundleContainer)){ //I am the destination of the bundle
     LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "We are the destination node.";
     bool deliveredAdnDiscarded =
@@ -577,6 +586,8 @@ bool OppnetFlowBundleProcessor::processBundleByDefault(
   }else { //I am not the destination
     if (checkLifetime(*bundleContainer)){ //bundle expired
       discard(std::move(bundleContainer));
+      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Bundle: "
+              << bundleContainer->getBundle().getId() << " expired, discarding it.";
     }else{ //not expired
       if(!directDeliver(std::move(bundleContainer), getNeighbours())){
         processed = doForwardAndRestore(std::move(bundleContainer), getNeighbours());
