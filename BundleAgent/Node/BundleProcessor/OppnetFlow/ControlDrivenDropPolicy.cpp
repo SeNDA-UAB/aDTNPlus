@@ -26,14 +26,15 @@
 #include <iostream>
 #include "Bundle/BundleInfo.h"
 #include "Node/BundleProcessor/OppnetFlow/ControlDrivenDropPolicy.h"
-
+#include "Utils/Logger.h" //DEBUG
 
 
 
 
 ControlDrivenDropPolicy::ControlDrivenDropPolicy(
-    std::string currentNodeId, const NodeStateJson& nodeStateForPriorization) :
+    std::string currentNodeId, const nlohmann::json& nodeStateForPriorization) :
     m_currentNodeId(currentNodeId) {
+
    const std::string configurationNSEntries[] {"myCtrlDirective", "myCtrlMetric",
      "forwardedCtrlDirective", "forwardedMetricDirective"};
    uint8_t i = 0;

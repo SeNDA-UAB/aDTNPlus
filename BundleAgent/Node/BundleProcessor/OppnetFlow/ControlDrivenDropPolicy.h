@@ -27,12 +27,13 @@
 #include <string>
 #include "Node/BundleProcessor/OppnetFlow/DropPolicy.h"
 #include "Node/JsonFacades/NodeStateJson.h"
+#include "ExternTools/json/json.hpp"
 
 
 class ControlDrivenDropPolicy : public DropPolicy{
  public:
   ControlDrivenDropPolicy(std::string currentNodeId,
-                          const NodeStateJson& nodeStateForPriorization);
+                          const nlohmann::json& nodeStateForPriorization);
   virtual ~ControlDrivenDropPolicy();
 
 
