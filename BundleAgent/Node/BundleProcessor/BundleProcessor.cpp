@@ -412,7 +412,8 @@ void BundleProcessor::forward(Bundle bundle, std::vector<std::string> nextHop) {
         };
     int hops = 0;
     std::map<std::string, uint8_t> errors;
-    for (auto hop : nextHop) {
+    std::vector<std::string> minNextHop = m_neighbourTable->getMinNeighbours(nextHop);
+    for (auto hop : minNextHop) {
       try {
         forwardFunction(hop);
         hops++;
