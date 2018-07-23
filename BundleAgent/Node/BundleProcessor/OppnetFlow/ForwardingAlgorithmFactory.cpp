@@ -100,7 +100,6 @@ std::unique_ptr<ForwardingAlgorithm> ForwardingAlgorithmFactory::getForwardingAl
     Bundle& bundle) {
   std::unique_ptr<ForwardingAlgorithm> forwardingAlgorithm = nullptr;
   std::shared_ptr<MetadataExtensionBlock> forwarding_meb = nullptr;
-
   for (const auto& entry : ForwardAlgorithmTypeMap::m_map) {
     forwarding_meb = bundle.findMetadataExtensionBlock(
         static_cast<MetadataTypes>(entry.second));
@@ -114,6 +113,9 @@ std::unique_ptr<ForwardingAlgorithm> ForwardingAlgorithmFactory::getForwardingAl
     LOG(55) << "[ForwardingAlgorithmFactory] No forwarding canonical block found.";
     forwardingAlgorithm = getForwardingAlgorithm();
   }
+
+  LOG(55) << "[ForwardingAlgorithmFactory] to be applied:  " <<
+      static_cast<int>(forwardingAlgorithm->getType()) << std::endl;
 
   return forwardingAlgorithm;
 }
