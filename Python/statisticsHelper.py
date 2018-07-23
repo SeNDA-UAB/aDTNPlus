@@ -36,7 +36,7 @@ def parseFile(file):
         entry.file_from = file.name
         entry.type_id = splitted[0]
         entry.timestamp = int(splitted[1])
-        # PLATFROM_START (0 UNIX_TIME NODE_ID)
+        # PLATFROM_START (0 UNIX_TIME NODE_ID NODE_IP)
         if splitted[0] == '0':
             entry.from_id = splitted[2]
             names_lookup[splitted[3]] = splitted[2]
@@ -112,6 +112,12 @@ def calculateBufferTime(name):
         q.addFilter(type_id="7", file_from=name, bundle_id=e.bundle_id)
         p = q.run()
         aux = [x for x in p if x.raba_id not in processedID]
+        
+       # var_aux = []
+       # for x in p:
+       #   if x.raba_id not in processedID:
+       #     var_aux.insert(x)
+        
         if (len(aux) > 0):
             times.append(aux[0].timestamp - e.timestamp)
             processedID.append(aux[0].raba_id)
