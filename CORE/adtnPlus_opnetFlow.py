@@ -133,6 +133,7 @@ path : %s/adtnPlus/NodeState.json
     @classmethod
     def generatenodeState(cls, node, filename, services):
         controllerId = "n1"
+        controllerIds = ["n1"]
         return r"""
 {
   "configuration" : {
@@ -168,12 +169,18 @@ path : %s/adtnPlus/NodeState.json
           "active" : %s,
           "frequency" : 5,
           "lastControlBundleId" : ""
+        },
+       "forwardPriorization": {
+          "myCtrlDirective": true,
+          "myCtrlMetric": true,
+          "forwardedCtrlDirective": true,
+          "forwardedMetricDirective": true
         }
       }           
   },
   "id" : "%s"
 }
-""" % ('true' if node.name == controllerId else 'false', controllerId, 'true' if node.name == controllerId else 'false', 'false' if node.name == controllerId else 'true', 'false' if node.name == controllerId else 'true', node.name)
+""" % ('true' if node.name in controllerIds else 'false', controllerId, 'true' if node.name in controllerIds else 'false', 'true', 'true', node.name)
 
 
     @classmethod
