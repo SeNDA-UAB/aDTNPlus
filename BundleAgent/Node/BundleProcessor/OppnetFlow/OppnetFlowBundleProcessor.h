@@ -132,13 +132,31 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
 
   /**
-   * Checks if the bundle's destination is one of the neighbours.
-   * If one of the neighbours is the destination it delivers the bundle to it.
+   * Delivers the bundle to the first of the neighbours that are in direct
+   * delivery.
    * @param bundleContainer the container containing the bundle to be delivered.
-   * @return true if we have found a neighbour.
+   * @param neighboursInDirectDelivery an array with the first neighbour that is
+   * in direct delivery
+   * @return true if we have performed a delivery.
    */
   bool directDeliver(std::unique_ptr<BundleContainer> bundleContainer,
-                               const std::vector<std::string> &neighbours);
+                               const std::vector<std::string> &neighboursInDirectDelivery);
+
+  /**
+   * Method that returns an array with all the neighbours that are the
+   * destination of the bundle.
+   * @param bundleContainer the container containing the bundle we are checking
+   * if it is possible to be delivered to a neighbour.
+   * @param neighbours the list of the node current neighbours.
+   * @return an reference to an array with all the neighbours we can deliver
+   * directly. If there is no neighbour to whom we can deliver directly,
+   * an empty array is returned.
+   */
+  static const std::vector<std::string> getDirectDeliveryNeighbours(
+      BundleContainer& bundleContainer,
+      const std::vector<std::string> &neighbours);
+
+
 
   /**
    * Method that checks if there is an application listening as a destination
@@ -243,7 +261,6 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
   bool processBundleByDefault(std::unique_ptr<BundleContainer> bundleContainer);
 
 
-  bool processBundle2(std::unique_ptr<BundleContainer> bundleContainer);
   /**
    * Function that creates a bundle container.
    * Virtual function, all the bundleProcessors must implement it.
@@ -288,6 +305,7 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
    * @return a vector with the node neighbours.
    */
   const std::vector<std::string> getNeighbours() const;
+
 
   /**
    * Variable that holds the parameters used in the processor calls.
