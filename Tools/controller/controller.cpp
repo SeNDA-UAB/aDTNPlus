@@ -38,6 +38,7 @@
 #include "adtnSocket.h"
 #include "SDONController.h"
 #include "Node/Config.h"
+#include "Utils/Logger.h"
 
 std::atomic<bool> g_stop;
 std::atomic<uint16_t> g_stopped;
@@ -168,6 +169,7 @@ static struct option long_options[] = {
   g_stop = false;
 
   try {
+    LOG(68) << "Before new SDONController" << std::endl;
     SDONController myController(nodeIp, nodePortToSend, nodePortToRegisterToRecv,
                               app_addr, send_to_addr, configFilePath, recvWindowTime);
     /*
