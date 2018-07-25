@@ -120,8 +120,7 @@ void OppnetFlowBundleProcessor::removeBundleFromDisk(std::string bundleId) {
 
 void OppnetFlowBundleProcessor::sendNetworkMetrics() {
   if (!m_networkMetrics.isEmpty()) {
-    LOG(LOG_SEND_METRICS) << LOG_OPPNET_FLOW_PREFIX
-                          << "Sending network metrics: "
+    LOG(LOG_SEND_METRICS) << "Sending network metrics: "
                           << m_networkMetrics.toString().c_str();
 
     std::unique_ptr<Bundle> bundle_ptr(
@@ -145,8 +144,9 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
       //forcing the control messages to fit in the queue.
       ControlDrivenDropPolicy cdp =
           *(std::dynamic_pointer_cast<ControlDrivenDropPolicy>(getDropPolicy()));
-
+      LOG(LOG_SEND_METRICS) << "Before enqueue: queue size : " << m_bundleQueue->getSize() << std::endl;
       m_bundleQueue->enqueue(std::move(bc_ptr), false, cdp, true);
+      LOG(LOG_SEND_METRICS) << "After enqueue: queue size : " << m_bundleQueue->getSize() << std::endl;
 
       //m_bundleQueue->enqueue(std::move(bc_ptr), false);
       removeBundleFromDisk(bundleId);
@@ -157,8 +157,7 @@ void OppnetFlowBundleProcessor::sendNetworkMetrics() {
       LOG(55) << e.what();
     }
   } else {
-    LOG(LOG_NO_METRICS_TO_BE_SENT) << LOG_OPPNET_FLOW_PREFIX
-                                   << "No metrics to be sent: ";
+    LOG(LOG_NO_METRICS_TO_BE_SENT) << "No metrics to be sent: ";
   }
 
 }
@@ -168,15 +167,13 @@ void OppnetFlowBundleProcessor::sendNetworkMetricsAndSleep() {
       m_controlParameters[ControlParameterCode::REPORT_FREQUENCY];
   g_startedThread++;
 
-  LOG(LOG_SEND_METRICS_THREAD) << LOG_OPPNET_FLOW_PREFIX
-      << "Creating reportingNetworkMetrics thread";
+  LOG(LOG_SEND_METRICS_THREAD) << "Creating reportingNetworkMetrics thread";
   while (!g_stop.load()) {
     std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
     sendNetworkMetrics();
     m_networkMetrics.reset();
   }  //end while true loop
-  LOG(LOG_SEND_METRICS_THREAD) << LOG_OPPNET_FLOW_PREFIX
-      << "Exit reportingNetworkMetrics thread.";
+  LOG(LOG_SEND_METRICS_THREAD) << "Exit reportingNetworkMetrics thread.";
   g_stopped++;
 }
 
@@ -204,7 +201,7 @@ void OppnetFlowBundleProcessor::start(
       m_forwardingAlgorithmFactory = ForwardingAlgorithmFactory(m_nodeState);
       m_controlParameters = ControlParameters(m_nodeState);
     } catch (const std::invalid_argument &e) {
-      LOG(1) << LOG_OPPNET_FLOW_PREFIX << "Error in NodeState json: " << e.what();
+      LOG(1)   << "Error in NodeState json: " << e.what();
       LOG(15) << "No ForwardingAlgorithmFactory has been created due to ";
       LOG(15) << "no nodeState ";
       g_stop = true;
@@ -213,8 +210,7 @@ void OppnetFlowBundleProcessor::start(
       scheduleReportingNetworkMetrics();
     }
   } else {
-    LOG(11) << LOG_OPPNET_FLOW_PREFIX << "Cannot open the file " <<
-        m_config.getNodeStatePath();
+    LOG(11)   << "Cannot open the file " << m_config.getNodeStatePath();
   }
 }
 
@@ -261,7 +257,7 @@ const std::vector<std::string> OppnetFlowBundleProcessor::getNeighbours() const 
 const std::vector<std::string> OppnetFlowBundleProcessor::getDirectDeliveryNeighbours(
     BundleContainer& bundleContainer,
     const std::vector<std::string>& neighbours){
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
+  LOG(LOG_OPPNET_FLOW)
       << "Checking if one of the neighbours is the bundle destination.";
 
   std::vector<std::string> nextHop = std::vector<std::string>();
@@ -269,12 +265,10 @@ const std::vector<std::string> OppnetFlowBundleProcessor::getDirectDeliveryNeigh
         neighbours.begin(), neighbours.end(),
         bundleContainer.getBundle().getPrimaryBlock()->getDestination());
   if (it != neighbours.end()) {
-      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-          << "Direct Delivery found amongst the neighbours.";
+      LOG(LOG_OPPNET_FLOW) << "Direct Delivery found amongst the neighbours.";
       nextHop.push_back(*it);
   }else{
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-           << "Not Direct Delivery found amongst the neighbours.";
+    LOG(LOG_OPPNET_FLOW) << "Not Direct Delivery found amongst the neighbours.";
   }
 
   return nextHop;
@@ -289,7 +283,7 @@ void OppnetFlowBundleProcessor::setupForwardingAlgorithm(
             static_cast<int16_t>(m_controlParameters.getFieldAt(
                 ControlParameterCode::NR_OF_COPIES)));
       } catch (std::out_of_range& e) {
-        LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << e.what();
+        LOG(LOG_OPPNET_FLOW)   << e.what();
       }
     }
 
@@ -358,17 +352,17 @@ bool OppnetFlowBundleProcessor::amITheOriginOfTheBundle(BundleContainer &bundleC
 }
 
 std::shared_ptr<DropPolicy> OppnetFlowBundleProcessor::getDropPolicy() {
-  LOG(LOG_SEND_METRICS) << "100" << std::endl;
+  //LOG(LOG_SEND_METRICS) << "100" << std::endl;
   if (m_dropPolicy == nullptr) {
-    LOG(LOG_OPPNET_FLOW) << "101" << " id " << m_nodeState["id"] << std::endl;
+    //LOG(LOG_OPPNET_FLOW) << "101" << " id " << m_nodeState["id"] << std::endl;
     LOG(LOG_OPPNET_FLOW) << "102" << " id " << (m_nodeState["oppnetFlow"]["control"]["forwardPriorization"]).dump() << std::endl;
-    LOG(LOG_OPPNET_FLOW) << "102" << std::endl;
+    //LOG(LOG_OPPNET_FLOW) << "102" << std::endl;
     m_dropPolicy = std::shared_ptr<DropPolicy>(
         new ControlDrivenDropPolicy(
             m_nodeState["id"],
             (m_nodeState["oppnetFlow"]["control"]["forwardPriorization"]) ));
   }
-  LOG(LOG_SEND_METRICS) << "103" << std::endl;
+  //LOG(LOG_SEND_METRICS) << "103" << std::endl;
   return m_dropPolicy;
 }
 
@@ -392,9 +386,7 @@ bool OppnetFlowBundleProcessor::doForwardAndRestore(
     const std::vector<std::string> &neighbours) {
   using namespace std::placeholders;
   bool processed = true;
-  LOG(LOG_OPPNET_FLOW)
-      << LOG_OPPNET_FLOW_PREFIX
-      << "Forwarding the bundle following sprayAndWait algorithm to "
+  LOG(LOG_OPPNET_FLOW) << "Forwarding the bundle following sprayAndWait algorithm to "
       << "The neighbors list.";
   try {
     std::unique_ptr<ForwardingAlgorithm> forwardingAlgorithm =
@@ -409,8 +401,7 @@ bool OppnetFlowBundleProcessor::doForwardAndRestore(
     restore(std::move(bundleContainer));
   } catch (const ForwardException &e) {
     LOG(1) << e.what();
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-        << "The bundle has not been send, restoring the bundle.";
+    LOG(LOG_OPPNET_FLOW)  << "The bundle has not been send, restoring the bundle.";
     restore(std::move(bundleContainer));
   }
 
@@ -421,55 +412,38 @@ bool OppnetFlowBundleProcessor::directDeliver(
     std::unique_ptr<BundleContainer> bundleContainer,
     const std::vector<std::string>& neighboursInDirectDelivery) {
   bool delivered = false;
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-      << "In directDeliver function.";
+  LOG(LOG_OPPNET_FLOW) << "In directDeliver function.";
 
   if(!neighboursInDirectDelivery.empty()){ //there are neighbours whom we deliver
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-              << "Destination found, sending the bundle to it.";
+    LOG(LOG_OPPNET_FLOW) << "Destination found, sending the bundle to it.";
     try {
             forward(bundleContainer->getBundle(), neighboursInDirectDelivery);
             delivered = true;
-            LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-                << "Discarding the bundle.";
+            LOG(LOG_OPPNET_FLOW) << "Discarding the bundle.";
             discard(std::move(bundleContainer));
           } catch (const ForwardException &e) {
             LOG(1) << e.what();
-            LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-                << "The bundle has not been send, restoring the bundle.";
+            LOG(LOG_OPPNET_FLOW) << "The bundle has not been send, restoring the bundle.";
             delivered = false;
             restore(std::move(bundleContainer));
           }
   }else{
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-          << "No neighbour in direct delivery.";
+    LOG(LOG_OPPNET_FLOW) << "No neighbour in direct delivery.";
   }
 
   return delivered;
 }
 
-bool OppnetFlowBundleProcessor::deliverToApplicationIfAny(
-    std::unique_ptr<BundleContainer> bundleContainer, bool hasToBeDiscarded) {
-  bool delivered = false;
-  std::vector<std::string> destinations = checkDispatch(*bundleContainer);
-      if (destinations.size() > 0) {
-        LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-            << "There is a listening app, dispatching the bundle.";
-        delivered = true;
-        handleDelivered();
-        delivery(*bundleContainer, destinations);
-        if (hasToBeDiscarded){
-          LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-              << "Discarting the bundle.";
-          discard(std::move(bundleContainer));
-        }
-      } else{ //no application is listening
-          LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-              << "No listening app.";
-          //restore(std::move(bundleContainer));
-        }
-
-   return delivered;
+void OppnetFlowBundleProcessor::deliverToApplication(
+    std::unique_ptr<BundleContainer> bundleContainer,
+    const std::vector<std::string> &applications, bool hasToBeDiscarded) {
+    LOG(LOG_OPPNET_FLOW) << "There is a listening app, dispatching the bundle.";
+    handleDelivered();
+    delivery(*bundleContainer, applications);
+    if (hasToBeDiscarded) {
+      LOG(LOG_OPPNET_FLOW) << "Discarting the bundle.";
+      discard(std::move(bundleContainer));
+    }
 }
 
 bool OppnetFlowBundleProcessor::processBundle(
@@ -478,7 +452,7 @@ bool OppnetFlowBundleProcessor::processBundle(
   std::vector<std::string> nextHop = std::vector<std::string>();
   bool processed = true;
 
-  LOG(LOG_OPPNET_FLOW)<< LOG_OPPNET_FLOW_PREFIX << "Processing a bundle container.";
+  LOG(LOG_OPPNET_FLOW)  << "Processing a bundle container.";
   if(isAControlDirectiveBundle(*bundleContainer)){
     processed = processControlDirectiveBundle(std::move(bundleContainer));
   }else if(isAControlMetricsBundle(*bundleContainer)){
@@ -494,31 +468,32 @@ bool OppnetFlowBundleProcessor::processControlDirectiveBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   bool processed = true;
 
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-      << "Processing a ControlDirective Bundle:" << std::endl;
+  LOG(LOG_OPPNET_FLOW) << "Processing a ControlDirective Bundle:" << std::endl;
 
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << (*bundleContainer).toString();
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Checking lifetime.";
+  LOG(LOG_OPPNET_FLOW) << (*bundleContainer).toString();
+  LOG(LOG_OPPNET_FLOW) << "Checking lifetime.";
 
   if (checkLifetime(*bundleContainer)) {
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-        << "Bundle: " << bundleContainer->getBundle().getId()
+    LOG(LOG_OPPNET_FLOW) << "Bundle: " << bundleContainer->getBundle().getId()
         << " expired, discarding it.";
     discard(std::move(bundleContainer));
   } else { //alive bundle
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-        << "Bundle has not expired yet";
+    LOG(LOG_OPPNET_FLOW) << "Bundle has not expired yet";
     if(m_controlState.hasJoinedAsAController()){
-      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
+      LOG(LOG_OPPNET_FLOW)
           << "[OppnetFlowProcessor]  Node " + m_config.getNodeId() + " is a controller ";
         if(amITheOriginOfTheBundle(*bundleContainer)){
           applyControlDirectives(*bundleContainer);
         }else{ // I am not the src of the bundle
-          deliverToApplicationIfAny(std::move(bundleContainer), false);
+          const std::vector<std::string>& applications = checkDispatch(*bundleContainer);
+          if(applications.size() > 0) {
+              deliverToApplication(std::move(bundleContainer), applications);
+          }else{
+             LOG(LOG_OPPNET_FLOW) << "No listening app.";
+            }
         }
     }else{ //node not a controller
-      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-          << "[OppnetFlowProcessor] Node " + m_config.getNodeId() +
+      LOG(LOG_OPPNET_FLOW) << "[OppnetFlowProcessor] Node " + m_config.getNodeId() +
           " is  not a controller ";
       applyControlDirectives(*bundleContainer);
     }
@@ -532,24 +507,29 @@ bool OppnetFlowBundleProcessor::processControlMetricsBundle(
     std::unique_ptr<BundleContainer> bundleContainer) {
   bool processed = true;
 
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-      << "Processing a ControlMetricsBundle." << std::endl;
- LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << (*bundleContainer).toString();
- LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Checking lifetime.";
+  LOG(LOG_OPPNET_FLOW) << "Processing a ControlMetricsBundle." << std::endl;
+ //LOG(LOG_OPPNET_FLOW) << (*bundleContainer).toString();
+ LOG(LOG_OPPNET_FLOW) << "Checking lifetime.";
 
   if (checkLifetime(*bundleContainer) || //expiered or I am the src and it is not my fresher bundle
       (amITheOriginOfTheBundle(*bundleContainer) &&
           !isTheFresherControlMetricsBundle(*bundleContainer)) ) {
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Bundle: "
+    LOG(LOG_OPPNET_FLOW) << "Bundle: "
         << bundleContainer->getBundle().getId() << " expired, discarding it.";
     discard(std::move(bundleContainer));
   } else { //alive bundle
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Bundle has not expired yet";
+    LOG(LOG_OPPNET_FLOW) << "Bundle has not expired yet";
     if(checkDestination(*bundleContainer)){ //I am the destination
-      LOG(LOG_OPPNET_FLOW)<< LOG_OPPNET_FLOW_PREFIX << "We are the destination node.";
-      deliverToApplicationIfAny(std::move(bundleContainer));
-      processed = doForwardAndRestore(std::move(bundleContainer), getNeighbours());
+      LOG(LOG_OPPNET_FLOW)   << "We are the destination node.";
+      const std::vector<std::string>& applications = checkDispatch(*bundleContainer);
+      if(applications.size() > 0)
+      {
+        deliverToApplication(std::move(bundleContainer), applications);
+      }else{
+        LOG(LOG_OPPNET_FLOW) << "No listening app.";
+      }
     }
+    processed = doForwardAndRestore(std::move(bundleContainer), getNeighbours());
   }
 
   return processed;
@@ -560,21 +540,21 @@ bool OppnetFlowBundleProcessor::processBundleByDefault(
   bool processed = true;
   const std::vector<std::string>& neighbours = getNeighbours();
 
-  LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX <<
-      "Processing a data Bundle." << std::endl;
+  LOG(LOG_OPPNET_FLOW) << "Processing a data Bundle." << std::endl;
   if(checkDestination(*bundleContainer)){ //I am the destination of the bundle
-    LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "We are the destination node.";
-    bool deliveredAdnDiscarded =
-        deliverToApplicationIfAny(std::move(bundleContainer), true);
-    if (!deliveredAdnDiscarded) {
-      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX
-          << "No listening app, restoring the bundle.";
+    LOG(LOG_OPPNET_FLOW) << "We are the destination node.";
+    const std::vector<std::string>& applications = checkDispatch(*bundleContainer);
+    if(applications.size() > 0)
+    {
+      deliverToApplication(std::move(bundleContainer), applications, true);
+    }else{
+      LOG(LOG_OPPNET_FLOW) << "No listening app, restoring the bundle.";
       restore(std::move(bundleContainer));
     }
   }else { //I am not the destination
     if (checkLifetime(*bundleContainer)){ //bundle expired
       discard(std::move(bundleContainer));
-      LOG(LOG_OPPNET_FLOW) << LOG_OPPNET_FLOW_PREFIX << "Bundle: "
+      LOG(LOG_OPPNET_FLOW)   << "Bundle: "
               << bundleContainer->getBundle().getId() << " expired, discarding it.";
     }else{ //not expired
       const std::vector<std::string>& directDeliveryNeighbours =

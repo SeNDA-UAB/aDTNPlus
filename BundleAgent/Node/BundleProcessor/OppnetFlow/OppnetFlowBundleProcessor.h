@@ -47,7 +47,6 @@
 #define LOG_SEND_METRICS_THREAD 14
 #define LOG_LIFE_TIME 55
 #define LOG_OPPNET_FLOW 68
-#define LOG_OPPNET_FLOW_PREFIX "[OppnetFlowProcessor]"
 
 class MetadataExtensionBlock;
 
@@ -159,16 +158,17 @@ class OppnetFlowBundleProcessor : public BundleProcessor {
 
 
   /**
-   * Method that checks if there is an application listening as a destination
-   * of the bundle. If true the bundle is delivered to the application or
-   * applications listening.
+   * Method that delivers the bundle to the listening applications.
+   * This method, as it implies a move of the pointer of the bundleConatiner,
+   * has to be called only when there are applications listening.
    * @param bundleContainer the container containing the bundle to be delivered.
+   * @param applications the applications listening.
    * @param hasToBeDiscarded Once the bundle is delivered, by default,
    * it is not discarded.
    * If this parameter is set to false, the bundle won't be discarded.
-   * @return true if the bundle has been delivered false otherwise.
    */
-  bool deliverToApplicationIfAny(std::unique_ptr<BundleContainer> bundleContainer,
+  void deliverToApplication(std::unique_ptr<BundleContainer> bundleContainer,
+                        const std::vector<std::string> &applications,
                         bool hasToBeDiscarded = false);
 
  protected:
