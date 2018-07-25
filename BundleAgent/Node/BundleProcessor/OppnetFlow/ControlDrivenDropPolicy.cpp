@@ -56,6 +56,9 @@ bool ControlDrivenDropPolicy::operator()(const BundleInfo& bundle1,
         ((bundle1.getCreationTimestamp() < bundle2.getCreationTimestamp()) ?
             -1 : 1);
   }
+  LOG(68) << "comparing " << bundle1.getId() << " and " << bundle2.getId() << std::endl;
+  LOG(68) << bundle1.getId() << " score " << bundle1Score << std::endl;
+  LOG(68) << bundle2.getId() << " score " << bundle2Score << std::endl;
   return (bundle1Score < bundle2Score);
 }
 
