@@ -95,15 +95,6 @@ class SDONController {
       std::map<NetworkMetricsControlCode, value_t>& metrics);
 
   /**
-   * Method that receives a bundle with metrics information. The receive is a
-   * blocking function. Once a metric is received is processed.
-   * @return a map table with the collected metrics.
-   * @throws NetworkMetricsNotFoundException If the received bundle does not
-   * contain any metrics.
-   */
-  const std::map<NetworkMetricsControlCode, value_t> recvControlMetrics();
-
-  /**
    * Method that receives a bundle with metrics or directives information.
    * @param metrics a vector with all the maps with the network metrics received
    * during a window time.
