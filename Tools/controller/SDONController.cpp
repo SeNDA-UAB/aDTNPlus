@@ -96,26 +96,6 @@ void SDONController::printReceivedControlMetrics(
   }
 }
 
-const std::map<NetworkMetricsControlCode, value_t> SDONController::recvControlMetrics() {
-  std::map<NetworkMetricsControlCode, value_t> metricsMap;
-  std::string payload = m_socket_to_recv.recv();
-  //LOG(55) << "Controller: metrics received: " << payload << std::endl;
-  std::cout << "Controller: metrics received: " << payload << std::endl;
-  Bundle* bundle;
-  if ((bundle = m_socket_to_recv.getLastBundle()) != nullptr) {
-    //std::cout << "SDONController::recvControlMetrics::bundle received: " << bundle->toString() <<std::endl; //DEBUG
-    std::shared_ptr<ControlMetricsMEB> meb = std::static_pointer_cast<
-        ControlMetricsMEB>(
-        bundle->findMetadataExtensionBlock(MetadataTypes::CONTROL_METRICS_MEB));
-    if (meb != nullptr) {
-      metricsMap = meb->getFields();
-    } else {
-      throw NetworkMetricsNotFoundException();
-    }
-  }
-
-  return metricsMap;
-}
 
 void SDONController::recvControlData(
     std::vector<std::map<NetworkMetricsControlCode, value_t>> &metrics,
@@ -144,7 +124,7 @@ void SDONController::recvControlData(
         }
       }
   }catch(const adtnSocketTimeoutException &e) {
-
+    LOG(LOG_CONTROLLER) << "Recv timeout" ;
   }
 }
 
